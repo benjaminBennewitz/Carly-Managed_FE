@@ -1,0 +1,115 @@
+/* ==========================================================================
+   Datei: src/styles/settings/_design-tokens.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert globale semantische Tokens außerhalb der Farbthemen.
+
+   Inhaltsverzeichnis:
+   1. Typografie
+   2. Abstände
+   3. Größen
+   4. Radien
+   5. Rahmen
+   6. Schatten
+   7. Fokus
+   8. Bewegung
+   9. Ebenen
+   10. Layout
+   ========================================================================== */
+
+:root {
+  --font-family-sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-display: var(--font-family-sans);
+  --font-family-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --font-size-100: 0.75rem;
+  --font-size-200: 0.8125rem;
+  --font-size-300: 0.875rem;
+  --font-size-400: 1rem;
+  --font-size-500: 1.125rem;
+  --font-size-600: 1.25rem;
+  --font-size-700: 1.5rem;
+  --font-size-800: clamp(1.75rem, 1.5rem + 1vw, 2.25rem);
+  --font-size-900: clamp(2rem, 1.65rem + 1.8vw, 3rem);
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.15;
+  --line-height-heading: 1.25;
+  --line-height-body: 1.55;
+  --line-height-relaxed: 1.7;
+
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.04em;
+  --letter-spacing-label: 0.08em;
+
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  --size-control-sm: 2rem;
+  --size-control-md: 2.5rem;
+  --size-control-lg: 3rem;
+  --size-icon-sm: 1rem;
+  --size-icon-md: 1.25rem;
+  --size-icon-lg: 1.5rem;
+  --size-click-target: 2.75rem;
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-round: 999rem;
+
+  --border-width-subtle: 0.0625rem;
+  --border-width-strong: 0.125rem;
+
+  --shadow-xs: 0 0.0625rem 0.125rem rgb(20 16 25 / 0.06);
+  --shadow-sm: 0 0.25rem 0.75rem rgb(20 16 25 / 0.08);
+  --shadow-md: 0 0.75rem 2rem rgb(20 16 25 / 0.12);
+  --shadow-lg: 0 1.5rem 4rem rgb(20 16 25 / 0.16);
+
+  --focus-ring-width: 0.125rem;
+  --focus-ring-offset: 0.1875rem;
+
+  --motion-duration-instant: 0ms;
+  --motion-duration-fast: 120ms;
+  --motion-duration-normal: 180ms;
+  --motion-duration-slow: 280ms;
+  --motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-easing-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --z-index-base: 0;
+  --z-index-raised: 10;
+  --z-index-sticky: 100;
+  --z-index-dropdown: 300;
+  --z-index-overlay: 500;
+  --z-index-dialog: 700;
+  --z-index-toast: 900;
+  --z-index-tooltip: 1000;
+
+  --layout-content-max: 90rem;
+  --layout-reading-max: 45rem;
+  --layout-sidebar-width: 16rem;
+  --layout-page-gutter: clamp(1rem, 0.5rem + 2vw, 2rem);
+}
+
+:root[data-font-size='large'] {
+  font-size: 112.5%;
+}

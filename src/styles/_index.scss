@@ -1,0 +1,19 @@
+/* ==========================================================================
+   Datei: src/styles/_index.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Bündelt die globalen Designsystem-Dateien.
+
+   Inhaltsverzeichnis:
+   1. Design-Tokens
+   2. Farbthemen
+   3. Reset
+   4. Globale Basis
+   5. Barrierefreiheit
+   ========================================================================== */
+
+@use 'settings/design-tokens';
+@use 'settings/themes';
+@use 'base/reset';
+@use 'base/global';
+@use 'base/accessibility';

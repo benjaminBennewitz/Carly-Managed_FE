@@ -1,1 +1,11 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================================================
+   Datei: src/styles.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Globaler Einstiegspunkt für das SCSS-Designsystem.
+
+   Inhaltsverzeichnis:
+   1. Designsystem
+   ========================================================================== */
+
+@use 'styles/index';

@@ -1,0 +1,63 @@
+/* ==========================================================================
+   Datei: src/styles/base/_global.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert die globale visuelle Basis der Anwendung.
+
+   Inhaltsverzeichnis:
+   1. Dokument
+   2. Typografie
+   3. Interaktion
+   4. Auswahl
+   ========================================================================== */
+
+html {
+  background: var(--color-page-background);
+}
+
+body {
+  background: var(--color-page-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-400);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-text-primary);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-tight);
+  text-wrap: balance;
+}
+
+p {
+  color: var(--color-text-secondary);
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--color-action-primary);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
+}
+
+button {
+  min-width: var(--size-click-target);
+  min-height: var(--size-click-target);
+}
+
+::selection {
+  background: var(--color-selection-background);
+  color: var(--color-selection-text);
+}

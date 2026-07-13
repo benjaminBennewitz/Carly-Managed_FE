@@ -1,0 +1,123 @@
+/* ==========================================================================
+   Datei: src/styles/settings/_themes.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert die semantischen Farb-Tokens für Light- und Dark-Mode.
+
+   Inhaltsverzeichnis:
+   1. Default Light
+   2. Default Dark
+   3. Abgeleitete Statusflächen
+   ========================================================================== */
+
+:root,
+:root[data-theme='default'][data-mode='light'] {
+  color-scheme: light;
+
+  --color-page-background: #f7f4fa;
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #f0eaf6;
+  --color-surface-elevated: #fbf9fd;
+  --color-surface-hover: #eee7f7;
+  --color-surface-active: #e5daef;
+  --color-surface-disabled: #f2eef5;
+
+  --color-text-primary: #241b2e;
+  --color-text-secondary: #665b70;
+  --color-text-muted: #756a7e;
+  --color-text-disabled: #8a8093;
+  --color-text-inverse: #ffffff;
+
+  --color-border-subtle: #ded4e7;
+  --color-border-strong: #c5b5d2;
+
+  --color-action-primary: #7752b3;
+  --color-action-primary-hover: #64439d;
+  --color-action-primary-active: #553584;
+  --color-action-primary-text: #ffffff;
+  --color-action-secondary: #eee7f7;
+  --color-action-secondary-hover: #e3d7ef;
+  --color-action-secondary-active: #d8c8e7;
+  --color-action-secondary-text: #4c356c;
+  --color-action-disabled: #d9d0e1;
+  --color-action-disabled-text: #756a7e;
+
+  --color-accent: #d5a646;
+  --color-accent-subtle: #f1d99b;
+  --color-brand-soft: #c7b0e7;
+  --color-brand-subtle: #eee7f7;
+
+  --color-focus: #7a5bc2;
+  --color-success: #4f9572;
+  --color-warning: #c58939;
+  --color-danger: #b9546a;
+  --color-error: var(--color-danger);
+  --color-info: #4e82a8;
+
+  --color-icon-primary: #3a2c46;
+  --color-icon-secondary: #665b70;
+  --color-icon-muted: #8a8093;
+
+  --color-selection-background: #c7b0e7;
+  --color-selection-text: #241b2e;
+  --color-backdrop: rgb(36 27 46 / 0.48);
+}
+
+:root[data-theme='default'][data-mode='dark'] {
+  color-scheme: dark;
+
+  --color-page-background: #141019;
+  --color-surface-primary: #1d1724;
+  --color-surface-secondary: #292031;
+  --color-surface-elevated: #34283e;
+  --color-surface-hover: #31223f;
+  --color-surface-active: #3c2e49;
+  --color-surface-disabled: #241c2c;
+
+  --color-text-primary: #f7f2fa;
+  --color-text-secondary: #c7bbcf;
+  --color-text-muted: #91849b;
+  --color-text-disabled: #756a7e;
+  --color-text-inverse: #141019;
+
+  --color-border-subtle: #493a54;
+  --color-border-strong: #685673;
+
+  --color-action-primary: #a987de;
+  --color-action-primary-hover: #b99ae8;
+  --color-action-primary-active: #c8adf0;
+  --color-action-primary-text: #141019;
+  --color-action-secondary: #31223f;
+  --color-action-secondary-hover: #3b2b48;
+  --color-action-secondary-active: #473455;
+  --color-action-secondary-text: #f7f2fa;
+  --color-action-disabled: #3e3446;
+  --color-action-disabled-text: #91849b;
+
+  --color-accent: #e4be66;
+  --color-accent-subtle: #f2d993;
+  --color-brand-soft: #7d64a1;
+  --color-brand-subtle: #31223f;
+
+  --color-focus: #b79ae6;
+  --color-success: #71b28d;
+  --color-warning: #d9a659;
+  --color-danger: #d06d82;
+  --color-error: var(--color-danger);
+  --color-info: #72a5c7;
+
+  --color-icon-primary: #f7f2fa;
+  --color-icon-secondary: #c7bbcf;
+  --color-icon-muted: #91849b;
+
+  --color-selection-background: #7d64a1;
+  --color-selection-text: #f7f2fa;
+  --color-backdrop: rgb(8 6 10 / 0.72);
+}
+
+:root {
+  --color-success-surface: color-mix(in srgb, var(--color-success) 14%, var(--color-surface-primary));
+  --color-warning-surface: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface-primary));
+  --color-danger-surface: color-mix(in srgb, var(--color-danger) 14%, var(--color-surface-primary));
+  --color-info-surface: color-mix(in srgb, var(--color-info) 14%, var(--color-surface-primary));
+}
