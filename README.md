@@ -1,42 +1,142 @@
 <p align="center">
-  <img src="./public/assets/img/carly-logo.webp" alt="Carly Managed Logo mit der stilisierten Katze Carly" width="180">
+  <img src="./public/assets/img/readme/hero.svg" alt="Carly Managed – kollaboratives Task- und Projektmanagement">
 </p>
-
-<h1 align="center">Carly Managed</h1>
 
 <p align="center">
-  Kollaboratives Task- und Projektmanagement mit ruhiger Business-UI und einer dezenten, motivierenden Carly-Ebene.
+  <a href="https://github.com/benjaminBennewitz/Carly-Managed_BE">
+    <img src="./public/assets/img/readme/backend-repository.svg" alt="Backend-Repository von Carly Managed öffnen" width="520">
+  </a>
 </p>
 
-## Projektstatus
+## Eine Business-App mit einer freundlichen Fassade
 
-Carly Managed befindet sich im strukturierten Neuaufbau. Die Anwendung wird auf einer modernen Angular-Basis entwickelt. Bewährte Fachlogik aus einem bestehenden Task-Management-System wird schrittweise übernommen, technisch bereinigt und an das neue Designsystem angepasst.
+**Carly Managed** ist eine responsive Web-App für kollaboratives Task- und Projektmanagement. Sie richtet sich an Freelancer, Creator, junge Selbstständige und kleine Teams, die gemeinsam an übersichtlichen Boards arbeiten möchten.
 
-Der aktuelle Stand umfasst:
+Im Mittelpunkt stehen klare Arbeitsabläufe. Die optionale Figur Carly ergänzt das Produkt um Motivation, kleine Reaktionen und gemeinsame Erfolge, ohne das eigentliche Task-Management einzuschränken.
 
-- Angular 21.2.19
-- Standalone Components
-- SCSS
-- Vitest
-- zoneless Angular
-- semantische Design-Tokens
-- getrennten Light- und Dark-Mode
-- vorbereitete Asset-Struktur
-- CRLF als einheitliche Zeilenendung
+<table>
+  <tr>
+    <td width="50%">
+      <img src="./public/assets/img/readme/kpi-navigation.svg" alt="Sechs Kernbereiche">
+    </td>
+    <td width="50%">
+      <img src="./public/assets/img/readme/kpi-views.svg" alt="Zwei Board-Ansichten">
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="./public/assets/img/readme/kpi-realtime.svg" alt="Live-Zusammenarbeit">
+    </td>
+    <td width="50%">
+      <img src="./public/assets/img/readme/kpi-carly.svg" alt="Optionales Carly-Modul">
+    </td>
+  </tr>
+</table>
 
-## Technischer Stack
+## Funktionsumfang
+
+### Boards und Aufgaben
+
+Gemeinsam nutzbare Boards bilden den Kern der Anwendung. Aufgaben lassen sich in einer Kanban- oder Listenansicht organisieren und erhalten alle Informationen, die für einen schnellen Arbeitsablauf notwendig sind.
+
+Geplant sind unter anderem:
+
+- persönliche und gemeinsam nutzbare Boards
+- frei organisierbare Board-Spalten
+- Kanban- und Listenansicht
+- Drag-and-drop
+- Titel, Beschreibung und Unteraufgaben
+- Verantwortliche Personen
+- Fälligkeiten, Prioritäten und Labels
+- Kommentare, Erwähnungen und Anhänge
+- Suche, Filter und Sortierung
+- wiederkehrende Aufgaben
+- regelbasierte Automatisierungen
+- Archivierung und Wiederherstellung
+
+### Zusammenarbeit in Echtzeit
+
+Carly Managed soll nicht nur Daten synchronisieren, sondern gemeinsame Arbeit sichtbar machen.
+
+Dazu gehören:
+
+- Online-Präsenz auf einem Board
+- Live-Mauszeiger eingeladener Personen
+- sichtbare Task-Aktivitäten
+- Bearbeitungshinweise
+- kontrollierte gleichzeitige Änderungen
+- Versionsprüfung gegen unbemerktes Überschreiben
+- sofortige Aktualisierung verschobener und bearbeiteter Tasks
+
+Dauerhafte Daten werden über eine REST-API verwaltet. Flüchtige Informationen wie Präsenz, Cursor und Live-Aktivitäten laufen ausschließlich über WebSockets.
+
+### Inbox und Pool
+
+Die Inbox sammelt Hinweise, Erwähnungen, Einladungen und relevante Board-Aktivitäten. Im Pool können Aufgaben bereitgestellt werden, die noch keiner bestimmten Person zugewiesen sind.
+
+### Einladungen und Rollen
+
+Boards können gezielt mit anderen Personen geteilt werden. Einladungen werden per sicherem Link oder E-Mail versendet und erhalten einen klaren Gültigkeitszeitraum.
+
+Mitgliedschaften und Rollen steuern, wer ein Board ansehen, bearbeiten oder verwalten darf.
+
+### Carly
+
+Carly ist eine stilisierte magische Katze und ein vollständig optionales Motivationsmodul.
+
+<p align="center">
+  <img src="./public/assets/img/carly.webp" alt="Carly, die stilisierte magische Katze" width="280">
+</p>
+
+Carly kann auf abgeschlossene Aufgaben, Inaktivität, überfällige Tasks und gemeinsame Erfolge reagieren. Im eigenen Carly-Bereich sind später Stimmung, Zuneigung, Streaks, Trophäen, Statistiken, Anpassungen und Entwicklungsstufen vorgesehen.
+
+Optional kann Carly kleine Aufgaben wie Pausen oder kurze Interaktionen vorschlagen. Diese Aufgaben dürfen reguläre Arbeit weder blockieren noch künstlich verdrängen. Tageslimits, Cooldowns und serverseitige Prüfungen verhindern Task-Spam.
+
+Spätere kooperative Aktionen können bewusst an die gleichzeitige Anwesenheit mehrerer Personen gekoppelt werden.
+
+## Hauptnavigation
+
+| Bereich | Aufgabe |
+|---|---|
+| Dashboard | Persönlicher Überblick, anstehende Aufgaben und kompakte Kennzahlen |
+| Board | Kanban- und Listenansicht für Aufgaben und Projekte |
+| Inbox | Einladungen, Erwähnungen und relevante Aktivitäten |
+| Pool | Noch nicht fest zugewiesene Aufgaben |
+| Carly | Optionaler Motivations- und Fortschrittsbereich |
+| Einstellungen | Profil, Darstellung, Barrierefreiheit und App-Verhalten |
+
+## Barrierefreiheit
+
+Barrierefreiheit ist Bestandteil der Produktarchitektur und keine spätere Ergänzung.
+
+Vorgesehen sind:
+
+- vollständige Tastaturbedienung
+- sichtbare Fokuszustände
+- verständliche ARIA-Beschriftungen
+- ausreichende Farbkontraste
+- klar erkennbare Fehlerzustände
+- ausreichend große Klickflächen
+- reduzierte Animationen
+- optional stärkerer Kontrast
+- optional größere Schrift
+
+## Technische Architektur
 
 ### Frontend
 
 - Angular 21.2.19
+- Standalone Components
 - TypeScript
 - SCSS
-- Angular CDK
 - Signals
+- Angular CDK
 - Vitest
-- REST und WebSockets
+- zoneless Angular
+- Lazy Loading
+- lokale Material Symbols
 
-### Geplantes Backend
+### Backend
 
 - Django
 - Django REST Framework
@@ -44,204 +144,29 @@ Der aktuelle Stand umfasst:
 - Django Channels
 - Redis
 - Daphne
+- Celery für zeitgesteuerte Prozesse und Automatisierungen
 
-## Designprinzipien
+[Backend-Repository öffnen](https://github.com/benjaminBennewitz/Carly-Managed_BE)
 
-Carly Managed verbindet eine funktionale Business-Oberfläche mit wenigen sympathischen und leicht mystischen Akzenten.
+## Projektstatus
 
-Die Gestaltung folgt diesen Grundsätzen:
+Das Projekt wird bewusst schrittweise neu aufgebaut. Bewährte Logik aus einer bestehenden Task-Management-Anwendung dient als fachliche Referenz, wird aber nicht unverändert übernommen.
 
-- Produktivität und Übersicht stehen im Vordergrund.
-- Carly bleibt auf normalen Business-Routen dezent.
-- Light- und Dark-Mode sind vom gewählten Farbthema getrennt.
-- Komponenten verwenden ausschließlich semantische Design-Tokens.
-- Animationen respektieren `prefers-reduced-motion`.
-- Fokuszustände, Kontraste und Tastaturbedienung werden von Anfang an berücksichtigt.
-- Weitere Farbwelten können ergänzt werden, ohne Komponenten neu zu gestalten.
+Aktuell vorhanden:
 
-## Default Light
-
-| Verwendung | Token | Farbe |
-|---|---|---|
-| Seitenhintergrund | `--color-page-background` | `#F7F4FA` |
-| Primäre Oberfläche | `--color-surface-primary` | `#FFFFFF` |
-| Sekundäre Oberfläche | `--color-surface-secondary` | `#F0EAF6` |
-| Erhöhte Oberfläche | `--color-surface-elevated` | `#FBF9FD` |
-| Hover-Oberfläche | `--color-surface-hover` | `#EEE7F7` |
-| Aktive Oberfläche | `--color-surface-active` | `#E5DAEF` |
-| Primärer Text | `--color-text-primary` | `#241B2E` |
-| Sekundärer Text | `--color-text-secondary` | `#665B70` |
-| Dezenter Text | `--color-text-muted` | `#756A7E` |
-| Deaktivierter Text | `--color-text-disabled` | `#8A8093` |
-| Primäre Markenfarbe | `--color-action-primary` | `#7752B3` |
-| Primäre Hoverfarbe | `--color-action-primary-hover` | `#64439D` |
-| Primäre aktive Farbe | `--color-action-primary-active` | `#553584` |
-| Helles Flieder | `--color-brand-soft` | `#C7B0E7` |
-| Sehr helles Flieder | `--color-brand-subtle` | `#EEE7F7` |
-| Komplementärfarbe | `--color-accent` | `#D5A646` |
-| Helles Gold | `--color-accent-subtle` | `#F1D99B` |
-| Dezenter Rahmen | `--color-border-subtle` | `#DED4E7` |
-| Starker Rahmen | `--color-border-strong` | `#C5B5D2` |
-| Fokusfarbe | `--color-focus` | `#7A5BC2` |
-| Erfolg | `--color-success` | `#4F9572` |
-| Warnung | `--color-warning` | `#C58939` |
-| Fehler | `--color-danger` | `#B9546A` |
-| Information | `--color-info` | `#4E82A8` |
-
-## Default Dark
-
-| Verwendung | Token | Farbe |
-|---|---|---|
-| Seitenhintergrund | `--color-page-background` | `#141019` |
-| Primäre Oberfläche | `--color-surface-primary` | `#1D1724` |
-| Sekundäre Oberfläche | `--color-surface-secondary` | `#292031` |
-| Erhöhte Oberfläche | `--color-surface-elevated` | `#34283E` |
-| Hover-Oberfläche | `--color-surface-hover` | `#31223F` |
-| Aktive Oberfläche | `--color-surface-active` | `#3C2E49` |
-| Primärer Text | `--color-text-primary` | `#F7F2FA` |
-| Sekundärer Text | `--color-text-secondary` | `#C7BBCF` |
-| Dezenter Text | `--color-text-muted` | `#91849B` |
-| Deaktivierter Text | `--color-text-disabled` | `#756A7E` |
-| Primäre Markenfarbe | `--color-action-primary` | `#A987DE` |
-| Primäre Hoverfarbe | `--color-action-primary-hover` | `#B99AE8` |
-| Primäre aktive Farbe | `--color-action-primary-active` | `#C8ADF0` |
-| Helles Flieder | `--color-brand-soft` | `#7D64A1` |
-| Dunkles Violett | `--color-brand-subtle` | `#31223F` |
-| Komplementärfarbe | `--color-accent` | `#E4BE66` |
-| Helles Gold | `--color-accent-subtle` | `#F2D993` |
-| Dezenter Rahmen | `--color-border-subtle` | `#493A54` |
-| Starker Rahmen | `--color-border-strong` | `#685673` |
-| Fokusfarbe | `--color-focus` | `#B79AE6` |
-| Erfolg | `--color-success` | `#71B28D` |
-| Warnung | `--color-warning` | `#D9A659` |
-| Fehler | `--color-danger` | `#D06D82` |
-| Information | `--color-info` | `#72A5C7` |
-
-## Semantische Farb-Tokens
-
-Komponenten dürfen keine festen Theme-Farben enthalten. Stattdessen werden die vorhandenen semantischen Variablen verwendet:
-
-```scss
-.component {
-  border: var(--border-width-subtle) solid var(--color-border-subtle);
-  background: var(--color-surface-primary);
-  color: var(--color-text-primary);
-}
-
-.component:hover {
-  background: var(--color-surface-hover);
-}
-```
-
-Wichtige Token-Gruppen:
-
-```text
---color-page-background
---color-surface-primary
---color-surface-secondary
---color-surface-elevated
---color-surface-hover
---color-surface-active
---color-surface-disabled
-
---color-text-primary
---color-text-secondary
---color-text-muted
---color-text-disabled
---color-text-inverse
-
---color-border-subtle
---color-border-strong
-
---color-action-primary
---color-action-primary-hover
---color-action-primary-active
---color-action-primary-text
---color-action-secondary
---color-action-secondary-hover
---color-action-secondary-active
---color-action-secondary-text
---color-action-disabled
---color-action-disabled-text
-
---color-accent
---color-accent-subtle
---color-brand-soft
---color-brand-subtle
-
---color-focus
---color-success
---color-warning
---color-danger
---color-info
-
---color-icon-primary
---color-icon-secondary
---color-icon-muted
-```
-
-## Theme-Steuerung
-
-Farbthema und Helligkeitsmodus werden getrennt am Root-Element gesetzt:
-
-```html
-<html lang="de" data-theme="default" data-mode="light">
-```
-
-Dark-Mode:
-
-```html
-<html lang="de" data-theme="default" data-mode="dark">
-```
-
-Spätere Themes können unabhängig vom Modus ergänzt werden:
-
-```html
-<html lang="de" data-theme="sky" data-mode="dark">
-```
-
-## Asset-Struktur
-
-Statische Dateien liegen im öffentlichen Angular-Verzeichnis:
-
-```text
-public/
-└── assets/
-    ├── fonts/
-    └── img/
-        └── carly-logo.webp
-```
-
-Verwendung in Angular-Templates:
-
-```html
-<img
-  src="/assets/img/carly-logo.webp"
-  alt="Carly"
-  width="180"
-  height="180"
->
-```
-
-Lokale Icon- und Schriftdateien werden später unter `public/assets/fonts/` abgelegt. Schriftdateien selbst werden nicht über externe CDNs eingebunden.
-
-## SCSS-Struktur
-
-```text
-src/
-├── styles.scss
-└── styles/
-    ├── _index.scss
-    ├── base/
-    │   ├── _accessibility.scss
-    │   ├── _global.scss
-    │   └── _reset.scss
-    └── settings/
-        ├── _design-tokens.scss
-        └── _themes.scss
-```
-
-Jede SCSS-Datei erhält den Carly-Managed-Projekt-Header mit Dateipfad, Version, Beschreibung und Inhaltsverzeichnis.
+- [x] Angular-21.2.19-Grundprojekt
+- [x] Standalone- und Routing-Konfiguration
+- [x] SCSS-Grundstruktur
+- [x] Light- und Dark-Farbgrundlage
+- [x] semantische Basistokens
+- [x] lokale Asset-Struktur
+- [ ] App-Shell und Hauptnavigation
+- [ ] Authentifizierung
+- [ ] Projekt- und Boardverwaltung
+- [ ] Task-Management
+- [ ] Realtime-Zusammenarbeit
+- [ ] Inbox und Pool
+- [ ] Carly-Modul
 
 ## Lokale Entwicklung
 
@@ -257,12 +182,6 @@ Entwicklungsserver starten:
 npm start
 ```
 
-Die Anwendung ist anschließend erreichbar unter:
-
-```text
-http://localhost:4200
-```
-
 Produktionsbuild prüfen:
 
 ```cmd
@@ -275,15 +194,11 @@ Tests einmalig ausführen:
 npm test -- --run
 ```
 
-## Git-Konvention
+Die lokale Anwendung ist standardmäßig unter `http://localhost:4200` erreichbar.
 
-Die Historie wird schrittweise aufgebaut. Infrastruktur, Designsystem und Features werden in getrennten Commits umgesetzt.
+## Repositories
 
-Beispiele:
-
-```text
-build(fe): initialize Angular 21 application
-chore: enforce CRLF line endings
-feat(ui): add design system foundation
-docs: add project and design system documentation
-```
+| Bereich | Repository |
+|---|---|
+| Frontend | Dieses Repository |
+| Backend | [Carly-Managed_BE](https://github.com/benjaminBennewitz/Carly-Managed_BE) |

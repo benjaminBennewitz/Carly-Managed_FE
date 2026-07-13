@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="380" viewBox="0 0 1200 380" role="img" aria-labelledby="title desc">
+  <title id="title">Carly Managed</title>
+  <desc id="desc">Kollaboratives Task- und Projektmanagement mit ruhiger Business-Oberfläche und dezenten mystischen Akzenten.</desc>
+
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#141019"/>
+      <stop offset="0.55" stop-color="#241A31"/>
+      <stop offset="1" stop-color="#31223F"/>
+    </linearGradient>
+
+    <linearGradient id="accentLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#A987DE"/>
+      <stop offset="1" stop-color="#E4BE66"/>
+    </linearGradient>
+
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="24"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="380" rx="32" fill="url(#background)"/>
+  <circle cx="1050" cy="55" r="110" fill="#A987DE" opacity="0.13" filter="url(#softGlow)"/>
+  <circle cx="120" cy="330" r="130" fill="#E4BE66" opacity="0.10" filter="url(#softGlow)"/>
+
+  <g fill="#F2D993">
+    <circle cx="88" cy="72" r="2"/>
+    <circle cx="1090" cy="112" r="2"/>
+    <circle cx="1126" cy="258" r="3"/>
+    <circle cx="936" cy="306" r="2"/>
+    <path d="M1024 170h12M1030 164v12" stroke="#F2D993" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(78 78)">
+    <circle cx="104" cy="104" r="92" fill="#A987DE" opacity="0.18"/>
+    <circle cx="104" cy="104" r="76" fill="#5A326C"/>
+    <path d="M58 69 69 20 91 59M150 69 139 20 117 59" fill="#F2D993"/>
+    <circle cx="79" cy="99" r="20" fill="#FFFFFF"/>
+    <circle cx="129" cy="99" r="20" fill="#FFFFFF"/>
+    <circle cx="84" cy="100" r="8" fill="#141019"/>
+    <circle cx="134" cy="100" r="8" fill="#141019"/>
+    <ellipse cx="104" cy="129" rx="10" ry="7" fill="#141019"/>
+    <path d="M44 126c15 43 42 58 60 58 31 0 52-17 65-50-19 16-39 22-65 22-24 0-43-9-60-30Z" fill="#3F2450" opacity="0.75"/>
+  </g>
+
+  <text x="300" y="145" fill="#F7F2FA" font-family="Inter, Segoe UI, sans-serif" font-size="62" font-weight="750" letter-spacing="-2">
+    Carly Managed
+  </text>
+  <rect x="303" y="171" width="475" height="4" rx="2" fill="url(#accentLine)"/>
+  <text x="303" y="222" fill="#C7BBCF" font-family="Inter, Segoe UI, sans-serif" font-size="25" font-weight="550">
+    Gemeinsam planen. Live zusammenarbeiten. Motiviert bleiben.
+  </text>
+  <text x="303" y="269" fill="#91849B" font-family="Inter, Segoe UI, sans-serif" font-size="19">
+    Eine moderne Business-Web-App für Boards, Aufgaben und kleine Projektteams.
+  </text>
+
+  <g transform="translate(303 304)">
+    <rect width="166" height="38" rx="19" fill="#A987DE" opacity="0.16"/>
+    <text x="83" y="25" fill="#D8C8EE" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="650" text-anchor="middle">
+      REALTIME BOARDS
+    </text>
+
+    <rect x="180" width="144" height="38" rx="19" fill="#72A5C7" opacity="0.16"/>
+    <text x="252" y="25" fill="#A9D1EA" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="650" text-anchor="middle">
+      TASK FLOW
+    </text>
+
+    <rect x="338" width="156" height="38" rx="19" fill="#E4BE66" opacity="0.15"/>
+    <text x="416" y="25" fill="#F2D993" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="650" text-anchor="middle">
+      CARLY OPT-IN
+    </text>
+  </g>
+</svg>

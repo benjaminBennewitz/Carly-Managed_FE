@@ -1,0 +1,60 @@
+Carly-Managed_FE/
+├── .angular/
+│   └── ...
+├── .vscode/
+│   └── ...
+├── Entwurf/
+│   ├── board.png
+│   └── carly-board.png
+├── node_modules/
+│   └── ...
+├── public/
+│   ├── assets/
+│   │   ├── fonts/
+│   │   │   └── .gitkeep
+│   │   └── img/
+│   │       ├── readme/
+│   │       │   ├── backend-repository.svg
+│   │       │   ├── hero.svg
+│   │       │   ├── kpi-carly.svg
+│   │       │   ├── kpi-navigation.svg
+│   │       │   ├── kpi-realtime.svg
+│   │       │   └── kpi-views.svg
+│   │       ├── carly.webp
+│   │       ├── carly-logo.webp
+│   │       └── carly-managed-logo.svg
+│   └── favicon.ico
+├── src/
+│   ├── app/
+│   │   ├── app.component.html
+│   │   ├── app.component.scss
+│   │   ├── app.component.spec.ts
+│   │   ├── app.component.ts
+│   │   ├── app.config.ts
+│   │   └── app.routes.ts
+│   ├── styles/
+│   │   ├── base/
+│   │   │   ├── _accessibility.scss
+│   │   │   ├── _global.scss
+│   │   │   └── _reset.scss
+│   │   ├── settings/
+│   │   │   ├── _design-tokens.scss
+│   │   │   └── _themes.scss
+│   │   └── _index.scss
+│   ├── index.html
+│   ├── main.ts
+│   └── styles.scss
+├── .editorconfig
+├── .gitattributes
+├── .gitignore
+├── .prettierrc
+├── angular.json
+├── make-tree.ps1
+├── package.json
+├── package-lock.json
+├── README.md
+├── tools.md
+├── tree.txt
+├── tsconfig.app.json
+├── tsconfig.json
+└── tsconfig.spec.json

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="170" viewBox="0 0 560 170" role="img" aria-labelledby="title desc">
+  <title id="title">Carly-Modul: OPT-IN</title>
+  <desc id="desc">Motivation und Teamaktionen bleiben vollständig optional</desc>
+  <rect x="1" y="1" width="558" height="168" rx="24" fill="#FBF9FD" stroke="#DED4E7" stroke-width="2"/>
+  <rect x="24" y="24" width="106" height="122" rx="20" fill="#D5A646" opacity="0.13"/>
+  <text x="77" y="96" fill="#D5A646" font-family="Inter, Segoe UI, sans-serif" font-size="27" font-weight="800" text-anchor="middle">
+    OPT-IN
+  </text>
+  <text x="156" y="68" fill="#241B2E" font-family="Inter, Segoe UI, sans-serif" font-size="24" font-weight="700">
+    Carly-Modul
+  </text>
+  <foreignObject x="156" y="84" width="370" height="62">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Inter, Segoe UI, sans-serif; font-size: 16px; line-height: 1.45; color: #665B70;">
+      Motivation und Teamaktionen bleiben vollständig optional
+    </div>
+  </foreignObject>
+</svg>
