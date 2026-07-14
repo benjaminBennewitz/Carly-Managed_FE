@@ -1,0 +1,210 @@
+/* ==========================================================================
+   Datei: src/app/core/layout/primary-navigation/primary-navigation.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert die primäre Desktop- und Mobilnavigation.
+
+   Inhaltsverzeichnis:
+   1. Sidebar
+   2. Navigation
+   3. Nutzerbereich
+   4. Mobile Navigation
+   ========================================================================== */
+
+:host {
+  display: contents;
+}
+
+.primary-navigation__sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: var(--z-index-sticky);
+  display: flex;
+  width: var(--layout-sidebar-width);
+  padding: var(--space-5);
+  flex-direction: column;
+  border-right: var(--border-width-subtle) solid var(--color-border-subtle);
+  background: var(--color-surface-primary);
+}
+
+.primary-navigation__brand {
+  display: block;
+  width: 12.5rem;
+  max-width: 100%;
+  border-radius: var(--radius-md);
+}
+
+.primary-navigation__brand img {
+  width: 100%;
+  height: auto;
+}
+
+.primary-navigation__links {
+  display: grid;
+  margin-top: var(--space-8);
+  gap: var(--space-2);
+}
+
+.primary-navigation__link {
+  display: flex;
+  min-height: var(--size-click-target);
+  padding: var(--space-2) var(--space-3);
+  align-items: center;
+  gap: var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-300);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.primary-navigation__link:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.primary-navigation__link--active {
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+}
+
+.primary-navigation__icon {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+}
+
+.primary-navigation__icon::before {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-bold);
+}
+
+.primary-navigation__icon[data-icon='dashboard']::before {
+  content: '01';
+}
+
+.primary-navigation__icon[data-icon='board']::before {
+  content: '02';
+}
+
+.primary-navigation__icon[data-icon='inbox']::before {
+  content: '03';
+}
+
+.primary-navigation__icon[data-icon='pool']::before {
+  content: '04';
+}
+
+.primary-navigation__icon[data-icon='carly']::before {
+  content: '05';
+}
+
+.primary-navigation__icon[data-icon='settings']::before {
+  content: '06';
+}
+
+.primary-navigation__footer {
+  display: grid;
+  margin-top: auto;
+  gap: var(--space-4);
+}
+
+.primary-navigation__profile {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.primary-navigation__avatar {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.primary-navigation__profile > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+
+.primary-navigation__profile strong,
+.primary-navigation__profile small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primary-navigation__profile strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-300);
+}
+
+.primary-navigation__profile small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+}
+
+.primary-navigation__logout {
+  min-height: var(--size-control-md);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-300);
+}
+
+.primary-navigation__logout:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.primary-navigation__mobile {
+  display: none;
+}
+
+@media (max-width: 56rem) {
+  .primary-navigation__sidebar {
+    display: none;
+  }
+
+  .primary-navigation__mobile {
+    position: fixed;
+    right: var(--space-3);
+    bottom: var(--space-3);
+    left: var(--space-3);
+    z-index: var(--z-index-sticky);
+    display: grid;
+    min-height: 4.5rem;
+    padding: var(--space-2);
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-1);
+    border: var(--border-width-subtle) solid var(--color-border-subtle);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface-elevated);
+    box-shadow: var(--shadow-md);
+  }
+
+  .primary-navigation__mobile-link {
+    display: grid;
+    padding: var(--space-2);
+    place-items: center;
+    gap: var(--space-1);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    font-size: 0.65rem;
+    text-decoration: none;
+  }
+
+  .primary-navigation__mobile-link--active {
+    background: var(--color-brand-subtle);
+    color: var(--color-action-primary);
+  }
+}

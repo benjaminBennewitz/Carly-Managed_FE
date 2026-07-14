@@ -1,0 +1,150 @@
+/* ==========================================================================
+   Datei: src/app/features/dashboard/pages/dashboard-page/dashboard-page.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert die erste statische Dashboard-Vorschau.
+
+   Inhaltsverzeichnis:
+   1. Seite
+   2. KPI-Pills
+   3. Inhaltsraster
+   4. Carly-Bereich
+   ========================================================================== */
+
+.dashboard-page {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.dashboard-page__kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.dashboard-page__kpis article {
+  display: grid;
+  min-height: 7rem;
+  padding: var(--space-4);
+  gap: var(--space-1);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-primary);
+}
+
+.dashboard-page__kpis span {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.dashboard-page__kpis strong {
+  color: var(--color-action-primary);
+  font-size: var(--font-size-600);
+}
+
+.dashboard-page__kpis p {
+  font-size: var(--font-size-200);
+}
+
+.dashboard-page__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.6fr);
+  gap: var(--space-5);
+}
+
+.dashboard-page__panel,
+.dashboard-page__carly {
+  min-height: 23rem;
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-primary);
+}
+
+.dashboard-page__panel {
+  display: grid;
+  padding: var(--space-6);
+  grid-template-rows: auto 1fr;
+}
+
+.dashboard-page__panel header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.dashboard-page__panel header span,
+.dashboard-page__carly span {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.dashboard-page__panel button {
+  min-height: var(--size-control-sm);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-disabled);
+}
+
+.dashboard-page__empty {
+  display: grid;
+  max-width: 24rem;
+  margin: auto;
+  place-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.dashboard-page__empty strong {
+  color: var(--color-text-primary);
+}
+
+.dashboard-page__carly {
+  position: relative;
+  display: flex;
+  padding: var(--space-6);
+  overflow: hidden;
+  align-items: flex-end;
+  background:
+    radial-gradient(circle at 80% 20%, rgb(228 190 102 / 0.15), transparent 14rem),
+    var(--color-brand-subtle);
+}
+
+.dashboard-page__carly img {
+  position: absolute;
+  right: -4rem;
+  bottom: -5rem;
+  width: 18rem;
+  height: auto;
+  opacity: 0.35;
+}
+
+.dashboard-page__carly div {
+  position: relative;
+  z-index: var(--z-index-raised);
+  display: grid;
+  max-width: 18rem;
+  gap: var(--space-2);
+}
+
+@media (max-width: 68rem) {
+  .dashboard-page__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-page__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 36rem) {
+  .dashboard-page__kpis {
+    grid-template-columns: 1fr;
+  }
+}

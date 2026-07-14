@@ -1,0 +1,14 @@
+/* ==========================================================================
+   Datei: src/app/app.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert ausschließlich die Root-Darstellung der Anwendung.
+
+   Inhaltsverzeichnis:
+   1. Root
+   ========================================================================== */
+
+:host {
+  display: block;
+  min-height: 100dvh;
+}

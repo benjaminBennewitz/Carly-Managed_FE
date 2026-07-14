@@ -1,0 +1,22 @@
+<!-- src/app/core/layout/app-shell/app-shell.component.html -->
+
+<a class="skip-link" href="#main-content">Zum Hauptinhalt springen</a>
+
+<div class="app-shell">
+  <cm-primary-navigation />
+
+  <div class="app-shell__workspace">
+    <header class="app-shell__topbar">
+      <p class="app-shell__presence"><span aria-hidden="true"></span> Lokale Vorschau aktiv</p>
+
+      <div class="app-shell__topbar-actions">
+        <button type="button" aria-label="Suche öffnen">Suchen</button>
+        <button type="button" aria-label="Neue Aufgabe erstellen">+ Aufgabe</button>
+      </div>
+    </header>
+
+    <main id="main-content" class="app-shell__main" tabindex="-1">
+      <router-outlet />
+    </main>
+  </div>
+</div>

@@ -1,0 +1,62 @@
+<!-- src/app/features/dashboard/pages/dashboard-page/dashboard-page.component.html -->
+
+<section class="dashboard-page">
+  <cm-page-header
+    eyebrow="Dein Arbeitsbereich"
+    title="Guten Tag. Was steht heute an?"
+    description="Die App-Shell steht. Echte Projekte, Aufgaben und Live-Daten folgen schrittweise."
+  />
+
+  <div class="dashboard-page__kpis" aria-label="Vorschau der Kennzahlen">
+    <article>
+      <span>Heute</span>
+      <strong>04</strong>
+      <p>Aufgaben im Fokus</p>
+    </article>
+    <article>
+      <span>Boards</span>
+      <strong>02</strong>
+      <p>Aktive Arbeitsbereiche</p>
+    </article>
+    <article>
+      <span>Team</span>
+      <strong>LIVE</strong>
+      <p>Präsenz wird vorbereitet</p>
+    </article>
+    <article>
+      <span>Carly</span>
+      <strong>OPT-IN</strong>
+      <p>Motivation bleibt optional</p>
+    </article>
+  </div>
+
+  <div class="dashboard-page__grid">
+    <article class="dashboard-page__panel">
+      <header>
+        <div>
+          <span>Heute</span>
+          <h2>Nächste Aufgaben</h2>
+        </div>
+        <button type="button" disabled>Alle anzeigen</button>
+      </header>
+      <div class="dashboard-page__empty">
+        <strong>Noch keine Aufgaben verbunden</strong>
+        <p>Die Task-Domäne wird in einem eigenen Feature-Commit ergänzt.</p>
+      </div>
+    </article>
+
+    <aside class="dashboard-page__carly">
+      <img
+        src="/assets/img/carly.webp"
+        alt="Carly wartet am unteren Rand"
+        width="360"
+        height="360"
+      />
+      <div>
+        <span>Carly Status</span>
+        <h2>Noch ganz entspannt.</h2>
+        <p>Später reagiert Carly dezent auf Fortschritt, Pausen und gemeinsame Erfolge.</p>
+      </div>
+    </aside>
+  </div>
+</section>

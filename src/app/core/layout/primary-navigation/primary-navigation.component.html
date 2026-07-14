@@ -1,0 +1,51 @@
+<!-- src/app/core/layout/primary-navigation/primary-navigation.component.html -->
+
+<aside class="primary-navigation__sidebar">
+  <a class="primary-navigation__brand" routerLink="/dashboard" aria-label="Carly Managed Dashboard">
+    <img src="/assets/img/carly-managed-logo.svg" alt="" width="720" height="180" />
+  </a>
+
+  <nav class="primary-navigation__links" aria-label="Hauptnavigation">
+    @for (item of navigation; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="primary-navigation__link--active"
+        class="primary-navigation__link"
+      >
+        <span
+          class="primary-navigation__icon"
+          aria-hidden="true"
+          [attr.data-icon]="item.icon"
+        ></span>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+
+  <div class="primary-navigation__footer">
+    <div class="primary-navigation__profile">
+      <span class="primary-navigation__avatar" aria-hidden="true">
+        {{ sessionService.currentUser()?.displayName?.charAt(0) || 'C' }}
+      </span>
+      <span>
+        <strong>{{ sessionService.currentUser()?.displayName }}</strong>
+        <small>{{ sessionService.currentUser()?.email }}</small>
+      </span>
+    </div>
+
+    <button class="primary-navigation__logout" type="button" (click)="logout()">Abmelden</button>
+  </div>
+</aside>
+
+<nav class="primary-navigation__mobile" aria-label="Mobile Hauptnavigation">
+  @for (item of navigation.slice(0, 5); track item.route) {
+    <a
+      [routerLink]="item.route"
+      routerLinkActive="primary-navigation__mobile-link--active"
+      class="primary-navigation__mobile-link"
+    >
+      <span class="primary-navigation__icon" aria-hidden="true" [attr.data-icon]="item.icon"></span>
+      <span>{{ item.label }}</span>
+    </a>
+  }
+</nav>

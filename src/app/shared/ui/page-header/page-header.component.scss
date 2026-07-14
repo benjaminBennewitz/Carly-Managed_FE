@@ -1,0 +1,33 @@
+/* ==========================================================================
+   Datei: src/app/shared/ui/page-header/page-header.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert eine einheitliche Überschrift für App-Seiten.
+
+   Inhaltsverzeichnis:
+   1. Kopfbereich
+   ========================================================================== */
+
+.page-header {
+  display: grid;
+  max-width: 52rem;
+  gap: var(--space-3);
+}
+
+.page-header p {
+  color: var(--color-action-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.page-header h1 {
+  font-size: var(--font-size-800);
+}
+
+.page-header span {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-500);
+}
