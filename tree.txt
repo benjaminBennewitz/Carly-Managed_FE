@@ -146,7 +146,10 @@ Carly-Managed_FE/
 │   │   │   ├── _reset.scss
 │   │   │   └── _view-transitions.scss
 │   │   ├── components/
-│   │   │   └── _auth-legal.scss
+│   │   │   ├── _auth-legal.scss
+│   │   │   ├── _legal-imprint.scss
+│   │   │   ├── _legal-layout.scss
+│   │   │   └── _legal-privacy.scss
 │   │   ├── settings/
 │   │   │   ├── _design-tokens.scss
 │   │   │   └── _themes.scss

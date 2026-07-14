@@ -1,61 +1,52 @@
 <!-- src/app/features/legal/pages/privacy-page/privacy-page.component.html -->
 
 <cm-legal-layout>
-  <article class="privacy-workspace" aria-labelledby="privacy-title">
-    <header class="privacy-workspace__hero">
-      <div class="privacy-workspace__intro">
-        <p class="privacy-workspace__eyebrow">Privacy / Transparent by design</p>
-        <h1 class="legal-document__title" id="privacy-title">Datenschutz</h1>
-        <p>
-          Welche Daten {{ provider.appName }} verarbeitet, warum sie benötigt werden und welche
-          Rechte betroffene Personen haben.
-        </p>
-        <span>Stand: 14. Juli 2026</span>
-      </div>
-
-      <div class="privacy-workspace__signals" aria-label="Datenschutz auf einen Blick">
-        <div>
-          <span class="material-symbols-outlined" aria-hidden="true">visibility_off</span>
-          <strong>Ohne Werbetracking</strong>
-        </div>
-        <div>
-          <span class="material-symbols-outlined" aria-hidden="true">lock</span>
-          <strong>Geschützte Anmeldung</strong>
-        </div>
-        <div>
-          <span class="material-symbols-outlined" aria-hidden="true">sync</span>
-          <strong>Flüchtige Realtime-Daten</strong>
-        </div>
-      </div>
-    </header>
-
-    <nav class="privacy-workspace__index" aria-label="Abschnitte der Datenschutzerklärung">
-      <a href="#privacy-responsible"><span>01</span> Verantwortlicher</a>
-      <a href="#privacy-server"><span>02</span> Server</a>
-      <a href="#privacy-account"><span>03</span> Benutzerkonto</a>
-      <a href="#privacy-email"><span>04</span> E-Mail</a>
-      <a href="#privacy-boards"><span>05</span> Boards</a>
-      <a href="#privacy-realtime"><span>06</span> Realtime</a>
-      <a href="#privacy-files"><span>07</span> Anhänge</a>
-      <a href="#privacy-carly"><span>08</span> Carly</a>
-      <a href="#privacy-cookies"><span>09</span> Cookies</a>
-      <a href="#privacy-recipients"><span>10</span> Empfänger</a>
-      <a href="#privacy-third-countries"><span>11</span> Drittländer</a>
-      <a href="#privacy-retention"><span>12</span> Speicherdauer</a>
-      <a href="#privacy-rights"><span>13</span> Rechte</a>
-      <a href="#privacy-decisions"><span>14</span> Entscheidungen</a>
-      <a href="#privacy-security"><span>15</span> Sicherheit</a>
-      <a href="#privacy-changes"><span>16</span> Änderungen</a>
-    </nav>
-
+  <article class="privacy-deck" aria-labelledby="privacy-title">
     <div
-      class="privacy-workspace__scroll"
+      #privacyTrack
+      class="privacy-deck__track"
       tabindex="0"
-      aria-label="Inhalt der Datenschutzerklärung"
+      aria-label="Datenschutzerklärung horizontal durchblättern"
+      (wheel)="scrollHorizontally($event, privacyTrack)"
     >
-      <div class="privacy-workspace__grid">
-        <section id="privacy-responsible">
-          <span class="privacy-workspace__number">01</span>
+      <header class="privacy-deck__panel privacy-deck__panel--hero">
+        <div class="privacy-deck__hero-copy">
+          <p class="privacy-deck__eyebrow">Privacy / Transparent by design</p>
+          <h1 class="legal-document__title" id="privacy-title">Datenschutz</h1>
+          <p>
+            Welche Daten {{ provider.appName }} verarbeitet, warum sie benötigt werden und welche
+            Rechte betroffene Personen haben.
+          </p>
+          <span>Stand: 14. Juli 2026</span>
+        </div>
+
+        <div class="privacy-deck__signals" aria-label="Datenschutz auf einen Blick">
+          <div>
+            <span class="material-symbols-outlined" aria-hidden="true">visibility_off</span>
+            <strong>Ohne Werbetracking</strong>
+          </div>
+          <div>
+            <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+            <strong>Geschützte Anmeldung</strong>
+          </div>
+          <div>
+            <span class="material-symbols-outlined" aria-hidden="true">sync</span>
+            <strong>Flüchtige Realtime-Daten</strong>
+          </div>
+        </div>
+
+        <div class="privacy-deck__chapter-count" aria-label="16 Datenschutzkapitel">
+          <strong>16</strong>
+          <span>Kapitel</span>
+        </div>
+      </header>
+
+      <div class="privacy-deck__panel privacy-deck__panel--bento" aria-label="Kapitel 1 bis 3">
+        <section
+          class="privacy-deck__card privacy-deck__card--side privacy-deck__card--gold"
+          id="privacy-responsible"
+        >
+          <span class="privacy-deck__number">01</span>
           <h2>Verantwortlicher</h2>
           <address>
             <strong>{{ provider.name }}</strong><br />
@@ -66,8 +57,8 @@
           </address>
         </section>
 
-        <section id="privacy-server">
-          <span class="privacy-workspace__number">02</span>
+        <section class="privacy-deck__card privacy-deck__card--wide" id="privacy-server">
+          <span class="privacy-deck__number">02</span>
           <h2>Bereitstellung der Anwendung und Server-Protokolle</h2>
           <p>
             Beim Aufruf der Anwendung verarbeitet der Hosting-Server technisch notwendige
@@ -83,8 +74,11 @@
           </p>
         </section>
 
-        <section id="privacy-account">
-          <span class="privacy-workspace__number">03</span>
+        <section
+          class="privacy-deck__card privacy-deck__card--wide privacy-deck__card--soft"
+          id="privacy-account"
+        >
+          <span class="privacy-deck__number">03</span>
           <h2>Registrierung und Benutzerkonto</h2>
           <p>
             Für die Erstellung eines Benutzerkontos werden insbesondere Anzeigename, E-Mail-Adresse
@@ -98,9 +92,14 @@
             Ohne diese Daten kann kein Benutzerkonto bereitgestellt werden.
           </p>
         </section>
+      </div>
 
-        <section id="privacy-email">
-          <span class="privacy-workspace__number">04</span>
+      <div class="privacy-deck__panel privacy-deck__panel--bento" aria-label="Kapitel 4 bis 6">
+        <section
+          class="privacy-deck__card privacy-deck__card--side privacy-deck__card--soft"
+          id="privacy-email"
+        >
+          <span class="privacy-deck__number">04</span>
           <h2>E-Mail-Bestätigung und Kontokommunikation</h2>
           <p>
             Für E-Mail-Bestätigungen, Passwort-Zurücksetzungen, sicherheitsrelevante Hinweise und
@@ -114,8 +113,11 @@
           </p>
         </section>
 
-        <section id="privacy-boards">
-          <span class="privacy-workspace__number">05</span>
+        <section
+          class="privacy-deck__card privacy-deck__card--wide privacy-deck__card--primary"
+          id="privacy-boards"
+        >
+          <span class="privacy-deck__number">05</span>
           <h2>Boards, Aufgaben und Zusammenarbeit</h2>
           <p>
             Bei der Nutzung von Boards werden die von Nutzenden eingegebenen Inhalte verarbeitet.
@@ -131,8 +133,8 @@
           <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.</p>
         </section>
 
-        <section id="privacy-realtime">
-          <span class="privacy-workspace__number">06</span>
+        <section class="privacy-deck__card privacy-deck__card--wide" id="privacy-realtime">
+          <span class="privacy-deck__number">06</span>
           <h2>Realtime-Präsenz, Live-Cursor und Bearbeitungsstatus</h2>
           <p>
             Während ein gemeinsames Board geöffnet ist, können flüchtige Statusinformationen über
@@ -146,9 +148,11 @@
             protokolliert werden, erfolgt dies auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO.
           </p>
         </section>
+      </div>
 
-        <section id="privacy-files">
-          <span class="privacy-workspace__number">07</span>
+      <div class="privacy-deck__panel privacy-deck__panel--bento" aria-label="Kapitel 7 bis 9">
+        <section class="privacy-deck__card privacy-deck__card--half" id="privacy-files">
+          <span class="privacy-deck__number">07</span>
           <h2>Einladungen, Kommentare und Anhänge</h2>
           <p>
             Für Board-Einladungen werden E-Mail-Adresse, ein sicherer Einladungstoken, Rolle,
@@ -163,8 +167,11 @@
           </p>
         </section>
 
-        <section id="privacy-carly">
-          <span class="privacy-workspace__number">08</span>
+        <section
+          class="privacy-deck__card privacy-deck__card--half privacy-deck__card--gold"
+          id="privacy-carly"
+        >
+          <span class="privacy-deck__number">08</span>
           <h2>Carly-Funktionen</h2>
           <p>
             Das optionale Carly-Modul kann Fortschrittswerte, Streaks, abgeschlossene Aufgaben,
@@ -174,8 +181,11 @@
           <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.</p>
         </section>
 
-        <section id="privacy-cookies">
-          <span class="privacy-workspace__number">09</span>
+        <section
+          class="privacy-deck__card privacy-deck__card--full privacy-deck__card--soft"
+          id="privacy-cookies"
+        >
+          <span class="privacy-deck__number">09</span>
           <h2>Cookies und lokale Speicherung</h2>
           <p>
             Für Anmeldung, CSRF-Schutz und Sitzungsverwaltung werden technisch notwendige Cookies
@@ -189,9 +199,11 @@
             Abs. 1 lit. b oder lit. f DSGVO.
           </p>
         </section>
+      </div>
 
-        <section id="privacy-recipients">
-          <span class="privacy-workspace__number">10</span>
+      <div class="privacy-deck__panel privacy-deck__panel--bento" aria-label="Kapitel 10 bis 12">
+        <section class="privacy-deck__card privacy-deck__card--half" id="privacy-recipients">
+          <span class="privacy-deck__number">10</span>
           <h2>Empfänger und Auftragsverarbeiter</h2>
           <p>
             Daten erhalten nur Stellen, die sie für Betrieb und Bereitstellung benötigen. Dazu
@@ -202,8 +214,11 @@
           </p>
         </section>
 
-        <section id="privacy-third-countries">
-          <span class="privacy-workspace__number">11</span>
+        <section
+          class="privacy-deck__card privacy-deck__card--half privacy-deck__card--soft"
+          id="privacy-third-countries"
+        >
+          <span class="privacy-deck__number">11</span>
           <h2>Übermittlung in Drittländer</h2>
           <p>
             Eine Übermittlung außerhalb der Europäischen Union oder des Europäischen
@@ -213,8 +228,11 @@
           </p>
         </section>
 
-        <section id="privacy-retention">
-          <span class="privacy-workspace__number">12</span>
+        <section
+          class="privacy-deck__card privacy-deck__card--full privacy-deck__card--success"
+          id="privacy-retention"
+        >
+          <span class="privacy-deck__number">12</span>
           <h2>Speicherdauer und Löschung</h2>
           <p>
             Kontodaten werden grundsätzlich bis zur Löschung des Benutzerkontos verarbeitet.
@@ -224,9 +242,14 @@
             regulären Backup-Zyklus überschrieben.
           </p>
         </section>
+      </div>
 
-        <section id="privacy-rights">
-          <span class="privacy-workspace__number">13</span>
+      <div class="privacy-deck__panel privacy-deck__panel--bento" aria-label="Kapitel 13 bis 15">
+        <section
+          class="privacy-deck__card privacy-deck__card--wide-tall privacy-deck__card--primary"
+          id="privacy-rights"
+        >
+          <span class="privacy-deck__number">13</span>
           <h2>Rechte betroffener Personen</h2>
           <p>Betroffene Personen haben im Rahmen der gesetzlichen Voraussetzungen insbesondere das Recht auf:</p>
           <ul>
@@ -246,8 +269,8 @@
           </p>
         </section>
 
-        <section id="privacy-decisions">
-          <span class="privacy-workspace__number">14</span>
+        <section class="privacy-deck__card privacy-deck__card--side-slot" id="privacy-decisions">
+          <span class="privacy-deck__number">14</span>
           <h2>Automatisierte Entscheidungen</h2>
           <p>
             Es finden keine ausschließlich automatisierten Entscheidungen mit rechtlicher oder
@@ -255,8 +278,11 @@
           </p>
         </section>
 
-        <section id="privacy-security">
-          <span class="privacy-workspace__number">15</span>
+        <section
+          class="privacy-deck__card privacy-deck__card--side-slot privacy-deck__card--gold"
+          id="privacy-security"
+        >
+          <span class="privacy-deck__number">15</span>
           <h2>Sicherheit</h2>
           <p>
             Die Anwendung verwendet technische und organisatorische Maßnahmen, um Daten vor Verlust,
@@ -266,17 +292,26 @@
             regelmäßige Aktualisierungen der eingesetzten Software.
           </p>
         </section>
-
-        <section id="privacy-changes">
-          <span class="privacy-workspace__number">16</span>
-          <h2>Änderungen dieser Datenschutzerklärung</h2>
-          <p>
-            Diese Datenschutzerklärung wird angepasst, wenn sich Funktionen, eingesetzte
-            Dienstleister oder rechtliche Anforderungen ändern. Maßgeblich ist die jeweils in der
-            Anwendung veröffentlichte Fassung.
-          </p>
-        </section>
       </div>
+
+      <section
+        class="privacy-deck__panel privacy-deck__panel--outro"
+        id="privacy-changes"
+        aria-labelledby="privacy-changes-title"
+      >
+        <span class="privacy-deck__number">16</span>
+        <h2 id="privacy-changes-title">Änderungen dieser Datenschutzerklärung</h2>
+        <p>
+          Diese Datenschutzerklärung wird angepasst, wenn sich Funktionen, eingesetzte
+          Dienstleister oder rechtliche Anforderungen ändern. Maßgeblich ist die jeweils in der
+          Anwendung veröffentlichte Fassung.
+        </p>
+        <div class="privacy-deck__outro-meta">
+          <span class="material-symbols-outlined" aria-hidden="true">shield_lock</span>
+          <strong>{{ provider.appName }}</strong>
+          <span>Stand 14. Juli 2026</span>
+        </div>
+      </section>
     </div>
   </article>
 </cm-legal-layout>

@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_legal-imprint.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Ordnet das Impressum als kompaktes Bento innerhalb eines Viewports an.
 
    Inhaltsverzeichnis:
@@ -211,19 +211,23 @@
 
 .imprint-bento__card--project {
   border-color: transparent;
-  background: var(--color-info);
-  color: #ffffff;
+  background: linear-gradient(
+    145deg,
+    var(--color-action-primary-hover),
+    var(--color-action-primary)
+  );
+  color: var(--color-action-primary-text);
 }
 
 .imprint-bento__card--project .imprint-bento__icon {
-  background: rgb(255 255 255 / 0.18);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--color-action-primary-text) 18%, transparent);
+  color: var(--color-action-primary-text);
 }
 
 .imprint-bento__card--project .imprint-bento__label,
 .imprint-bento__card--project h2,
 .imprint-bento__card--project p {
-  color: #ffffff;
+  color: var(--color-action-primary-text);
 }
 
 .imprint-bento__card--copyright {

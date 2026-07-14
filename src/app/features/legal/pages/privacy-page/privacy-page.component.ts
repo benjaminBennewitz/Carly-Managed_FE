@@ -14,4 +14,46 @@ import { LegalLayoutComponent } from '../../../../core/layout/legal-layout/legal
 })
 export class PrivacyPageComponent {
   protected readonly provider = LEGAL_PROVIDER;
+
+  /**
+   * Überträgt vertikale Mausradbewegungen auf den horizontalen Dokumentbereich.
+   * Vertikal scrollbare Karten behalten dabei ihr normales Scrollverhalten.
+   */
+  protected scrollHorizontally(event: WheelEvent, track: HTMLDivElement): void {
+    const target = event.target;
+
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    const card = target.closest<HTMLElement>('.privacy-deck__card');
+
+    if (card && this.canScrollVertically(card, event.deltaY)) {
+      return;
+    }
+
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
+      return;
+    }
+
+    event.preventDefault();
+    track.scrollLeft += event.deltaY;
+  }
+
+  /**
+   * Prüft, ob eine Karte die aktuelle Mausradbewegung vertikal aufnehmen kann.
+   */
+  private canScrollVertically(element: HTMLElement, deltaY: number): boolean {
+    const hasOverflow = element.scrollHeight > element.clientHeight + 1;
+
+    if (!hasOverflow) {
+      return false;
+    }
+
+    if (deltaY < 0) {
+      return element.scrollTop > 0;
+    }
+
+    return element.scrollTop + element.clientHeight < element.scrollHeight - 1;
+  }
 }
