@@ -2,11 +2,7 @@
 
 export type ProjectStatus = 'active' | 'completed' | 'archived';
 export type ProjectDueState =
-  | 'geringe-restmenge'
-  | 'im-plan'
-  | 'bald-faellig'
-  | 'kritisch'
-  | 'ueberfaellig';
+  'geringe-restmenge' | 'im-plan' | 'bald-faellig' | 'kritisch' | 'ueberfaellig';
 export type TaskPriority = 'hoch' | 'mittel' | 'niedrig';
 export type BoardViewMode = 'board' | 'list';
 export type WorkspaceColumnSortMode = 'title' | 'date' | null;
@@ -82,6 +78,9 @@ export interface WorkspaceTask {
   isDone: boolean;
   completedAt: string | null;
   isSharedPool: boolean;
+  requiresReview: boolean;
+  reviewHint: string | null;
+  createdOutsideColumn: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -93,6 +92,8 @@ export interface WorkspaceColumn {
   tasks: WorkspaceTask[];
   isFixedPosition?: boolean;
   sortMode?: WorkspaceColumnSortMode;
+  isDynamic?: boolean;
+  systemRole?: 'new-assigned' | 'pool-review';
 }
 
 export interface WorkspaceProject {

@@ -25,8 +25,12 @@
 
       <span
         class="workspace-task-card__avatar"
-        [style.--task-avatar-color]="task().assignee?.avatarColor || 'var(--color-surface-secondary)'"
-        [style.--task-avatar-text-color]="task().assignee?.avatarTextColor || 'var(--color-text-muted)'"
+        [style.--task-avatar-color]="
+          task().assignee?.avatarColor || 'var(--color-surface-secondary)'
+        "
+        [style.--task-avatar-text-color]="
+          task().assignee?.avatarTextColor || 'var(--color-text-muted)'
+        "
         [attr.title]="task().assignee?.fullName || 'Nicht zugewiesen'"
       >
         {{ task().assignee?.initials || '—' }}
@@ -61,6 +65,16 @@
     <div class="workspace-task-card__context workspace-task-card__context--pool">
       <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
       <span>Im Pool freigegeben</span>
+    </div>
+  }
+
+  @if (task().requiresReview) {
+    <div class="workspace-task-card__review" role="note">
+      <span class="material-symbols-outlined" aria-hidden="true">rate_review</span>
+      <span>
+        <strong>Prüfung erforderlich</strong>
+        <small>{{ task().reviewHint || 'Zuweisung und Termin prüfen.' }}</small>
+      </span>
     </div>
   }
 

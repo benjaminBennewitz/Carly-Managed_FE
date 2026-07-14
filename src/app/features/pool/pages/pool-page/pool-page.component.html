@@ -1,9 +1,55 @@
 <!-- src/app/features/pool/pages/pool-page/pool-page.component.html -->
 
-<section class="feature-page">
-  <cm-page-header
-    eyebrow="Aufgaben fair verteilen"
-    title="Pool"
-    description="Sammle offene Aufgaben und übergib sie flexibel an dein Team."
-  />
+<section class="pool-page">
+  <div class="pool-page__head">
+    <cm-page-header
+      eyebrow="Aufgaben fair verteilen"
+      title="Pool"
+      description="Unzugewiesene Aufgaben werden hier gesammelt und vor der Vergabe geprüft."
+    />
+
+    <div class="pool-page__metrics" aria-label="Pool-Kennzahlen">
+      <span>
+        <small>Aufgaben</small>
+        <strong>{{ workspaceService.poolTasks().length }}</strong>
+      </span>
+      <span [class.pool-page__metric--review]="workspaceService.poolReviewCount() > 0">
+        <small>Prüfung</small>
+        <strong>{{ workspaceService.poolReviewCount() }}</strong>
+      </span>
+    </div>
+  </div>
+
+  @if (workspaceService.poolTasks().length > 0) {
+    <div class="pool-page__section-head">
+      <div>
+        <span>REVIEW QUEUE</span>
+        <h2>Offene Vergabe</h2>
+      </div>
+      <p>Aufgaben ohne verantwortliche Person erhalten automatisch einen Prüfhinweis.</p>
+    </div>
+
+    <div class="pool-page__grid" aria-label="Aufgaben im Pool">
+      @for (task of workspaceService.poolTasks(); track task.id) {
+        <article
+          class="pool-page__task"
+          [style.--board-accent]="task.requiresReview ? '#D5A646' : '#4E82A8'"
+        >
+          <cm-workspace-task-card
+            [task]="task"
+            [showProjectContext]="true"
+            [canToggleComplete]="false"
+          />
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="pool-page__empty" role="status">
+      <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+      <div>
+        <h2>Der Pool ist leer</h2>
+        <p>Aktuell warten keine unzugewiesenen Aufgaben auf Prüfung oder Vergabe.</p>
+      </div>
+    </div>
+  }
 </section>

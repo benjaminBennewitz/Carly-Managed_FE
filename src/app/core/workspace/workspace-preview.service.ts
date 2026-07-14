@@ -24,6 +24,12 @@ const MAX_TASK_TITLE_LENGTH = 160;
 const MAX_TASK_DESCRIPTION_LENGTH = 5_000;
 const MAX_COMMENT_LENGTH = 2_000;
 const MAX_SUBTASK_TITLE_LENGTH = 160;
+const PERSONAL_BOARD_ID = 'personal';
+const PERSONAL_NEW_COLUMN_ID = 'personal-new';
+const POOL_BOARD_ID = 'pool';
+const POOL_REVIEW_COLUMN_ID = 'pool-review';
+const UNASSIGNED_REVIEW_HINT =
+  'Ohne verantwortliche Person erstellt. Bitte Zuweisung und Termin prüfen.';
 
 function isoDate(offsetDays: number): string {
   const date = new Date(Date.now() + offsetDays * day);
@@ -112,6 +118,9 @@ function task(id: string, title: string, overrides: Partial<WorkspaceTask> = {})
     isDone: false,
     completedAt: null,
     isSharedPool: false,
+    requiresReview: false,
+    reviewHint: null,
+    createdOutsideColumn: false,
     createdAt: isoDateTime(-12),
     updatedAt: isoDateTime(-1, 14),
     ...overrides,
@@ -531,6 +540,17 @@ const INITIAL_BOARDS: Record<string, WorkspaceColumn[]> = {
   'portfolio-relaunch': PORTFOLIO_BOARD,
   'studio-operations': STUDIO_BOARD,
   'client-workspace': ARCHIVED_PROJECT_BOARD,
+  pool: [
+    {
+      id: POOL_REVIEW_COLUMN_ID,
+      title: 'Prüfung',
+      color: '#D5A646',
+      isFixedPosition: true,
+      isDynamic: true,
+      systemRole: 'pool-review',
+      tasks: [],
+    },
+  ],
   personal: [
     {
       id: 'personal-today',
@@ -588,6 +608,9 @@ function normalizeTaskCounters(source: WorkspaceTask): WorkspaceTask {
     attachments,
     history: source.history ?? [],
     collaborators: source.collaborators ?? [],
+    requiresReview: source.requiresReview ?? false,
+    reviewHint: source.reviewHint ?? null,
+    createdOutsideColumn: source.createdOutsideColumn ?? false,
     subtaskCount: subtasks.length,
     completedSubtaskCount: subtasks.filter((item) => item.isDone).length,
     commentCount: comments.length,
@@ -709,10 +732,31 @@ export class WorkspacePreviewService {
         )[0] ?? null,
   );
   readonly members = signal(MEMBERS.map((member) => ({ ...member }))).asReadonly();
-  readonly archivedTasks = computed<ArchivedTaskEntry[]>(() =>
-    Object.values(this.boardsState())
-      .flatMap((columns) => columns.flatMap((column) => column.tasks))
-      .filter((item) => item.isDone && item.completedAt)
+  readonly poolTasks = computed(() =>
+    cloneColumns(this.boardsState()[POOL_BOARD_ID] ?? [])
+      .flatMap((column) => column.tasks)
+      .sort(
+        (left, right) =>
+          Number(right.requiresReview) - Number(left.requiresReview) ||
+          new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+      ),
+  );
+  readonly poolReviewCount = computed(
+    () => this.poolTasks().filter((item) => item.requiresReview).length,
+  );
+  readonly archivedTasks = computed<ArchivedTaskEntry[]>(() => {
+    const uniqueTasks = new Map<string, WorkspaceTask>();
+
+    Object.entries(this.boardsState())
+      .filter(([boardId]) => boardId !== POOL_BOARD_ID)
+      .flatMap(([, columns]) => columns.flatMap((column) => column.tasks))
+      .forEach((item) => {
+        if (item.isDone && item.completedAt && !uniqueTasks.has(item.id)) {
+          uniqueTasks.set(item.id, item);
+        }
+      });
+
+    return [...uniqueTasks.values()]
       .map((item) => ({
         task: cloneTask(item),
         sourceLabel: item.projectTitle ?? 'Persönliches Board',
@@ -720,8 +764,13 @@ export class WorkspacePreviewService {
       }))
       .sort(
         (left, right) => new Date(right.archivedAt).getTime() - new Date(left.archivedAt).getTime(),
-      ),
-  );
+      );
+  });
+
+  constructor() {
+    this.reconcileWorkspaceIntake();
+    this.persistBoards();
+  }
 
   /**
    * Liefert ein Projekt anhand des Route-Keys.
@@ -743,8 +792,9 @@ export class WorkspacePreviewService {
   saveBoard(projectId: string, columns: WorkspaceColumn[]): void {
     this.boardsState.update((boards) => ({
       ...boards,
-      [projectId]: cloneColumns(columns),
+      [projectId]: this.normalizeDynamicColumns(projectId, cloneColumns(columns)),
     }));
+    this.reconcileWorkspaceIntake();
     this.persistBoards();
     this.touchProject(projectId);
   }
@@ -875,33 +925,49 @@ export class WorkspacePreviewService {
    * Schaltet den Abschlussstatus einer Aufgabe um.
    */
   toggleTaskCompleted(projectId: string, taskId: string): WorkspaceColumn[] {
-    const columns = this.getBoard(projectId).map((column) => ({
-      ...column,
-      tasks: column.tasks.map((item) =>
-        item.id === taskId
-          ? {
-              ...item,
-              isDone: !item.isDone,
-              completedAt: item.isDone ? null : new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            }
-          : item,
-      ),
-    }));
-    this.saveBoard(projectId, columns);
-    return columns;
+    const currentTask = this.findTask(taskId);
+    if (!currentTask) {
+      return this.getBoard(projectId);
+    }
+
+    const completed = !currentTask.isDone;
+    const updatedTask = this.addHistory(
+      {
+        ...currentTask,
+        isDone: completed,
+        completedAt: completed ? new Date().toISOString() : null,
+        updatedAt: new Date().toISOString(),
+      },
+      completed ? 'Aufgabe abgeschlossen' : 'Aufgabe wieder geöffnet',
+      completed ? 'task_alt' : 'restart_alt',
+    );
+    this.replaceTaskEverywhere(taskId, updatedTask);
+    this.reconcileWorkspaceIntake();
+    this.persistBoards();
+    this.touchProject(projectId);
+    return this.getBoard(projectId);
   }
 
   /**
    * Gibt eine Aufgabe bewusst in den gemeinsamen Pool frei.
    */
   moveTaskToPool(projectId: string, taskId: string): WorkspaceColumn[] {
-    const columns = this.getBoard(projectId).map((column) => ({
-      ...column,
-      tasks: column.tasks.map((item) => (item.id === taskId ? releaseTaskToPool(item) : item)),
-    }));
-    this.saveBoard(projectId, columns);
-    return columns;
+    const currentTask = this.findTask(taskId);
+    if (!currentTask) {
+      return this.getBoard(projectId);
+    }
+
+    const pooledTask = this.addHistory(
+      releaseTaskToPool(currentTask),
+      'In den Pool gegeben',
+      'inventory_2',
+    );
+    this.removeTaskEverywhere(taskId);
+    this.addTaskToPool(pooledTask);
+    this.reconcileWorkspaceIntake();
+    this.persistBoards();
+    this.touchProject(projectId);
+    return this.getBoard(projectId);
   }
 
   /**
@@ -940,8 +1006,15 @@ export class WorkspacePreviewService {
     sourceColumn.sortMode = null;
     targetColumn.sortMode = null;
 
-    this.saveBoard(projectId, columns);
-    return columns;
+    this.boardsState.update((boards) => ({
+      ...boards,
+      [projectId]: this.normalizeDynamicColumns(projectId, cloneColumns(columns)),
+    }));
+    this.replaceTaskEverywhere(taskId, taskWithHistory);
+    this.reconcileWorkspaceIntake();
+    this.persistBoards();
+    this.touchProject(projectId);
+    return this.getBoard(projectId);
   }
 
   /**
@@ -988,8 +1061,9 @@ export class WorkspacePreviewService {
       projectTitle: project?.name ?? null,
       projectAllowsOnDemandTasks: project?.allowsOnDemandTasks ?? false,
       owner: project?.owner ?? BEN,
-      assignee: project?.allowsOnDemandTasks ? null : (project?.owner ?? BEN),
-      dueDate: project?.allowsOnDemandTasks ? null : isoDate(7),
+      assignee: project?.owner ?? BEN,
+      dueDate: isoDate(7),
+      createdOutsideColumn: false,
       tags: [],
       subtaskCount: 0,
       completedSubtaskCount: 0,
@@ -1003,7 +1077,47 @@ export class WorkspacePreviewService {
         : column,
     );
     this.saveBoard(projectId, columns);
-    return columns;
+    return this.getBoard(projectId);
+  }
+
+  /**
+   * Erstellt eine Aufgabe außerhalb einer konkreten Spalte.
+   * Zugewiesene Aufgaben landen im dynamischen Bereich „Neu“ der Person.
+   * Aufgaben ohne Zuweisung werden mit Prüfhinweis in den Pool verschoben.
+   */
+  createUnplacedTask(
+    projectId: string | null,
+    assigneeId: string | null,
+    title = 'Neue Aufgabe',
+  ): WorkspaceTask {
+    const project = projectId ? this.getProject(projectId) : null;
+    const assignee = assigneeId
+      ? (this.members().find((member) => member.id === assigneeId) ?? null)
+      : null;
+    const createdTask = task(`task-${Date.now()}`, title, {
+      projectId: project?.id ?? null,
+      projectTitle: project?.name ?? null,
+      projectAllowsOnDemandTasks: project?.allowsOnDemandTasks ?? false,
+      owner: project?.owner ?? BEN,
+      assignee,
+      tags: [],
+      startDate: null,
+      dueDate: assignee ? isoDate(7) : null,
+      createdOutsideColumn: true,
+      isSharedPool: !assignee,
+      requiresReview: !assignee,
+      reviewHint: assignee ? null : UNASSIGNED_REVIEW_HINT,
+    });
+
+    if (!assignee) {
+      this.addTaskToPool(createdTask);
+    } else {
+      this.addTaskToPersonalNewColumn(assignee.id, createdTask);
+    }
+
+    this.reconcileWorkspaceIntake();
+    this.persistBoards();
+    return cloneTask(createdTask);
   }
 
   /**
@@ -1079,12 +1193,11 @@ export class WorkspacePreviewService {
    * Entfernt eine Aufgabe vollständig aus ihrem Board.
    */
   deleteTask(projectId: string, taskId: string): WorkspaceColumn[] {
-    const columns = this.getBoard(projectId).map((column) => ({
-      ...column,
-      tasks: column.tasks.filter((item) => item.id !== taskId),
-    }));
-    this.saveBoard(projectId, columns);
-    return columns;
+    this.removeTaskEverywhere(taskId);
+    this.reconcileWorkspaceIntake();
+    this.persistBoards();
+    this.touchProject(projectId);
+    return this.getBoard(projectId);
   }
 
   /** Fügt einer Aufgabe eine Unteraufgabe hinzu. */
@@ -1272,20 +1385,283 @@ export class WorkspacePreviewService {
     );
   }
 
-  /** Wendet eine immutable Mutation auf eine einzelne Aufgabe an. */
+  /** Wendet eine immutable Mutation auf alle Spiegelungen einer Aufgabe an. */
   private mutateTask(
     projectId: string,
     taskId: string,
     mutation: (task: WorkspaceTask) => WorkspaceTask,
   ): WorkspaceColumn[] {
-    const columns = this.getBoard(projectId).map((column) => ({
-      ...column,
-      tasks: column.tasks.map((item) =>
-        item.id === taskId && !item.isDone ? normalizeTaskCounters(mutation(item)) : item,
+    const currentTask = this.findTask(taskId);
+    if (!currentTask || currentTask.isDone) {
+      return this.getBoard(projectId);
+    }
+
+    const updatedTask = normalizeTaskCounters(mutation(cloneTask(currentTask)));
+    this.replaceTaskEverywhere(taskId, updatedTask);
+    this.reconcileWorkspaceIntake();
+    this.persistBoards();
+    this.touchProject(projectId);
+    return this.getBoard(projectId);
+  }
+
+  /** Liefert die erste gespeicherte Ausprägung einer Aufgabe. */
+  private findTask(taskId: string): WorkspaceTask | null {
+    for (const columns of Object.values(this.boardsState())) {
+      for (const column of columns) {
+        const foundTask = column.tasks.find((item) => item.id === taskId);
+        if (foundTask) {
+          return cloneTask(foundTask);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /** Ersetzt alle gespeicherten Spiegelungen einer Aufgabe durch denselben Zustand. */
+  private replaceTaskEverywhere(taskId: string, updatedTask: WorkspaceTask): void {
+    this.boardsState.update((boards) =>
+      Object.fromEntries(
+        Object.entries(boards).map(([boardId, columns]) => [
+          boardId,
+          columns.map((column) => ({
+            ...column,
+            tasks: column.tasks.map((item) => (item.id === taskId ? cloneTask(updatedTask) : item)),
+          })),
+        ]),
       ),
-    }));
-    this.saveBoard(projectId, columns);
-    return columns;
+    );
+  }
+
+  /** Entfernt eine Aufgabe aus sämtlichen Board- und Poolplatzierungen. */
+  private removeTaskEverywhere(taskId: string): void {
+    this.boardsState.update((boards) =>
+      Object.fromEntries(
+        Object.entries(boards).map(([boardId, columns]) => [
+          boardId,
+          this.normalizeDynamicColumns(
+            boardId,
+            columns.map((column) => ({
+              ...column,
+              tasks: column.tasks.filter((item) => item.id !== taskId),
+            })),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  /** Fügt eine Aufgabe mit optionalem Prüfstatus in den gemeinsamen Pool ein. */
+  private addTaskToPool(taskToAdd: WorkspaceTask): void {
+    const pooledTask = cloneTask({
+      ...taskToAdd,
+      assignee: null,
+      isSharedPool: true,
+      updatedAt: new Date().toISOString(),
+    });
+
+    this.boardsState.update((boards) => {
+      const poolColumns = cloneColumns(boards[POOL_BOARD_ID] ?? []);
+      const reviewColumn =
+        poolColumns.find((column) => column.id === POOL_REVIEW_COLUMN_ID) ??
+        this.createPoolReviewColumn();
+      reviewColumn.tasks = [
+        pooledTask,
+        ...reviewColumn.tasks.filter((item) => item.id !== pooledTask.id),
+      ];
+
+      return {
+        ...boards,
+        [POOL_BOARD_ID]: [reviewColumn],
+      };
+    });
+  }
+
+  /** Fügt eine Aufgabe in die dynamische Neu-Spalte einer Person ein. */
+  private addTaskToPersonalNewColumn(memberId: string, taskToAdd: WorkspaceTask): void {
+    const boardId = this.getPersonalBoardId(memberId);
+    this.boardsState.update((boards) => {
+      const personalColumns = cloneColumns(boards[boardId] ?? []);
+      const existingTaskIds = new Set(
+        personalColumns.flatMap((column) => column.tasks.map((item) => item.id)),
+      );
+      if (existingTaskIds.has(taskToAdd.id)) {
+        return boards;
+      }
+
+      const newColumn =
+        personalColumns.find((column) => column.systemRole === 'new-assigned') ??
+        this.createPersonalNewColumn(memberId);
+      newColumn.tasks = [cloneTask(taskToAdd), ...newColumn.tasks];
+      const otherColumns = personalColumns.filter((column) => column.systemRole !== 'new-assigned');
+
+      return {
+        ...boards,
+        [boardId]: [newColumn, ...otherColumns],
+      };
+    });
+  }
+
+  /** Gleicht Zuweisungen, dynamische Neu-Spalten und Pool-Fallbacks ab. */
+  private reconcileWorkspaceIntake(): void {
+    const boards = Object.fromEntries(
+      Object.entries(this.boardsState()).map(([boardId, columns]) => [
+        boardId,
+        cloneColumns(columns),
+      ]),
+    );
+    const poolColumn =
+      boards[POOL_BOARD_ID]?.find((column) => column.id === POOL_REVIEW_COLUMN_ID) ??
+      this.createPoolReviewColumn();
+    const pooledIds = new Set(poolColumn.tasks.map((item) => item.id));
+
+    for (const [boardId, columns] of Object.entries(boards)) {
+      if (boardId === POOL_BOARD_ID) {
+        continue;
+      }
+
+      for (const column of columns) {
+        const retainedTasks: WorkspaceTask[] = [];
+        for (const currentTask of column.tasks) {
+          if (!currentTask.isDone && !currentTask.assignee) {
+            if (!pooledIds.has(currentTask.id)) {
+              const requiresReview = currentTask.requiresReview || !currentTask.isSharedPool;
+              const reviewTask = this.addHistory(
+                {
+                  ...currentTask,
+                  assignee: null,
+                  isSharedPool: true,
+                  requiresReview,
+                  reviewHint: requiresReview ? UNASSIGNED_REVIEW_HINT : null,
+                  updatedAt: new Date().toISOString(),
+                },
+                requiresReview ? 'Zur Prüfung in den Pool verschoben' : 'In den Pool übernommen',
+                requiresReview ? 'rate_review' : 'inventory_2',
+              );
+              poolColumn.tasks.unshift(reviewTask);
+              pooledIds.add(reviewTask.id);
+            }
+            continue;
+          }
+
+          retainedTasks.push(currentTask);
+        }
+        column.tasks = retainedTasks;
+      }
+    }
+
+    boards[POOL_BOARD_ID] = [poolColumn];
+
+    const assignedTaskMap = new Map<string, WorkspaceTask>();
+    Object.entries(boards)
+      .filter(([boardId]) => boardId !== POOL_BOARD_ID)
+      .flatMap(([, columns]) => columns.flatMap((column) => column.tasks))
+      .forEach((item) => {
+        if (!item.isDone && !item.isSharedPool && item.assignee && !assignedTaskMap.has(item.id)) {
+          assignedTaskMap.set(item.id, item);
+        }
+      });
+
+    for (const member of this.members()) {
+      const personalBoardId = this.getPersonalBoardId(member.id);
+      const currentColumns = cloneColumns(boards[personalBoardId] ?? []);
+      const assignedProjectTasks = [...assignedTaskMap.values()].filter(
+        (item) => item.assignee?.id === member.id,
+      );
+      const assignedProjectTaskIds = new Set(assignedProjectTasks.map((item) => item.id));
+      const cleanedColumns = currentColumns.map((column) => ({
+        ...column,
+        tasks: column.tasks.filter((item) => {
+          if (item.createdOutsideColumn || !item.projectId) {
+            return item.assignee?.id === member.id && !item.isSharedPool;
+          }
+
+          return item.assignee?.id === member.id && !item.isSharedPool;
+        }),
+      }));
+      const existingTaskIds = new Set(
+        cleanedColumns.flatMap((column) => column.tasks.map((item) => item.id)),
+      );
+      const missingTasks = assignedProjectTasks.filter((item) => !existingTaskIds.has(item.id));
+      const existingNewColumn = cleanedColumns.find(
+        (column) => column.systemRole === 'new-assigned',
+      );
+      const newColumnTasks = [
+        ...missingTasks,
+        ...(existingNewColumn?.tasks ?? []).filter(
+          (item) => item.createdOutsideColumn || assignedProjectTaskIds.has(item.id),
+        ),
+      ].filter(
+        (item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index,
+      );
+      const regularColumns = cleanedColumns.filter(
+        (column) => column.systemRole !== 'new-assigned',
+      );
+
+      boards[personalBoardId] = newColumnTasks.length
+        ? [
+            {
+              ...(existingNewColumn ?? this.createPersonalNewColumn(member.id)),
+              tasks: newColumnTasks.map(cloneTask),
+            },
+            ...regularColumns,
+          ]
+        : regularColumns;
+    }
+
+    this.boardsState.set(
+      Object.fromEntries(
+        Object.entries(boards).map(([boardId, columns]) => [
+          boardId,
+          this.normalizeDynamicColumns(boardId, columns),
+        ]),
+      ),
+    );
+  }
+
+  /** Erstellt die dynamische Neu-Spalte einer Person. */
+  private createPersonalNewColumn(memberId: string): WorkspaceColumn {
+    return {
+      id: `${PERSONAL_NEW_COLUMN_ID}-${memberId}`,
+      title: 'Neu',
+      color: '#7752B3',
+      isFixedPosition: true,
+      isDynamic: true,
+      systemRole: 'new-assigned',
+      tasks: [],
+    };
+  }
+
+  /** Erstellt die systemverwaltete Prüfspalte des Pools. */
+  private createPoolReviewColumn(): WorkspaceColumn {
+    return {
+      id: POOL_REVIEW_COLUMN_ID,
+      title: 'Prüfung',
+      color: '#D5A646',
+      isFixedPosition: true,
+      isDynamic: true,
+      systemRole: 'pool-review',
+      tasks: [],
+    };
+  }
+
+  /** Liefert den lokalen Personal-Board-Key einer Person. */
+  private getPersonalBoardId(memberId: string): string {
+    return memberId === BEN.id ? PERSONAL_BOARD_ID : `personal-${memberId}`;
+  }
+
+  /** Prüft, ob ein Board ein persönliches Board repräsentiert. */
+  private isPersonalBoardId(boardId: string): boolean {
+    return boardId === PERSONAL_BOARD_ID || boardId.startsWith('personal-');
+  }
+
+  /** Entfernt leere dynamische Spalten aus normalen Boardansichten. */
+  private normalizeDynamicColumns(boardId: string, columns: WorkspaceColumn[]): WorkspaceColumn[] {
+    if (boardId === POOL_BOARD_ID) {
+      return columns.length ? columns : [this.createPoolReviewColumn()];
+    }
+
+    return columns.filter((column) => !column.isDynamic || column.tasks.length > 0);
   }
 
   /** Ergänzt einen Verlaufseintrag. */

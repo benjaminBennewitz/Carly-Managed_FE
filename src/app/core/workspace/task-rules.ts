@@ -1,19 +1,13 @@
 // src/app/core/workspace/task-rules.ts
 
-import {
-  TaskValidationError,
-  WorkspaceTask,
-} from './workspace.models';
+import { TaskValidationError, WorkspaceTask } from './workspace.models';
 
 /**
  * Prüft, ob eine Aufgabe ohne direkte Zuweisung als Abruf-Aufgabe bereitliegt.
  */
 export function isOnDemandReadyTask(task: WorkspaceTask): boolean {
   return (
-    task.projectAllowsOnDemandTasks &&
-    !task.parentTaskId &&
-    !task.isSharedPool &&
-    !task.assignee
+    task.projectAllowsOnDemandTasks && !task.parentTaskId && !task.isSharedPool && !task.assignee
   );
 }
 
@@ -35,11 +29,7 @@ export function isTaskDueDateRequired(task: WorkspaceTask): boolean {
  * Prüft, ob eine Aufgabe in den gemeinsamen Pool freigegeben werden darf.
  */
 export function canReleaseTaskToPool(task: WorkspaceTask): boolean {
-  return (
-    !task.isDone &&
-    !task.parentTaskId &&
-    !task.isSharedPool
-  );
+  return !task.isDone && !task.parentTaskId && !task.isSharedPool;
 }
 
 /**
@@ -65,6 +55,8 @@ export function releaseTaskToPool(task: WorkspaceTask): WorkspaceTask {
     ...task,
     assignee: null,
     isSharedPool: true,
+    requiresReview: false,
+    reviewHint: null,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -72,9 +64,7 @@ export function releaseTaskToPool(task: WorkspaceTask): WorkspaceTask {
 /**
  * Prüft alle zentralen Pflichtregeln einer Hauptaufgabe.
  */
-export function validateWorkspaceTask(
-  task: WorkspaceTask,
-): TaskValidationError[] {
+export function validateWorkspaceTask(task: WorkspaceTask): TaskValidationError[] {
   const errors: TaskValidationError[] = [];
 
   if (!task.title.trim()) {

@@ -32,7 +32,9 @@
   <header class="board-column-ui__head">
     @if (!isEditingTitle()) {
       <div class="board-column-ui__title" cdkDragHandle>
-        @if (!column().isFixedPosition) {
+        @if (column().systemRole === 'new-assigned') {
+          <span class="material-symbols-outlined" aria-hidden="true">new_releases</span>
+        } @else if (!column().isFixedPosition) {
           <span class="material-symbols-outlined" aria-hidden="true">drag_indicator</span>
         }
         <h3 [attr.title]="column().title">{{ column().title }}</h3>
@@ -79,8 +81,16 @@
               [class.is-active]="column().sortMode === 'title'"
               type="button"
               [attr.aria-pressed]="column().sortMode === 'title'"
-              [attr.aria-label]="column().sortMode === 'title' ? 'Manuelle Sortierung wiederherstellen' : 'Nach Titel sortieren'"
-              [attr.title]="column().sortMode === 'title' ? 'Titelsortierung aktiv · erneut klicken für manuell' : 'Nach Titel sortieren'"
+              [attr.aria-label]="
+                column().sortMode === 'title'
+                  ? 'Manuelle Sortierung wiederherstellen'
+                  : 'Nach Titel sortieren'
+              "
+              [attr.title]="
+                column().sortMode === 'title'
+                  ? 'Titelsortierung aktiv · erneut klicken für manuell'
+                  : 'Nach Titel sortieren'
+              "
               (click)="toggleSort($event, 'title')"
             >
               <span class="material-symbols-outlined" aria-hidden="true">sort_by_alpha</span>
@@ -91,35 +101,45 @@
               [class.is-active]="column().sortMode === 'date'"
               type="button"
               [attr.aria-pressed]="column().sortMode === 'date'"
-              [attr.aria-label]="column().sortMode === 'date' ? 'Manuelle Sortierung wiederherstellen' : 'Nach Fälligkeit sortieren'"
-              [attr.title]="column().sortMode === 'date' ? 'Datumssortierung aktiv · erneut klicken für manuell' : 'Nach Fälligkeit sortieren'"
+              [attr.aria-label]="
+                column().sortMode === 'date'
+                  ? 'Manuelle Sortierung wiederherstellen'
+                  : 'Nach Fälligkeit sortieren'
+              "
+              [attr.title]="
+                column().sortMode === 'date'
+                  ? 'Datumssortierung aktiv · erneut klicken für manuell'
+                  : 'Nach Fälligkeit sortieren'
+              "
               (click)="toggleSort($event, 'date')"
             >
               <span class="material-symbols-outlined" aria-hidden="true">event</span>
             </button>
 
-            <button
-              class="board-column-ui__tool board-column-ui__tool--color"
-              [class.is-active]="colorPickerOpen()"
-              type="button"
-              aria-label="Spaltenfarbe auswählen"
-              title="Spaltenfarbe"
-              [attr.aria-expanded]="colorPickerOpen()"
-              [attr.aria-controls]="colorMenuId()"
-              (click)="toggleColorPicker($event)"
-            >
-              <span class="material-symbols-outlined" aria-hidden="true">palette</span>
-            </button>
+            @if (!column().isDynamic) {
+              <button
+                class="board-column-ui__tool board-column-ui__tool--color"
+                [class.is-active]="colorPickerOpen()"
+                type="button"
+                aria-label="Spaltenfarbe auswählen"
+                title="Spaltenfarbe"
+                [attr.aria-expanded]="colorPickerOpen()"
+                [attr.aria-controls]="colorMenuId()"
+                (click)="toggleColorPicker($event)"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">palette</span>
+              </button>
 
-            <button
-              class="board-column-ui__tool"
-              type="button"
-              aria-label="Spalte umbenennen"
-              title="Spalte umbenennen"
-              (click)="startTitleEdit($event)"
-            >
-              <span class="material-symbols-outlined" aria-hidden="true">edit</span>
-            </button>
+              <button
+                class="board-column-ui__tool"
+                type="button"
+                aria-label="Spalte umbenennen"
+                title="Spalte umbenennen"
+                (click)="startTitleEdit($event)"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+              </button>
+            }
 
             @if (!column().isFixedPosition) {
               <button
@@ -208,10 +228,7 @@
         >
           <ng-template cdkDragPreview [matchSize]="true">
             <div class="board-task-preview" [style.--board-accent]="column().color">
-              <cm-workspace-task-card
-                [task]="task"
-                [showProjectContext]="showProjectContext()"
-              />
+              <cm-workspace-task-card [task]="task" [showProjectContext]="showProjectContext()" />
             </div>
           </ng-template>
 
@@ -233,7 +250,7 @@
     </div>
   </div>
 
-  @if (!readOnly()) {
+  @if (!readOnly() && !column().isDynamic) {
     <footer class="board-column-ui__foot">
       <button type="button" (click)="taskAdd.emit(column().id)">
         <span class="material-symbols-outlined" aria-hidden="true">add</span>

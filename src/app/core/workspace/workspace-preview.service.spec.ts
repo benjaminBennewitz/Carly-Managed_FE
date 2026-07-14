@@ -149,4 +149,75 @@ describe('WorkspacePreviewService', () => {
     expect(reopenedTask?.isDone).toBe(false);
     expect(reopenedTask?.priority).toBe('niedrig');
   });
+
+  it('spiegelt neue Projektzuweisungen in die dynamische Neu-Spalte', () => {
+    const personalBoard = service.getBoard('personal');
+    const newColumn = personalBoard.find((column) => column.systemRole === 'new-assigned');
+
+    expect(newColumn?.title).toBe('Neu');
+    expect(newColumn?.isDynamic).toBe(true);
+    expect(newColumn?.tasks.some((task) => task.id === 'task-104')).toBe(true);
+  });
+
+  it('legt Aufgaben ohne Zuweisung mit Prüfhinweis im Pool ab', () => {
+    const createdTask = service.createUnplacedTask('carly-managed', null, 'Ungeklärte Aufgabe');
+    const pooledTask = service.poolTasks().find((task) => task.id === createdTask.id);
+
+    expect(pooledTask?.assignee).toBeNull();
+    expect(pooledTask?.isSharedPool).toBe(true);
+    expect(pooledTask?.requiresReview).toBe(true);
+    expect(pooledTask?.reviewHint).toContain('Zuweisung');
+  });
+
+  it('verschiebt eine entfernte Zuweisung automatisch in den Pool', () => {
+    service.updateTask(
+      'carly-managed',
+      'task-101',
+      { assignee: null },
+      'Zuweisung entfernt',
+      'assignment_ind',
+    );
+
+    expect(
+      service
+        .getBoard('carly-managed')
+        .flatMap((column) => column.tasks)
+        .some((task) => task.id === 'task-101'),
+    ).toBe(false);
+    expect(service.poolTasks().find((task) => task.id === 'task-101')?.requiresReview).toBe(true);
+  });
+
+  it('entfernt eine leere dynamische Neu-Spalte nach der Einsortierung', () => {
+    const createdTask = service.createUnplacedTask(null, 'member-mira', 'Miras neue Aufgabe');
+    const boardId = 'personal-member-mira';
+    const initialBoard = service.getBoard(boardId);
+    const newColumn = initialBoard.find((column) => column.systemRole === 'new-assigned');
+
+    expect(newColumn).toBeDefined();
+
+    service.saveBoard(boardId, [
+      ...initialBoard,
+      {
+        id: 'mira-open',
+        title: 'Offen',
+        color: '#4E82A8',
+        tasks: [],
+      },
+    ]);
+    const tasksToSort = [...(newColumn?.tasks ?? [])];
+    for (const task of tasksToSort) {
+      const activeNewColumn = service
+        .getBoard(boardId)
+        .find((column) => column.systemRole === 'new-assigned');
+      service.moveTask(boardId, task.id, activeNewColumn?.id ?? '', 'mira-open', 0);
+    }
+
+    const updatedBoard = service.getBoard(boardId);
+    expect(updatedBoard.some((column) => column.systemRole === 'new-assigned')).toBe(false);
+    expect(
+      updatedBoard
+        .find((column) => column.id === 'mira-open')
+        ?.tasks.some((task) => task.id === createdTask.id),
+    ).toBe(true);
+  });
 });
