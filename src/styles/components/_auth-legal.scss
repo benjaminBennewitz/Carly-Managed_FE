@@ -1,0 +1,66 @@
+/* ========================================================================== 
+   Datei: src/styles/components/_auth-legal.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert rechtliche Links innerhalb der Authentifizierungsansichten.
+
+   Inhaltsverzeichnis:
+   1. Auth-Fußbereich
+   2. Datenschutzbestätigung
+   3. Responsive Darstellung
+   ========================================================================== */
+
+.auth-layout__legal {
+  position: absolute;
+  right: 0;
+  bottom: clamp(0.75rem, 1.8vh, 1.5rem);
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-200);
+}
+
+.auth-layout__legal a {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.auth-layout__legal a:hover {
+  color: var(--color-action-primary);
+}
+
+.auth-card__privacy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-2) var(--space-4);
+}
+
+.auth-card__privacy > a {
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-action-primary);
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.auth-card__privacy > a .material-symbols-outlined {
+  font-size: var(--size-icon-sm);
+}
+
+@media (max-width: 42rem) {
+  .auth-card__privacy {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .auth-card__privacy > a {
+    padding-left: calc(1.25rem + var(--space-3));
+    white-space: normal;
+  }
+}

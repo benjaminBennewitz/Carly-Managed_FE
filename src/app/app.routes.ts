@@ -7,6 +7,22 @@ import { guestGuard } from './core/auth/guards/guest.guard';
 
 export const routes: Routes = [
   {
+    path: 'datenschutz',
+    title: 'Datenschutz | Carly Managed',
+    loadComponent: () =>
+      import('./features/legal/pages/privacy-page/privacy-page.component').then(
+        (module) => module.PrivacyPageComponent,
+      ),
+  },
+  {
+    path: 'impressum',
+    title: 'Impressum | Carly Managed',
+    loadComponent: () =>
+      import('./features/legal/pages/imprint-page/imprint-page.component').then(
+        (module) => module.ImprintPageComponent,
+      ),
+  },
+  {
     path: 'auth',
     canActivate: [guestGuard],
     loadComponent: () =>

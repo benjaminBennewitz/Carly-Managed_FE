@@ -18,7 +18,7 @@ export interface RegistrationData {
   displayName: string;
   email: string;
   password: string;
-  acceptedTerms: boolean;
+  privacyAcknowledged: boolean;
 }
 
 /**

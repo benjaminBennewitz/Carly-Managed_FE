@@ -1,0 +1,150 @@
+/* ========================================================================== 
+   Datei: src/app/features/legal/pages/privacy-page/privacy-page.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert die Darstellung des rechtlichen Dokuments.
+
+   Inhaltsverzeichnis:
+   1. Dokument
+   2. Kopfbereich
+   3. Zusammenfassung
+   4. Abschnitte
+   5. Typografie
+   6. Responsive Darstellung
+   ========================================================================== */
+
+:host {
+  display: block;
+}
+
+.legal-document {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.legal-document__header {
+  display: grid;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  gap: var(--space-3);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-2xl);
+  background:
+    linear-gradient(135deg, rgb(169 135 222 / 0.11), transparent 55%), var(--color-surface-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.legal-document__eyebrow {
+  color: var(--color-action-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.legal-document__header h1 {
+  font-size: var(--font-size-900);
+}
+
+.legal-document__header > p:not(.legal-document__eyebrow, .legal-document__updated) {
+  max-width: 48rem;
+  font-size: var(--font-size-500);
+}
+
+.legal-document__updated {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-200);
+}
+
+.legal-document__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.legal-document__summary > div {
+  display: grid;
+  padding: var(--space-5);
+  align-content: start;
+  gap: var(--space-2);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-primary);
+}
+
+.legal-document__summary .material-symbols-outlined {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+  font-size: var(--size-icon-lg);
+}
+
+.legal-document__summary strong {
+  color: var(--color-text-primary);
+}
+
+.legal-document__summary p {
+  font-size: var(--font-size-300);
+}
+
+.legal-document section {
+  display: grid;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  gap: var(--space-3);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-primary);
+}
+
+.legal-document section h2 {
+  font-size: var(--font-size-600);
+}
+
+.legal-document section h3 {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-500);
+}
+
+.legal-document p,
+.legal-document li,
+.legal-document address {
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.legal-document address {
+  font-style: normal;
+}
+
+.legal-document address strong {
+  color: var(--color-text-primary);
+}
+
+.legal-document ul {
+  display: grid;
+  padding-left: var(--space-6);
+  margin: 0;
+  gap: var(--space-2);
+}
+
+.legal-document a {
+  font-weight: var(--font-weight-semibold);
+}
+
+@media (max-width: 48rem) {
+  .legal-document__summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .legal-document__summary > div {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .legal-document__summary .material-symbols-outlined {
+    grid-row: 1 / 3;
+  }
+}

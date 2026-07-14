@@ -1,0 +1,65 @@
+<!-- src/app/features/legal/pages/imprint-page/imprint-page.component.html -->
+
+<cm-legal-layout>
+  <article class="legal-document" aria-labelledby="imprint-title">
+    <header class="legal-document__header">
+      <p class="legal-document__eyebrow">Rechtliches</p>
+      <h1 id="imprint-title">Impressum</h1>
+      <p>Angaben zur verantwortlichen Person hinter {{ provider.appName }}.</p>
+      <p class="legal-document__updated">Stand: 14. Juli 2026</p>
+    </header>
+
+    <section>
+      <h2>Angaben gemäß § 5 DDG</h2>
+      <address>
+        @if (provider.businessName) {
+          <strong>{{ provider.businessName }}</strong
+          ><br />
+        }
+        {{ provider.name }}<br />
+        {{ provider.street }}<br />
+        {{ provider.postalCode }} {{ provider.city }}<br />
+        {{ provider.country }}
+      </address>
+    </section>
+
+    <section>
+      <h2>Kontakt</h2>
+      <address>
+        E-Mail: {{ provider.email }}
+        @if (provider.phone) {
+          <br />Telefon: {{ provider.phone }}
+        }
+      </address>
+    </section>
+
+    @if (provider.vatId) {
+      <section>
+        <h2>Umsatzsteuer-ID</h2>
+        <p>
+          Umsatzsteuer-Identifikationsnummer gemäß § 27a Umsatzsteuergesetz:
+          {{ provider.vatId }}
+        </p>
+      </section>
+    }
+
+    <section>
+      <h2>Projekt und Software</h2>
+      <p>
+        {{ provider.appName }} ist eine Web-Anwendung für kollaboratives Task- und
+        Projektmanagement. Die Anwendung besteht aus einem Angular-Frontend und einem separaten
+        Django-Backend.
+      </p>
+    </section>
+
+    <section>
+      <h2>Urheberrecht</h2>
+      <p>
+        Die innerhalb der Anwendung erstellten Inhalte, Gestaltungen und Softwarebestandteile
+        unterliegen dem jeweils anwendbaren Urheberrecht. Eine Vervielfältigung, Bearbeitung oder
+        Verwertung außerhalb der gesetzlichen Grenzen bedarf der Zustimmung der jeweiligen
+        Rechteinhaber.
+      </p>
+    </section>
+  </article>
+</cm-legal-layout>

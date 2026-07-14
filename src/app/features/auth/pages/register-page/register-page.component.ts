@@ -23,7 +23,7 @@ interface RegistrationForm {
   email: FormControl<string>;
   password: FormControl<string>;
   passwordConfirmation: FormControl<string>;
-  acceptedTerms: FormControl<boolean>;
+  privacyAcknowledged: FormControl<boolean>;
 }
 
 @Component({
@@ -81,7 +81,7 @@ export class RegisterPageComponent {
         matchesControlValidator(this.passwordControl),
       ],
     }),
-    acceptedTerms: new FormControl(false, {
+    privacyAcknowledged: new FormControl(false, {
       nonNullable: true,
       validators: [Validators.requiredTrue],
     }),
@@ -168,7 +168,7 @@ export class RegisterPageComponent {
         displayName: rawValue.displayName.trim(),
         email: rawValue.email.trim().toLocaleLowerCase('de-DE'),
         password: rawValue.password,
-        acceptedTerms: rawValue.acceptedTerms,
+        privacyAcknowledged: rawValue.privacyAcknowledged,
       })
       .pipe(finalize(() => this.pending.set(false)))
       .subscribe({

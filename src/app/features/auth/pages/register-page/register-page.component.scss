@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/app/features/auth/pages/register-page/register-page.component.scss
    Projekt: Carly Managed
-   Version: 1.2.0
+   Version: 1.3.0
    Beschreibung: Definiert eine viewport-feste, responsive Registrierung.
 
    Inhaltsverzeichnis:
@@ -10,9 +10,10 @@
    3. Kopfbereich
    4. Formularraster
    5. Passwortbewertung
-   6. Status und Aktionen
-   7. Einspaltige Darstellung
-   8. Niedrige Viewports
+   6. Datenschutzbestätigung
+   7. Status und Aktionen
+   8. Einspaltige Darstellung
+   9. Niedrige Viewports
    ========================================================================== */
 
 :host {
@@ -111,7 +112,7 @@ form {
   background: var(--color-field-border-confirmed);
 }
 
-.auth-card__terms,
+.auth-card__privacy,
 .auth-card__submit {
   grid-column: 1 / -1;
 }
@@ -173,7 +174,7 @@ form {
   }
 
   .password-meter,
-  .auth-card__terms,
+  .auth-card__privacy,
   .auth-card__submit {
     grid-column: 1;
   }

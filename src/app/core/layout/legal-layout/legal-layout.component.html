@@ -1,0 +1,31 @@
+<!-- src/app/core/layout/legal-layout/legal-layout.component.html -->
+
+<div class="legal-layout">
+  <header class="legal-layout__header">
+    <button class="legal-layout__back" type="button" (click)="goBack()">
+      <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+      <span>Zurück</span>
+    </button>
+
+    <a class="legal-layout__brand" routerLink="/" aria-label="Carly Managed Startseite">
+      <img src="/assets/img/carly-managed-logo.svg" alt="" width="720" height="180" />
+    </a>
+
+    <nav class="legal-layout__navigation" aria-label="Rechtliche Informationen">
+      <a routerLink="/datenschutz" routerLinkActive="legal-layout__link--active">Datenschutz</a>
+      <a routerLink="/impressum" routerLinkActive="legal-layout__link--active">Impressum</a>
+    </nav>
+  </header>
+
+  <main class="legal-layout__main">
+    <ng-content />
+  </main>
+
+  <footer class="legal-layout__footer">
+    <span>© 2026 Carly Managed</span>
+    <span aria-hidden="true">·</span>
+    <a routerLink="/datenschutz">Datenschutz</a>
+    <span aria-hidden="true">·</span>
+    <a routerLink="/impressum">Impressum</a>
+  </footer>
+</div>

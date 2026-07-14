@@ -82,14 +82,19 @@
       }
     </div>
 
-    <cm-checkbox-field
-      class="auth-card__terms"
-      [control]="form.controls.acceptedTerms"
-      inputId="accepted-terms"
-      label="Ich akzeptiere die Nutzungsbedingungen und Datenschutzhinweise."
-      error="Bitte bestätige die Bedingungen, um fortzufahren."
-      [submitted]="submitted()"
-    />
+    <div class="auth-card__privacy">
+      <cm-checkbox-field
+        [control]="form.controls.privacyAcknowledged"
+        inputId="privacy-acknowledged"
+        label="Ich habe die Datenschutzerklärung zur Kenntnis genommen."
+        error="Bitte bestätige die Datenschutzerklärung, um fortzufahren."
+        [submitted]="submitted()"
+      />
+      <a routerLink="/datenschutz">
+        <span>Datenschutzerklärung öffnen</span>
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_outward</span>
+      </a>
+    </div>
 
     <button class="auth-card__submit" type="submit" [disabled]="pending()">
       @if (pending()) {

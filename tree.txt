@@ -11,7 +11,8 @@ Carly-Managed_FE/
 ├── public/
 │   ├── assets/
 │   │   ├── fonts/
-│   │   │   └── .gitkeep
+│   │   │   ├── .gitkeep
+│   │   │   └── material-symbols-outlined-latin-fill-normal.woff2
 │   │   └── img/
 │   │       ├── readme/
 │   │       │   ├── backend-repository.svg
@@ -37,19 +38,25 @@ Carly-Managed_FE/
 │   │   │   │   └── services/
 │   │   │   │       ├── auth-preview.service.ts
 │   │   │   │       └── session.service.ts
-│   │   │   └── layout/
-│   │   │       ├── app-shell/
-│   │   │       │   ├── app-shell.component.html
-│   │   │       │   ├── app-shell.component.scss
-│   │   │       │   └── app-shell.component.ts
-│   │   │       ├── auth-layout/
-│   │   │       │   ├── auth-layout.component.html
-│   │   │       │   ├── auth-layout.component.scss
-│   │   │       │   └── auth-layout.component.ts
-│   │   │       └── primary-navigation/
-│   │   │           ├── primary-navigation.component.html
-│   │   │           ├── primary-navigation.component.scss
-│   │   │           └── primary-navigation.component.ts
+│   │   │   ├── layout/
+│   │   │   │   ├── app-shell/
+│   │   │   │   │   ├── app-shell.component.html
+│   │   │   │   │   ├── app-shell.component.scss
+│   │   │   │   │   └── app-shell.component.ts
+│   │   │   │   ├── auth-layout/
+│   │   │   │   │   ├── auth-layout.component.html
+│   │   │   │   │   ├── auth-layout.component.scss
+│   │   │   │   │   └── auth-layout.component.ts
+│   │   │   │   ├── legal-layout/
+│   │   │   │   │   ├── legal-layout.component.html
+│   │   │   │   │   ├── legal-layout.component.scss
+│   │   │   │   │   └── legal-layout.component.ts
+│   │   │   │   └── primary-navigation/
+│   │   │   │       ├── primary-navigation.component.html
+│   │   │   │       ├── primary-navigation.component.scss
+│   │   │   │       └── primary-navigation.component.ts
+│   │   │   └── legal/
+│   │   │       └── legal.config.ts
 │   │   ├── features/
 │   │   │   ├── auth/
 │   │   │   │   └── pages/
@@ -85,6 +92,16 @@ Carly-Managed_FE/
 │   │   │   │           ├── inbox-page.component.html
 │   │   │   │           ├── inbox-page.component.scss
 │   │   │   │           └── inbox-page.component.ts
+│   │   │   ├── legal/
+│   │   │   │   └── pages/
+│   │   │   │       ├── imprint-page/
+│   │   │   │       │   ├── imprint-page.component.html
+│   │   │   │       │   ├── imprint-page.component.scss
+│   │   │   │       │   └── imprint-page.component.ts
+│   │   │   │       └── privacy-page/
+│   │   │   │           ├── privacy-page.component.html
+│   │   │   │           ├── privacy-page.component.scss
+│   │   │   │           └── privacy-page.component.ts
 │   │   │   ├── pool/
 │   │   │   │   └── pages/
 │   │   │   │       └── pool-page/
@@ -125,7 +142,11 @@ Carly-Managed_FE/
 │   │   ├── base/
 │   │   │   ├── _accessibility.scss
 │   │   │   ├── _global.scss
-│   │   │   └── _reset.scss
+│   │   │   ├── _icons.scss
+│   │   │   ├── _reset.scss
+│   │   │   └── _view-transitions.scss
+│   │   ├── components/
+│   │   │   └── _auth-legal.scss
 │   │   ├── settings/
 │   │   │   ├── _design-tokens.scss
 │   │   │   └── _themes.scss
