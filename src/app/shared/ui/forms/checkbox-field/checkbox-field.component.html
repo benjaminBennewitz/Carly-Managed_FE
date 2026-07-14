@@ -1,0 +1,25 @@
+<!-- src/app/shared/ui/forms/checkbox-field/checkbox-field.component.html -->
+
+<div class="checkbox-field" [class.checkbox-field--invalid]="isInvalid()">
+  <label class="checkbox-field__label" [for]="inputId()">
+    <input
+      [id]="inputId()"
+      [formControl]="control()"
+      type="checkbox"
+      [attr.aria-invalid]="isInvalid()"
+      [attr.aria-describedby]="isInvalid() ? inputId() + '-error' : null"
+    />
+    <span class="checkbox-field__box" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="m5.5 12.5 4 4 9-9" />
+      </svg>
+    </span>
+    <span>{{ label() }}</span>
+  </label>
+
+  @if (isInvalid()) {
+    <p class="checkbox-field__error" [id]="inputId() + '-error'" role="alert">
+      {{ error() || 'Bitte bestätige diese Auswahl.' }}
+    </p>
+  }
+</div>

@@ -1,0 +1,147 @@
+/* ==========================================================================
+   Datei: src/app/shared/ui/forms/text-field/text-field.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert ein barrierearmes Texteingabefeld mit Validierungszuständen.
+
+   Inhaltsverzeichnis:
+   1. Feld
+   2. Beschriftung
+   3. Kontrolle
+   4. Zustände
+   5. Meldungen
+   ========================================================================== */
+
+:host {
+  display: block;
+}
+
+.text-field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.text-field__label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-300);
+  font-weight: var(--font-weight-semibold);
+}
+
+.text-field__required {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.text-field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: var(--size-control-lg);
+  border: var(--border-width-subtle) solid var(--color-field-border);
+  border-radius: var(--radius-md);
+  background: var(--color-field-background);
+}
+
+.text-field__control:focus-within {
+  border-color: var(--color-field-border-focus);
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--color-field-focus-ring);
+}
+
+input {
+  width: 100%;
+  min-width: 0;
+  min-height: calc(var(--size-control-lg) - 0.125rem);
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-field-text);
+  caret-color: var(--color-action-primary);
+}
+
+input::placeholder {
+  color: var(--color-field-placeholder);
+}
+
+input:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.text-field:has(input:disabled) .text-field__control {
+  border-color: var(--color-field-border-disabled);
+  background: var(--color-field-background-disabled);
+}
+
+.text-field__toggle {
+  display: grid;
+  flex: 0 0 var(--size-click-target);
+  width: var(--size-click-target);
+  min-width: var(--size-click-target);
+  height: var(--size-click-target);
+  min-height: var(--size-click-target);
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-icon-secondary);
+}
+
+.text-field__toggle:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-icon-primary);
+}
+
+.text-field__toggle svg,
+.text-field__status-icon,
+.text-field__message svg {
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.text-field__status-icon {
+  flex: 0 0 auto;
+  margin-right: var(--space-4);
+  color: var(--color-field-confirmed);
+}
+
+.text-field--invalid .text-field__control {
+  border-color: var(--color-field-border-invalid);
+  box-shadow: inset 0 -0.125rem 0 var(--color-field-border-invalid);
+}
+
+.text-field--confirmed .text-field__control {
+  border-color: var(--color-field-border-confirmed);
+}
+
+.text-field__message {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  min-height: 1.25rem;
+  color: var(--color-field-hint);
+  font-size: var(--font-size-200);
+  line-height: 1.45;
+}
+
+.text-field__message--error {
+  color: var(--color-field-error);
+}
+
+.text-field__message svg {
+  flex: 0 0 auto;
+  margin-top: 0.05rem;
+}

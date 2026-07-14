@@ -1,0 +1,64 @@
+// src/app/shared/validation/auth.validators.ts
+
+import { AbstractControl, FormControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+
+const COMMON_PASSWORDS = new Set([
+  '123456789012',
+  'password1234',
+  'qwertzuiop12',
+  'letmein123456',
+  'carlymanaged',
+]);
+
+/**
+ * Verhindert besonders häufig verwendete oder leicht erratbare Passwörter.
+ */
+export function uncommonPasswordValidator(): ValidatorFn {
+  return (control: AbstractControl<string>): ValidationErrors | null => {
+    const normalizedValue = control.value.trim().toLowerCase();
+
+    if (!normalizedValue || !COMMON_PASSWORDS.has(normalizedValue)) {
+      return null;
+    }
+
+    return { commonPassword: true };
+  };
+}
+
+/**
+ * Prüft, ob das Passwort wesentliche Teile persönlicher Eingaben enthält.
+ */
+export function personalDataPasswordValidator(
+  displayNameControl: FormControl<string>,
+  emailControl: FormControl<string>,
+): ValidatorFn {
+  return (control: AbstractControl<string>): ValidationErrors | null => {
+    const password = control.value.trim().toLowerCase();
+
+    if (!password) {
+      return null;
+    }
+
+    const personalFragments = [
+      ...displayNameControl.value.toLowerCase().split(/\s+/),
+      emailControl.value.toLowerCase().split('@')[0] ?? '',
+    ].filter((fragment) => fragment.length >= 4);
+
+    return personalFragments.some((fragment) => password.includes(fragment))
+      ? { containsPersonalData: true }
+      : null;
+  };
+}
+
+/**
+ * Prüft, ob ein Kontrollwert mit einem anderen Feld übereinstimmt.
+ */
+export function matchesControlValidator(referenceControl: FormControl<string>): ValidatorFn {
+  return (control: AbstractControl<string>): ValidationErrors | null => {
+    if (!control.value || control.value === referenceControl.value) {
+      return null;
+    }
+
+    return { mismatch: true };
+  };
+}

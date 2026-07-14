@@ -1,13 +1,14 @@
 /* ==========================================================================
    Datei: src/styles/settings/_themes.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert die semantischen Farb-Tokens für Light- und Dark-Mode.
 
    Inhaltsverzeichnis:
    1. Default Light
    2. Default Dark
-   3. Abgeleitete Statusflächen
+   3. Formularzustände
+   4. Abgeleitete Statusflächen
    ========================================================================== */
 
 :root,
@@ -61,6 +62,21 @@
   --color-selection-background: #c7b0e7;
   --color-selection-text: #241b2e;
   --color-backdrop: rgb(36 27 46 / 0.48);
+
+  --color-field-background: #ffffff;
+  --color-field-background-disabled: #f2eef5;
+  --color-field-text: #241b2e;
+  --color-field-placeholder: #8a8093;
+  --color-field-hint: #756a7e;
+  --color-field-border: #c5b5d2;
+  --color-field-border-hover: #aa96bb;
+  --color-field-border-focus: #7a5bc2;
+  --color-field-border-invalid: #a96082;
+  --color-field-border-confirmed: #667fb1;
+  --color-field-border-disabled: #ded4e7;
+  --color-field-error: #8f4869;
+  --color-field-confirmed: #506b9d;
+  --color-field-focus-ring: rgb(122 91 194 / 0.18);
 }
 
 :root[data-theme='default'][data-mode='dark'] {
@@ -113,11 +129,34 @@
   --color-selection-background: #7d64a1;
   --color-selection-text: #f7f2fa;
   --color-backdrop: rgb(8 6 10 / 0.72);
+
+  --color-field-background: #1d1724;
+  --color-field-background-disabled: #241c2c;
+  --color-field-text: #f7f2fa;
+  --color-field-placeholder: #91849b;
+  --color-field-hint: #c7bbcf;
+  --color-field-border: #685673;
+  --color-field-border-hover: #846d91;
+  --color-field-border-focus: #b79ae6;
+  --color-field-border-invalid: #d38dab;
+  --color-field-border-confirmed: #91a8d8;
+  --color-field-border-disabled: #493a54;
+  --color-field-error: #e0a4bb;
+  --color-field-confirmed: #b2c3e8;
+  --color-field-focus-ring: rgb(183 154 230 / 0.22);
 }
 
 :root {
-  --color-success-surface: color-mix(in srgb, var(--color-success) 14%, var(--color-surface-primary));
-  --color-warning-surface: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface-primary));
+  --color-success-surface: color-mix(
+    in srgb,
+    var(--color-success) 14%,
+    var(--color-surface-primary)
+  );
+  --color-warning-surface: color-mix(
+    in srgb,
+    var(--color-warning) 14%,
+    var(--color-surface-primary)
+  );
   --color-danger-surface: color-mix(in srgb, var(--color-danger) 14%, var(--color-surface-primary));
   --color-info-surface: color-mix(in srgb, var(--color-info) 14%, var(--color-surface-primary));
 }
