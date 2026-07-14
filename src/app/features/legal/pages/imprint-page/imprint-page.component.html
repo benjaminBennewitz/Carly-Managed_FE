@@ -30,6 +30,17 @@
         {{ provider.country }}
       </address>
 
+      <div class="imprint-bento__contact">
+        <span class="material-symbols-outlined" aria-hidden="true">alternate_email</span>
+        <div>
+          <span>Erreichbarkeit</span>
+          <a [href]="'mailto:' + provider.email">{{ provider.email }}</a>
+          @if (provider.phone) {
+            <a [href]="'tel:' + provider.phone">{{ provider.phone }}</a>
+          }
+        </div>
+      </div>
+
       @if (provider.vatId) {
         <div class="imprint-bento__meta">
           <span>Umsatzsteuer-ID</span>
@@ -38,17 +49,10 @@
       }
     </section>
 
-    <section class="imprint-bento__card imprint-bento__card--contact">
-      <span class="imprint-bento__icon material-symbols-outlined" aria-hidden="true">alternate_email</span>
-      <p class="imprint-bento__label">Direkter Kontakt</p>
-      <h2>Erreichbarkeit</h2>
-      <address>
-        <a [href]="'mailto:' + provider.email">{{ provider.email }}</a>
-        @if (provider.phone) {
-          <br /><a [href]="'tel:' + provider.phone">{{ provider.phone }}</a>
-        }
-      </address>
-    </section>
+    <section
+      class="imprint-bento__card imprint-bento__card--signature"
+      aria-label="B hoch zwei"
+    ></section>
 
     <section class="imprint-bento__card imprint-bento__card--project">
       <span class="imprint-bento__icon material-symbols-outlined" aria-hidden="true">deployed_code</span>
@@ -64,6 +68,7 @@
       <span class="imprint-bento__icon material-symbols-outlined" aria-hidden="true">copyright</span>
       <p class="imprint-bento__label">Urheberrecht</p>
       <h2>Inhalte und Software</h2>
+      <p class="imprint-bento__credit">by <strong>B²</strong> Benjamin Bennewitz</p>
       <p>
         Gestaltungen, Inhalte und Softwarebestandteile unterliegen dem jeweils anwendbaren
         Urheberrecht. Eine Verwertung außerhalb der gesetzlichen Grenzen bedarf der Zustimmung der

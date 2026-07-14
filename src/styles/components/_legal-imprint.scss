@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_legal-imprint.scss
    Projekt: Carly Managed
-   Version: 1.1.0
+   Version: 1.4.0
    Beschreibung: Ordnet das Impressum als kompaktes Bento innerhalb eines Viewports an.
 
    Inhaltsverzeichnis:
@@ -48,6 +48,23 @@
   color: #f7f2fa;
 }
 
+@keyframes imprint-hero-orbit {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.72;
+  }
+
+  50% {
+    transform: translate3d(-1.1rem, -0.75rem, 0) scale(1.07);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate3d(0.35rem, -1.1rem, 0) scale(0.98);
+    opacity: 0.82;
+  }
+}
+
 .imprint-bento__hero::after {
   position: absolute;
   right: -2.5rem;
@@ -57,6 +74,9 @@
   border: 2.5rem solid rgb(242 217 147 / 0.12);
   border-radius: 50%;
   content: '';
+  animation: imprint-hero-orbit 10s ease-in-out infinite alternate;
+  transform-origin: center;
+  will-change: transform, opacity;
 }
 
 .imprint-bento__hero > div {
@@ -191,22 +211,90 @@
     var(--color-surface-primary);
 }
 
-.imprint-bento__card--contact {
-  border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border-subtle));
-  background: var(--color-accent-subtle);
-  color: #3a2c1b;
+.imprint-bento__contact {
+  display: grid;
+  padding-top: var(--space-3);
+  margin-top: var(--space-2);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-2);
+  border-top: var(--border-width-subtle) solid var(--color-border-subtle);
 }
 
-.imprint-bento__card--contact .imprint-bento__icon {
-  background: rgb(255 255 255 / 0.52);
-  color: #75571f;
+.imprint-bento__contact > .material-symbols-outlined {
+  margin-top: 0.08rem;
+  color: var(--color-action-primary);
+  font-size: var(--size-icon-md);
 }
 
-.imprint-bento__card--contact .imprint-bento__label,
-.imprint-bento__card--contact h2,
-.imprint-bento__card--contact address,
-.imprint-bento__card--contact a {
-  color: #3a2c1b;
+.imprint-bento__contact div {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.imprint-bento__contact span:not(.material-symbols-outlined) {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.imprint-bento__contact a {
+  width: fit-content;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.imprint-bento__card--signature {
+  min-height: 0;
+  place-items: center;
+  border-color: transparent;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 0.7rem,
+      color-mix(in srgb, var(--color-action-primary-text) 7%, transparent) 0.72rem 0.78rem
+    ),
+    linear-gradient(
+      145deg,
+      var(--color-action-primary-hover),
+      var(--color-action-primary)
+    );
+  color: var(--color-action-primary-text);
+  isolation: isolate;
+}
+
+.imprint-bento__card--signature::before,
+.imprint-bento__card--signature::after {
+  position: absolute;
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-bold);
+  line-height: 0.8;
+  content: 'B²';
+  pointer-events: none;
+}
+
+.imprint-bento__card--signature::before {
+  color: transparent;
+  font-size: clamp(5.5rem, 10vw, 10rem);
+  -webkit-text-stroke:
+    0.075rem
+    color-mix(in srgb, var(--color-action-primary-text) 32%, transparent);
+  transform: translate(0.5rem, 0.5rem);
+}
+
+.imprint-bento__card--signature::after {
+  color: var(--color-action-primary-text);
+  font-size: clamp(5.5rem, 10vw, 10rem);
+  letter-spacing: -0.12em;
+  text-shadow:
+    0.35rem
+    0.35rem
+    0
+    color-mix(in srgb, var(--color-surface-primary) 34%, transparent);
 }
 
 .imprint-bento__card--project {
@@ -234,6 +322,22 @@
   background:
     radial-gradient(circle at 90% 10%, rgb(79 149 114 / 0.18), transparent 10rem),
     var(--color-surface-secondary);
+}
+
+.imprint-bento__credit {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  color: var(--color-action-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.imprint-bento__credit strong {
+  font-size: 1.15em;
+  font-weight: var(--font-weight-bold);
 }
 
 @media (max-height: 48rem) and (min-width: 64.01rem) {
@@ -290,5 +394,11 @@
 
   .imprint-bento__hero {
     min-height: 21rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .imprint-bento__hero::after {
+    animation: none;
   }
 }

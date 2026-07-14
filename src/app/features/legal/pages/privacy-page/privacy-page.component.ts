@@ -1,6 +1,6 @@
 // src/app/features/legal/pages/privacy-page/privacy-page.component.ts
 
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 
 import { LEGAL_PROVIDER } from '../../../../core/legal/legal.config';
 import { LegalLayoutComponent } from '../../../../core/layout/legal-layout/legal-layout.component';
@@ -14,6 +14,7 @@ import { LegalLayoutComponent } from '../../../../core/layout/legal-layout/legal
 })
 export class PrivacyPageComponent {
   protected readonly provider = LEGAL_PROVIDER;
+  protected readonly canScrollLeft = signal(false);
 
   /**
    * Überträgt vertikale Mausradbewegungen auf den horizontalen Dokumentbereich.
@@ -38,6 +39,26 @@ export class PrivacyPageComponent {
 
     event.preventDefault();
     track.scrollLeft += event.deltaY;
+  }
+
+  /**
+   * Aktualisiert den Zustand des Zurück-zum-Anfang-Buttons.
+   */
+  protected updateScrollState(track: HTMLDivElement): void {
+    this.canScrollLeft.set(track.scrollLeft > 24);
+  }
+
+  /**
+   * Scrollt das horizontale Datenschutzdeck zurück an den Anfang.
+   */
+  protected scrollToStart(track: HTMLDivElement): void {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    track.scrollTo({
+      left: 0,
+      behavior: reduceMotion ? 'auto' : 'smooth',
+    });
+    track.focus({ preventScroll: true });
   }
 
   /**

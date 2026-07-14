@@ -8,6 +8,7 @@
       tabindex="0"
       aria-label="Datenschutzerklärung horizontal durchblättern"
       (wheel)="scrollHorizontally($event, privacyTrack)"
+      (scroll)="updateScrollState(privacyTrack)"
     >
       <header class="privacy-deck__panel privacy-deck__panel--hero">
         <div class="privacy-deck__hero-copy">
@@ -49,7 +50,8 @@
           <span class="privacy-deck__number">01</span>
           <h2>Verantwortlicher</h2>
           <address>
-            <strong>{{ provider.name }}</strong><br />
+            <strong>{{ provider.name }}</strong
+            ><br />
             {{ provider.street }}<br />
             {{ provider.postalCode }} {{ provider.city }}<br />
             {{ provider.country }}<br />
@@ -57,7 +59,10 @@
           </address>
         </section>
 
-        <section class="privacy-deck__card privacy-deck__card--wide" id="privacy-server">
+        <section
+          class="privacy-deck__card privacy-deck__card--wide privacy-deck__card--pattern-grid"
+          id="privacy-server"
+        >
           <span class="privacy-deck__number">02</span>
           <h2>Bereitstellung der Anwendung und Server-Protokolle</h2>
           <p>
@@ -75,7 +80,7 @@
         </section>
 
         <section
-          class="privacy-deck__card privacy-deck__card--wide privacy-deck__card--soft"
+          class="privacy-deck__card privacy-deck__card--wide privacy-deck__card--soft privacy-deck__card--pattern-orbit"
           id="privacy-account"
         >
           <span class="privacy-deck__number">03</span>
@@ -88,8 +93,8 @@
           </p>
           <p>
             Die Verarbeitung erfolgt zur Einrichtung und Durchführung des Nutzungsverhältnisses auf
-            Grundlage von Art. 6 Abs. 1 lit. b DSGVO. Pflichtangaben sind im Formular gekennzeichnet.
-            Ohne diese Daten kann kein Benutzerkonto bereitgestellt werden.
+            Grundlage von Art. 6 Abs. 1 lit. b DSGVO. Pflichtangaben sind im Formular
+            gekennzeichnet. Ohne diese Daten kann kein Benutzerkonto bereitgestellt werden.
           </p>
         </section>
       </div>
@@ -133,7 +138,10 @@
           <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.</p>
         </section>
 
-        <section class="privacy-deck__card privacy-deck__card--wide" id="privacy-realtime">
+        <section
+          class="privacy-deck__card privacy-deck__card--wide privacy-deck__card--pattern-dots"
+          id="privacy-realtime"
+        >
           <span class="privacy-deck__number">06</span>
           <h2>Realtime-Präsenz, Live-Cursor und Bearbeitungsstatus</h2>
           <p>
@@ -162,8 +170,8 @@
           </p>
           <p>
             Vor einem Upload ist zu prüfen, ob die Datei personenbezogene, vertrauliche oder
-            urheberrechtlich geschützte Informationen enthält. Rechtsgrundlage ist Art. 6 Abs. 1 lit.
-            b DSGVO.
+            urheberrechtlich geschützte Informationen enthält. Rechtsgrundlage ist Art. 6 Abs. 1
+            lit. b DSGVO.
           </p>
         </section>
 
@@ -182,7 +190,7 @@
         </section>
 
         <section
-          class="privacy-deck__card privacy-deck__card--full privacy-deck__card--soft"
+          class="privacy-deck__card privacy-deck__card--full privacy-deck__card--soft privacy-deck__card--pattern-lines"
           id="privacy-cookies"
         >
           <span class="privacy-deck__number">09</span>
@@ -229,7 +237,7 @@
         </section>
 
         <section
-          class="privacy-deck__card privacy-deck__card--full privacy-deck__card--success"
+          class="privacy-deck__card privacy-deck__card--full privacy-deck__card--success privacy-deck__card--pattern-grid"
           id="privacy-retention"
         >
           <span class="privacy-deck__number">12</span>
@@ -251,7 +259,10 @@
         >
           <span class="privacy-deck__number">13</span>
           <h2>Rechte betroffener Personen</h2>
-          <p>Betroffene Personen haben im Rahmen der gesetzlichen Voraussetzungen insbesondere das Recht auf:</p>
+          <p>
+            Betroffene Personen haben im Rahmen der gesetzlichen Voraussetzungen insbesondere das
+            Recht auf:
+          </p>
           <ul>
             <li>Auskunft nach Art. 15 DSGVO</li>
             <li>Berichtigung nach Art. 16 DSGVO</li>
@@ -302,9 +313,9 @@
         <span class="privacy-deck__number">16</span>
         <h2 id="privacy-changes-title">Änderungen dieser Datenschutzerklärung</h2>
         <p>
-          Diese Datenschutzerklärung wird angepasst, wenn sich Funktionen, eingesetzte
-          Dienstleister oder rechtliche Anforderungen ändern. Maßgeblich ist die jeweils in der
-          Anwendung veröffentlichte Fassung.
+          Diese Datenschutzerklärung wird angepasst, wenn sich Funktionen, eingesetzte Dienstleister
+          oder rechtliche Anforderungen ändern. Maßgeblich ist die jeweils in der Anwendung
+          veröffentlichte Fassung.
         </p>
         <div class="privacy-deck__outro-meta">
           <span class="material-symbols-outlined" aria-hidden="true">shield_lock</span>
@@ -313,5 +324,17 @@
         </div>
       </section>
     </div>
+
+    <button
+      class="privacy-deck__to-start"
+      type="button"
+      [class.privacy-deck__to-start--visible]="canScrollLeft()"
+      [disabled]="!canScrollLeft()"
+      aria-label="Datenschutzerklärung zum Anfang scrollen"
+      (click)="scrollToStart(privacyTrack)"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">keyboard_double_arrow_left</span>
+      <span>Zum Anfang</span>
+    </button>
   </article>
 </cm-legal-layout>
