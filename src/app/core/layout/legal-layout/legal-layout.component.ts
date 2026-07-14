@@ -4,6 +4,8 @@ import { Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
+type LegalTransitionDirection = 'forward' | 'backward';
+
 @Component({
   selector: 'cm-legal-layout',
   imports: [RouterLink, RouterLinkActive],
@@ -16,9 +18,18 @@ export class LegalLayoutComponent {
   private readonly router = inject(Router);
 
   /**
+   * Markiert die Richtung für den folgenden nativen Seitenübergang.
+   */
+  protected prepareTransition(direction: LegalTransitionDirection): void {
+    document.documentElement.dataset['legalTransitionDirection'] = direction;
+  }
+
+  /**
    * Kehrt zur vorherigen App-Seite zurück und nutzt die Anmeldung als sicheren Fallback.
    */
   protected goBack(): void {
+    this.prepareTransition('backward');
+
     if (globalThis.history.length > 1) {
       this.location.back();
       return;

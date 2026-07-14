@@ -7,13 +7,32 @@
       <span>Zurück</span>
     </button>
 
-    <a class="legal-layout__brand" routerLink="/" aria-label="Carly Managed Startseite">
+    <a
+      class="legal-layout__brand"
+      routerLink="/auth/login"
+      aria-label="Carly Managed Anmeldung"
+      (click)="prepareTransition('backward')"
+    >
       <img src="/assets/img/carly-managed-logo.svg" alt="" width="720" height="180" />
     </a>
 
     <nav class="legal-layout__navigation" aria-label="Rechtliche Informationen">
-      <a routerLink="/datenschutz" routerLinkActive="legal-layout__link--active">Datenschutz</a>
-      <a routerLink="/impressum" routerLinkActive="legal-layout__link--active">Impressum</a>
+      <a
+        routerLink="/datenschutz"
+        routerLinkActive="legal-layout__link--active"
+        (click)="prepareTransition('backward')"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">shield_lock</span>
+        Datenschutz
+      </a>
+      <a
+        routerLink="/impressum"
+        routerLinkActive="legal-layout__link--active"
+        (click)="prepareTransition('forward')"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">contact_page</span>
+        Impressum
+      </a>
     </nav>
   </header>
 
@@ -24,8 +43,6 @@
   <footer class="legal-layout__footer">
     <span>© 2026 Carly Managed</span>
     <span aria-hidden="true">·</span>
-    <a routerLink="/datenschutz">Datenschutz</a>
-    <span aria-hidden="true">·</span>
-    <a routerLink="/impressum">Impressum</a>
+    <span>Made for focused teams</span>
   </footer>
 </div>

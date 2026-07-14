@@ -1,243 +1,282 @@
 <!-- src/app/features/legal/pages/privacy-page/privacy-page.component.html -->
 
 <cm-legal-layout>
-  <article class="legal-document" aria-labelledby="privacy-title">
-    <header class="legal-document__header">
-      <p class="legal-document__eyebrow">Rechtliches</p>
-      <h1 id="privacy-title">Datenschutzerklärung</h1>
-      <p>
-        Diese Datenschutzerklärung erläutert, welche personenbezogenen Daten bei der Nutzung von
-        {{ provider.appName }} verarbeitet werden und welche Rechte betroffene Personen haben.
-      </p>
-      <p class="legal-document__updated">Stand: 14. Juli 2026</p>
+  <article class="privacy-workspace" aria-labelledby="privacy-title">
+    <header class="privacy-workspace__hero">
+      <div class="privacy-workspace__intro">
+        <p class="privacy-workspace__eyebrow">Privacy / Transparent by design</p>
+        <h1 class="legal-document__title" id="privacy-title">Datenschutz</h1>
+        <p>
+          Welche Daten {{ provider.appName }} verarbeitet, warum sie benötigt werden und welche
+          Rechte betroffene Personen haben.
+        </p>
+        <span>Stand: 14. Juli 2026</span>
+      </div>
+
+      <div class="privacy-workspace__signals" aria-label="Datenschutz auf einen Blick">
+        <div>
+          <span class="material-symbols-outlined" aria-hidden="true">visibility_off</span>
+          <strong>Ohne Werbetracking</strong>
+        </div>
+        <div>
+          <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+          <strong>Geschützte Anmeldung</strong>
+        </div>
+        <div>
+          <span class="material-symbols-outlined" aria-hidden="true">sync</span>
+          <strong>Flüchtige Realtime-Daten</strong>
+        </div>
+      </div>
     </header>
 
-    <div class="legal-document__summary" aria-label="Datenschutz auf einen Blick">
-      <div>
-        <span class="material-symbols-outlined" aria-hidden="true">visibility_off</span>
-        <strong>Kein Werbetracking</strong>
-        <p>Keine personalisierte Werbung und keine extern eingebundenen Analyse-Skripte.</p>
-      </div>
-      <div>
-        <span class="material-symbols-outlined" aria-hidden="true">lock</span>
-        <strong>Sichere Anmeldung</strong>
-        <p>
-          Authentifizierungsdaten werden über geschützte Cookies und serverseitige Prüfungen
-          verarbeitet.
-        </p>
-      </div>
-      <div>
-        <span class="material-symbols-outlined" aria-hidden="true">sync</span>
-        <strong>Transparente Realtime-Daten</strong>
-        <p>Präsenz und Live-Cursor werden nur für die unmittelbare Zusammenarbeit übertragen.</p>
+    <nav class="privacy-workspace__index" aria-label="Abschnitte der Datenschutzerklärung">
+      <a href="#privacy-responsible"><span>01</span> Verantwortlicher</a>
+      <a href="#privacy-server"><span>02</span> Server</a>
+      <a href="#privacy-account"><span>03</span> Benutzerkonto</a>
+      <a href="#privacy-email"><span>04</span> E-Mail</a>
+      <a href="#privacy-boards"><span>05</span> Boards</a>
+      <a href="#privacy-realtime"><span>06</span> Realtime</a>
+      <a href="#privacy-files"><span>07</span> Anhänge</a>
+      <a href="#privacy-carly"><span>08</span> Carly</a>
+      <a href="#privacy-cookies"><span>09</span> Cookies</a>
+      <a href="#privacy-recipients"><span>10</span> Empfänger</a>
+      <a href="#privacy-third-countries"><span>11</span> Drittländer</a>
+      <a href="#privacy-retention"><span>12</span> Speicherdauer</a>
+      <a href="#privacy-rights"><span>13</span> Rechte</a>
+      <a href="#privacy-decisions"><span>14</span> Entscheidungen</a>
+      <a href="#privacy-security"><span>15</span> Sicherheit</a>
+      <a href="#privacy-changes"><span>16</span> Änderungen</a>
+    </nav>
+
+    <div
+      class="privacy-workspace__scroll"
+      tabindex="0"
+      aria-label="Inhalt der Datenschutzerklärung"
+    >
+      <div class="privacy-workspace__grid">
+        <section id="privacy-responsible">
+          <span class="privacy-workspace__number">01</span>
+          <h2>Verantwortlicher</h2>
+          <address>
+            <strong>{{ provider.name }}</strong><br />
+            {{ provider.street }}<br />
+            {{ provider.postalCode }} {{ provider.city }}<br />
+            {{ provider.country }}<br />
+            E-Mail: {{ provider.email }}
+          </address>
+        </section>
+
+        <section id="privacy-server">
+          <span class="privacy-workspace__number">02</span>
+          <h2>Bereitstellung der Anwendung und Server-Protokolle</h2>
+          <p>
+            Beim Aufruf der Anwendung verarbeitet der Hosting-Server technisch notwendige
+            Verbindungsdaten. Dazu können IP-Adresse, Zeitpunkt, aufgerufene Ressource, übertragene
+            Datenmenge, Referrer, Browserkennung und Betriebssystem gehören. Die Verarbeitung ist
+            erforderlich, um die Anwendung auszuliefern, Fehler zu erkennen und Angriffe abzuwehren.
+          </p>
+          <p>
+            Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Das berechtigte Interesse liegt im
+            sicheren, stabilen und nachvollziehbaren Betrieb der Anwendung. Sicherheitsprotokolle
+            werden nur so lange gespeichert, wie sie für Fehleranalyse, Missbrauchsschutz und
+            gesetzliche Nachweise erforderlich sind.
+          </p>
+        </section>
+
+        <section id="privacy-account">
+          <span class="privacy-workspace__number">03</span>
+          <h2>Registrierung und Benutzerkonto</h2>
+          <p>
+            Für die Erstellung eines Benutzerkontos werden insbesondere Anzeigename, E-Mail-Adresse
+            und ein sicher gehashtes Passwort verarbeitet. Zusätzlich können Kontostatus,
+            E-Mail-Bestätigung, Spracheinstellungen, Avatar und Zeitpunkt der letzten Anmeldung
+            gespeichert werden.
+          </p>
+          <p>
+            Die Verarbeitung erfolgt zur Einrichtung und Durchführung des Nutzungsverhältnisses auf
+            Grundlage von Art. 6 Abs. 1 lit. b DSGVO. Pflichtangaben sind im Formular gekennzeichnet.
+            Ohne diese Daten kann kein Benutzerkonto bereitgestellt werden.
+          </p>
+        </section>
+
+        <section id="privacy-email">
+          <span class="privacy-workspace__number">04</span>
+          <h2>E-Mail-Bestätigung und Kontokommunikation</h2>
+          <p>
+            Für E-Mail-Bestätigungen, Passwort-Zurücksetzungen, sicherheitsrelevante Hinweise und
+            notwendige Kontonachrichten wird die hinterlegte E-Mail-Adresse verarbeitet.
+            Bestätigungs- und Reset-Links sind zeitlich begrenzt und dürfen nur einmal verwendet
+            werden.
+          </p>
+          <p>
+            Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Sicherheitsbezogene Benachrichtigungen
+            können ergänzend auf Art. 6 Abs. 1 lit. f DSGVO gestützt werden.
+          </p>
+        </section>
+
+        <section id="privacy-boards">
+          <span class="privacy-workspace__number">05</span>
+          <h2>Boards, Aufgaben und Zusammenarbeit</h2>
+          <p>
+            Bei der Nutzung von Boards werden die von Nutzenden eingegebenen Inhalte verarbeitet.
+            Dazu gehören beispielsweise Boardnamen, Aufgaben, Beschreibungen, Fälligkeiten,
+            Prioritäten, Labels, Verantwortlichkeiten, Kommentare, Erwähnungen, Unteraufgaben und
+            Aktivitätsangaben.
+          </p>
+          <p>
+            Inhalte gemeinsamer Boards sind für die jeweils berechtigten Mitglieder sichtbar. Wer
+            Informationen über andere Personen einträgt, muss sicherstellen, dass dies zulässig ist
+            und keine unnötigen oder besonders sensiblen Daten veröffentlicht werden.
+          </p>
+          <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.</p>
+        </section>
+
+        <section id="privacy-realtime">
+          <span class="privacy-workspace__number">06</span>
+          <h2>Realtime-Präsenz, Live-Cursor und Bearbeitungsstatus</h2>
+          <p>
+            Während ein gemeinsames Board geöffnet ist, können flüchtige Statusinformationen über
+            WebSockets übertragen werden. Dazu gehören Online-Präsenz, Cursorposition, aktuell
+            betrachtete Bereiche, Bearbeitungshinweise und Task-Bewegungen. Diese Daten dienen
+            ausschließlich der unmittelbaren Zusammenarbeit und werden nicht als dauerhafte
+            Bewegungsprofile gespeichert.
+          </p>
+          <p>
+            Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Soweit sicherheitsbezogene Ereignisse
+            protokolliert werden, erfolgt dies auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO.
+          </p>
+        </section>
+
+        <section id="privacy-files">
+          <span class="privacy-workspace__number">07</span>
+          <h2>Einladungen, Kommentare und Anhänge</h2>
+          <p>
+            Für Board-Einladungen werden E-Mail-Adresse, ein sicherer Einladungstoken, Rolle,
+            Gültigkeitszeitraum und Einladungsstatus verarbeitet. Kommentare können den Anzeigenamen
+            der verfassenden Person und Zeitangaben enthalten. Hochgeladene Anhänge werden
+            gespeichert und den berechtigten Board-Mitgliedern bereitgestellt.
+          </p>
+          <p>
+            Vor einem Upload ist zu prüfen, ob die Datei personenbezogene, vertrauliche oder
+            urheberrechtlich geschützte Informationen enthält. Rechtsgrundlage ist Art. 6 Abs. 1 lit.
+            b DSGVO.
+          </p>
+        </section>
+
+        <section id="privacy-carly">
+          <span class="privacy-workspace__number">08</span>
+          <h2>Carly-Funktionen</h2>
+          <p>
+            Das optionale Carly-Modul kann Fortschrittswerte, Streaks, abgeschlossene Aufgaben,
+            Interaktionen, Teamaktionen und Einstellungen verarbeiten. Carly darf deaktiviert
+            werden, ohne dass grundlegende Board- und Task-Funktionen verloren gehen.
+          </p>
+          <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.</p>
+        </section>
+
+        <section id="privacy-cookies">
+          <span class="privacy-workspace__number">09</span>
+          <h2>Cookies und lokale Speicherung</h2>
+          <p>
+            Für Anmeldung, CSRF-Schutz und Sitzungsverwaltung werden technisch notwendige Cookies
+            eingesetzt. Authentifizierungstoken werden nicht im Local Storage gespeichert. Lokale
+            Browser-Speicher können für Darstellungspräferenzen wie Theme, Kontrast, Schriftgröße
+            oder reduzierte Bewegung genutzt werden.
+          </p>
+          <p>
+            Technisch notwendige Speicherungen erfolgen auf Grundlage von § 25 Abs. 2 Nr. 2 TDDDG.
+            Die daran anschließende Verarbeitung personenbezogener Daten richtet sich nach Art. 6
+            Abs. 1 lit. b oder lit. f DSGVO.
+          </p>
+        </section>
+
+        <section id="privacy-recipients">
+          <span class="privacy-workspace__number">10</span>
+          <h2>Empfänger und Auftragsverarbeiter</h2>
+          <p>
+            Daten erhalten nur Stellen, die sie für Betrieb und Bereitstellung benötigen. Dazu
+            können Hosting-, Infrastruktur-, E-Mail- und Backup-Dienstleister gehören. Mit
+            Auftragsverarbeitern werden die gesetzlich erforderlichen Verträge geschlossen.
+            Innerhalb gemeinsamer Boards erhalten ausschließlich berechtigte Mitglieder Zugriff auf
+            die freigegebenen Inhalte.
+          </p>
+        </section>
+
+        <section id="privacy-third-countries">
+          <span class="privacy-workspace__number">11</span>
+          <h2>Übermittlung in Drittländer</h2>
+          <p>
+            Eine Übermittlung außerhalb der Europäischen Union oder des Europäischen
+            Wirtschaftsraums erfolgt nur, wenn sie für einen eingesetzten Dienst erforderlich ist
+            und die gesetzlichen Voraussetzungen erfüllt sind. Dazu gehören insbesondere ein
+            Angemessenheitsbeschluss oder geeignete Garantien nach Art. 46 DSGVO.
+          </p>
+        </section>
+
+        <section id="privacy-retention">
+          <span class="privacy-workspace__number">12</span>
+          <h2>Speicherdauer und Löschung</h2>
+          <p>
+            Kontodaten werden grundsätzlich bis zur Löschung des Benutzerkontos verarbeitet.
+            Projekt- und Taskdaten bleiben erhalten, solange sie für das jeweilige Board benötigt
+            werden oder gesetzliche Aufbewahrungsfristen bestehen. Gelöschte Daten können für einen
+            begrenzten Zeitraum in Sicherungskopien verbleiben und werden dort im Rahmen des
+            regulären Backup-Zyklus überschrieben.
+          </p>
+        </section>
+
+        <section id="privacy-rights">
+          <span class="privacy-workspace__number">13</span>
+          <h2>Rechte betroffener Personen</h2>
+          <p>Betroffene Personen haben im Rahmen der gesetzlichen Voraussetzungen insbesondere das Recht auf:</p>
+          <ul>
+            <li>Auskunft nach Art. 15 DSGVO</li>
+            <li>Berichtigung nach Art. 16 DSGVO</li>
+            <li>Löschung nach Art. 17 DSGVO</li>
+            <li>Einschränkung der Verarbeitung nach Art. 18 DSGVO</li>
+            <li>Datenübertragbarkeit nach Art. 20 DSGVO</li>
+            <li>Widerspruch nach Art. 21 DSGVO</li>
+            <li>Widerruf einer Einwilligung mit Wirkung für die Zukunft</li>
+          </ul>
+          <p>
+            Außerdem besteht das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren.
+            Für einen in Nordrhein-Westfalen ansässigen Verantwortlichen ist grundsätzlich die
+            Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen
+            zuständig.
+          </p>
+        </section>
+
+        <section id="privacy-decisions">
+          <span class="privacy-workspace__number">14</span>
+          <h2>Automatisierte Entscheidungen</h2>
+          <p>
+            Es finden keine ausschließlich automatisierten Entscheidungen mit rechtlicher oder
+            ähnlich erheblicher Wirkung im Sinne von Art. 22 DSGVO statt.
+          </p>
+        </section>
+
+        <section id="privacy-security">
+          <span class="privacy-workspace__number">15</span>
+          <h2>Sicherheit</h2>
+          <p>
+            Die Anwendung verwendet technische und organisatorische Maßnahmen, um Daten vor Verlust,
+            Veränderung, unberechtigtem Zugriff und Missbrauch zu schützen. Dazu gehören
+            verschlüsselte Übertragung, sichere Passwort-Hashes, rollenbasierte Berechtigungen,
+            CSRF-Schutz, Rate Limits, Protokollierung sicherheitsrelevanter Ereignisse und
+            regelmäßige Aktualisierungen der eingesetzten Software.
+          </p>
+        </section>
+
+        <section id="privacy-changes">
+          <span class="privacy-workspace__number">16</span>
+          <h2>Änderungen dieser Datenschutzerklärung</h2>
+          <p>
+            Diese Datenschutzerklärung wird angepasst, wenn sich Funktionen, eingesetzte
+            Dienstleister oder rechtliche Anforderungen ändern. Maßgeblich ist die jeweils in der
+            Anwendung veröffentlichte Fassung.
+          </p>
+        </section>
       </div>
     </div>
-
-    <section>
-      <h2>1. Verantwortlicher</h2>
-      <address>
-        <strong>{{ provider.name }}</strong
-        ><br />
-        {{ provider.street }}<br />
-        {{ provider.postalCode }} {{ provider.city }}<br />
-        {{ provider.country }}<br />
-        E-Mail: {{ provider.email }}
-      </address>
-    </section>
-
-    <section>
-      <h2>2. Bereitstellung der Anwendung und Server-Protokolle</h2>
-      <p>
-        Beim Aufruf der Anwendung verarbeitet der Hosting-Server technisch notwendige
-        Verbindungsdaten. Dazu können IP-Adresse, Zeitpunkt, aufgerufene Ressource, übertragene
-        Datenmenge, Referrer, Browserkennung und Betriebssystem gehören. Die Verarbeitung ist
-        erforderlich, um die Anwendung auszuliefern, Fehler zu erkennen und Angriffe abzuwehren.
-      </p>
-      <p>
-        Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Das berechtigte Interesse liegt im sicheren,
-        stabilen und nachvollziehbaren Betrieb der Anwendung. Sicherheitsprotokolle werden nur so
-        lange gespeichert, wie sie für Fehleranalyse, Missbrauchsschutz und gesetzliche Nachweise
-        erforderlich sind.
-      </p>
-    </section>
-
-    <section>
-      <h2>3. Registrierung und Benutzerkonto</h2>
-      <p>
-        Für die Erstellung eines Benutzerkontos werden insbesondere Anzeigename, E-Mail-Adresse und
-        ein sicher gehashtes Passwort verarbeitet. Zusätzlich können Kontostatus,
-        E-Mail-Bestätigung, Spracheinstellungen, Avatar und Zeitpunkt der letzten Anmeldung
-        gespeichert werden.
-      </p>
-      <p>
-        Die Verarbeitung erfolgt zur Einrichtung und Durchführung des Nutzungsverhältnisses auf
-        Grundlage von Art. 6 Abs. 1 lit. b DSGVO. Pflichtangaben sind im Formular gekennzeichnet.
-        Ohne diese Daten kann kein Benutzerkonto bereitgestellt werden.
-      </p>
-    </section>
-
-    <section>
-      <h2>4. E-Mail-Bestätigung und Kontokommunikation</h2>
-      <p>
-        Für E-Mail-Bestätigungen, Passwort-Zurücksetzungen, sicherheitsrelevante Hinweise und
-        notwendige Kontonachrichten wird die hinterlegte E-Mail-Adresse verarbeitet. Bestätigungs-
-        und Reset-Links sind zeitlich begrenzt und dürfen nur einmal verwendet werden.
-      </p>
-      <p>
-        Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Sicherheitsbezogene Benachrichtigungen
-        können ergänzend auf Art. 6 Abs. 1 lit. f DSGVO gestützt werden.
-      </p>
-    </section>
-
-    <section>
-      <h2>5. Boards, Aufgaben und Zusammenarbeit</h2>
-      <p>
-        Bei der Nutzung von Boards werden die von Nutzenden eingegebenen Inhalte verarbeitet. Dazu
-        gehören beispielsweise Boardnamen, Aufgaben, Beschreibungen, Fälligkeiten, Prioritäten,
-        Labels, Verantwortlichkeiten, Kommentare, Erwähnungen, Unteraufgaben und Aktivitätsangaben.
-      </p>
-      <p>
-        Inhalte gemeinsamer Boards sind für die jeweils berechtigten Mitglieder sichtbar. Wer
-        Informationen über andere Personen einträgt, muss sicherstellen, dass dies zulässig ist und
-        keine unnötigen oder besonders sensiblen Daten veröffentlicht werden.
-      </p>
-      <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.</p>
-    </section>
-
-    <section>
-      <h2>6. Realtime-Präsenz, Live-Cursor und Bearbeitungsstatus</h2>
-      <p>
-        Während ein gemeinsames Board geöffnet ist, können flüchtige Statusinformationen über
-        WebSockets übertragen werden. Dazu gehören Online-Präsenz, Cursorposition, aktuell
-        betrachtete Bereiche, Bearbeitungshinweise und Task-Bewegungen. Diese Daten dienen
-        ausschließlich der unmittelbaren Zusammenarbeit und werden nicht als dauerhafte
-        Bewegungsprofile gespeichert.
-      </p>
-      <p>
-        Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Soweit sicherheitsbezogene Ereignisse
-        protokolliert werden, erfolgt dies auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO.
-      </p>
-    </section>
-
-    <section>
-      <h2>7. Einladungen, Kommentare und Anhänge</h2>
-      <p>
-        Für Board-Einladungen werden E-Mail-Adresse, ein sicherer Einladungstoken, Rolle,
-        Gültigkeitszeitraum und Einladungsstatus verarbeitet. Kommentare können den Anzeigenamen der
-        verfassenden Person und Zeitangaben enthalten. Hochgeladene Anhänge werden gespeichert und
-        den berechtigten Board-Mitgliedern bereitgestellt.
-      </p>
-      <p>
-        Vor einem Upload ist zu prüfen, ob die Datei personenbezogene, vertrauliche oder
-        urheberrechtlich geschützte Informationen enthält. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b
-        DSGVO.
-      </p>
-    </section>
-
-    <section>
-      <h2>8. Carly-Funktionen</h2>
-      <p>
-        Das optionale Carly-Modul kann Fortschrittswerte, Streaks, abgeschlossene Aufgaben,
-        Interaktionen, Teamaktionen und Einstellungen verarbeiten. Carly darf deaktiviert werden,
-        ohne dass grundlegende Board- und Task-Funktionen verloren gehen.
-      </p>
-      <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.</p>
-    </section>
-
-    <section>
-      <h2>9. Cookies und lokale Speicherung</h2>
-      <p>
-        Für Anmeldung, CSRF-Schutz und Sitzungsverwaltung werden technisch notwendige Cookies
-        eingesetzt. Authentifizierungstoken werden nicht im Local Storage gespeichert. Lokale
-        Browser-Speicher können für Darstellungspräferenzen wie Theme, Kontrast, Schriftgröße oder
-        reduzierte Bewegung genutzt werden.
-      </p>
-      <p>
-        Technisch notwendige Speicherungen erfolgen auf Grundlage von § 25 Abs. 2 Nr. 2 TDDDG. Die
-        daran anschließende Verarbeitung personenbezogener Daten richtet sich nach Art. 6 Abs. 1
-        lit. b oder lit. f DSGVO.
-      </p>
-    </section>
-
-    <section>
-      <h2>10. Empfänger und Auftragsverarbeiter</h2>
-      <p>
-        Daten erhalten nur Stellen, die sie für Betrieb und Bereitstellung benötigen. Dazu können
-        Hosting-, Infrastruktur-, E-Mail- und Backup-Dienstleister gehören. Mit Auftragsverarbeitern
-        werden die gesetzlich erforderlichen Verträge geschlossen. Innerhalb gemeinsamer Boards
-        erhalten ausschließlich berechtigte Mitglieder Zugriff auf die freigegebenen Inhalte.
-      </p>
-    </section>
-
-    <section>
-      <h2>11. Übermittlung in Drittländer</h2>
-      <p>
-        Eine Übermittlung außerhalb der Europäischen Union oder des Europäischen Wirtschaftsraums
-        erfolgt nur, wenn sie für einen eingesetzten Dienst erforderlich ist und die gesetzlichen
-        Voraussetzungen erfüllt sind. Dazu gehören insbesondere ein Angemessenheitsbeschluss oder
-        geeignete Garantien nach Art. 46 DSGVO.
-      </p>
-    </section>
-
-    <section>
-      <h2>12. Speicherdauer und Löschung</h2>
-      <p>
-        Kontodaten werden grundsätzlich bis zur Löschung des Benutzerkontos verarbeitet. Projekt-
-        und Taskdaten bleiben erhalten, solange sie für das jeweilige Board benötigt werden oder
-        gesetzliche Aufbewahrungsfristen bestehen. Gelöschte Daten können für einen begrenzten
-        Zeitraum in Sicherungskopien verbleiben und werden dort im Rahmen des regulären
-        Backup-Zyklus überschrieben.
-      </p>
-    </section>
-
-    <section>
-      <h2>13. Rechte betroffener Personen</h2>
-      <p>
-        Betroffene Personen haben im Rahmen der gesetzlichen Voraussetzungen insbesondere das Recht
-        auf:
-      </p>
-      <ul>
-        <li>Auskunft nach Art. 15 DSGVO</li>
-        <li>Berichtigung nach Art. 16 DSGVO</li>
-        <li>Löschung nach Art. 17 DSGVO</li>
-        <li>Einschränkung der Verarbeitung nach Art. 18 DSGVO</li>
-        <li>Datenübertragbarkeit nach Art. 20 DSGVO</li>
-        <li>Widerspruch nach Art. 21 DSGVO</li>
-        <li>Widerruf einer Einwilligung mit Wirkung für die Zukunft</li>
-      </ul>
-      <p>
-        Außerdem besteht das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren. Für
-        einen in Nordrhein-Westfalen ansässigen Verantwortlichen ist grundsätzlich die
-        Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen zuständig.
-      </p>
-    </section>
-
-    <section>
-      <h2>14. Automatisierte Entscheidungen</h2>
-      <p>
-        Es finden keine ausschließlich automatisierten Entscheidungen mit rechtlicher oder ähnlich
-        erheblicher Wirkung im Sinne von Art. 22 DSGVO statt.
-      </p>
-    </section>
-
-    <section>
-      <h2>15. Sicherheit</h2>
-      <p>
-        Die Anwendung verwendet technische und organisatorische Maßnahmen, um Daten vor Verlust,
-        Veränderung, unberechtigtem Zugriff und Missbrauch zu schützen. Dazu gehören verschlüsselte
-        Übertragung, sichere Passwort-Hashes, rollenbasierte Berechtigungen, CSRF-Schutz, Rate
-        Limits, Protokollierung sicherheitsrelevanter Ereignisse und regelmäßige Aktualisierungen
-        der eingesetzten Software.
-      </p>
-    </section>
-
-    <section>
-      <h2>16. Änderungen dieser Datenschutzerklärung</h2>
-      <p>
-        Diese Datenschutzerklärung wird angepasst, wenn sich Funktionen, eingesetzte Dienstleister
-        oder rechtliche Anforderungen ändern. Maßgeblich ist die jeweils in der Anwendung
-        veröffentlichte Fassung.
-      </p>
-    </section>
   </article>
 </cm-legal-layout>

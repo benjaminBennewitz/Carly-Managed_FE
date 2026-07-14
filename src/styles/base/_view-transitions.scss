@@ -1,14 +1,16 @@
 /* ==========================================================================
    Datei: src/styles/base/_view-transitions.scss
    Projekt: Carly Managed
-   Version: 1.0.0
-   Beschreibung: Definiert native Seitenübergänge für die Authentifizierungsrouten.
+   Version: 1.1.0
+   Beschreibung: Definiert native Seitenübergänge für Auth- und Legal-Routen.
 
    Inhaltsverzeichnis:
-   1. Auth-Karte
-   2. Vorwärtsnavigation
-   3. Rückwärtsnavigation
-   4. Reduzierte Bewegung
+   1. Benannte Übergangselemente
+   2. Auth-Vorwärtsnavigation
+   3. Auth-Rückwärtsnavigation
+   4. Legal-Übergänge
+   5. Schlüsselbilder
+   6. Reduzierte Bewegung
    ========================================================================== */
 
 .auth-card {
@@ -20,65 +22,146 @@
   animation: none;
 }
 
-::view-transition-group(auth-card) {
+::view-transition-group(auth-card),
+::view-transition-group(legal-shell),
+::view-transition-group(legal-document),
+::view-transition-group(legal-title) {
   animation-duration: var(--motion-duration-slow);
   animation-timing-function: var(--motion-easing-emphasized);
 }
 
 :root[data-auth-transition-direction='forward']::view-transition-old(auth-card) {
-  animation: auth-card-exit-left var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+  animation: surface-exit-left var(--motion-duration-slow) var(--motion-easing-emphasized) both;
 }
 
 :root[data-auth-transition-direction='forward']::view-transition-new(auth-card) {
-  animation: auth-card-enter-right var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+  animation: surface-enter-right var(--motion-duration-slow) var(--motion-easing-emphasized) both;
 }
 
 :root[data-auth-transition-direction='backward']::view-transition-old(auth-card) {
-  animation: auth-card-exit-right var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+  animation: surface-exit-right var(--motion-duration-slow) var(--motion-easing-emphasized) both;
 }
 
 :root[data-auth-transition-direction='backward']::view-transition-new(auth-card) {
-  animation: auth-card-enter-left var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+  animation: surface-enter-left var(--motion-duration-slow) var(--motion-easing-emphasized) both;
 }
 
-@keyframes auth-card-exit-left {
+::view-transition-old(legal-shell) {
+  animation: legal-shell-exit var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+}
+
+::view-transition-new(legal-shell) {
+  animation: legal-shell-enter var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+}
+
+::view-transition-old(legal-document) {
+  animation: surface-exit-left var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+}
+
+::view-transition-new(legal-document) {
+  animation: surface-enter-right var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+}
+
+:root[data-legal-transition-direction='backward']::view-transition-old(legal-document) {
+  animation-name: surface-exit-right;
+}
+
+:root[data-legal-transition-direction='backward']::view-transition-new(legal-document) {
+  animation-name: surface-enter-left;
+}
+
+::view-transition-old(legal-title) {
+  animation: title-exit var(--motion-duration-fast) var(--motion-easing-standard) both;
+}
+
+::view-transition-new(legal-title) {
+  animation: title-enter var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+}
+
+@keyframes surface-exit-left {
   to {
     opacity: 0;
-    transform: translateX(-1.25rem) scale(0.985);
+    transform: translateX(-1.5rem) scale(0.985);
   }
 }
 
-@keyframes auth-card-enter-right {
+@keyframes surface-enter-right {
   from {
     opacity: 0;
-    transform: translateX(1.25rem) scale(0.985);
+    transform: translateX(1.5rem) scale(0.985);
   }
 }
 
-@keyframes auth-card-exit-right {
+@keyframes surface-exit-right {
   to {
     opacity: 0;
-    transform: translateX(1.25rem) scale(0.985);
+    transform: translateX(1.5rem) scale(0.985);
   }
 }
 
-@keyframes auth-card-enter-left {
+@keyframes surface-enter-left {
   from {
     opacity: 0;
-    transform: translateX(-1.25rem) scale(0.985);
+    transform: translateX(-1.5rem) scale(0.985);
+  }
+}
+
+@keyframes legal-shell-exit {
+  to {
+    opacity: 0;
+    filter: blur(0.25rem);
+  }
+}
+
+@keyframes legal-shell-enter {
+  from {
+    opacity: 0;
+    filter: blur(0.25rem);
+  }
+}
+
+@keyframes title-exit {
+  to {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+}
+
+@keyframes title-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
   }
 }
 
 :root[data-motion='reduced']::view-transition-group(auth-card),
+:root[data-motion='reduced']::view-transition-group(legal-shell),
+:root[data-motion='reduced']::view-transition-group(legal-document),
+:root[data-motion='reduced']::view-transition-group(legal-title),
 :root[data-motion='reduced']::view-transition-old(auth-card),
-:root[data-motion='reduced']::view-transition-new(auth-card) {
+:root[data-motion='reduced']::view-transition-new(auth-card),
+:root[data-motion='reduced']::view-transition-old(legal-shell),
+:root[data-motion='reduced']::view-transition-new(legal-shell),
+:root[data-motion='reduced']::view-transition-old(legal-document),
+:root[data-motion='reduced']::view-transition-new(legal-document),
+:root[data-motion='reduced']::view-transition-old(legal-title),
+:root[data-motion='reduced']::view-transition-new(legal-title) {
   animation-duration: 0.01ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(auth-card),
+  ::view-transition-group(legal-shell),
+  ::view-transition-group(legal-document),
+  ::view-transition-group(legal-title),
   ::view-transition-old(auth-card),
-  ::view-transition-new(auth-card) {
+  ::view-transition-new(auth-card),
+  ::view-transition-old(legal-shell),
+  ::view-transition-new(legal-shell),
+  ::view-transition-old(legal-document),
+  ::view-transition-new(legal-document),
+  ::view-transition-old(legal-title),
+  ::view-transition-new(legal-title) {
     animation-duration: 0.01ms;
   }
 }
