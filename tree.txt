@@ -26,6 +26,95 @@ Carly-Managed_FE/
 │   └── favicon.ico
 ├── src/
 │   ├── app/
+│   │   ├── core/
+│   │   │   ├── auth/
+│   │   │   │   ├── guards/
+│   │   │   │   │   ├── auth.guard.ts
+│   │   │   │   │   └── guest.guard.ts
+│   │   │   │   ├── models/
+│   │   │   │   │   ├── auth.model.ts
+│   │   │   │   │   └── current-user.model.ts
+│   │   │   │   └── services/
+│   │   │   │       ├── auth-preview.service.ts
+│   │   │   │       └── session.service.ts
+│   │   │   └── layout/
+│   │   │       ├── app-shell/
+│   │   │       │   ├── app-shell.component.html
+│   │   │       │   ├── app-shell.component.scss
+│   │   │       │   └── app-shell.component.ts
+│   │   │       ├── auth-layout/
+│   │   │       │   ├── auth-layout.component.html
+│   │   │       │   ├── auth-layout.component.scss
+│   │   │       │   └── auth-layout.component.ts
+│   │   │       └── primary-navigation/
+│   │   │           ├── primary-navigation.component.html
+│   │   │           ├── primary-navigation.component.scss
+│   │   │           └── primary-navigation.component.ts
+│   │   ├── features/
+│   │   │   ├── auth/
+│   │   │   │   └── pages/
+│   │   │   │       ├── login-page/
+│   │   │   │       │   ├── login-page.component.html
+│   │   │   │       │   ├── login-page.component.scss
+│   │   │   │       │   └── login-page.component.ts
+│   │   │   │       └── register-page/
+│   │   │   │           ├── register-page.component.html
+│   │   │   │           ├── register-page.component.scss
+│   │   │   │           └── register-page.component.ts
+│   │   │   ├── board/
+│   │   │   │   └── pages/
+│   │   │   │       └── board-page/
+│   │   │   │           ├── board-page.component.html
+│   │   │   │           ├── board-page.component.scss
+│   │   │   │           └── board-page.component.ts
+│   │   │   ├── carly/
+│   │   │   │   └── pages/
+│   │   │   │       └── carly-page/
+│   │   │   │           ├── carly-page.component.html
+│   │   │   │           ├── carly-page.component.scss
+│   │   │   │           └── carly-page.component.ts
+│   │   │   ├── dashboard/
+│   │   │   │   └── pages/
+│   │   │   │       └── dashboard-page/
+│   │   │   │           ├── dashboard-page.component.html
+│   │   │   │           ├── dashboard-page.component.scss
+│   │   │   │           └── dashboard-page.component.ts
+│   │   │   ├── inbox/
+│   │   │   │   └── pages/
+│   │   │   │       └── inbox-page/
+│   │   │   │           ├── inbox-page.component.html
+│   │   │   │           ├── inbox-page.component.scss
+│   │   │   │           └── inbox-page.component.ts
+│   │   │   ├── pool/
+│   │   │   │   └── pages/
+│   │   │   │       └── pool-page/
+│   │   │   │           ├── pool-page.component.html
+│   │   │   │           ├── pool-page.component.scss
+│   │   │   │           └── pool-page.component.ts
+│   │   │   └── settings/
+│   │   │       └── pages/
+│   │   │           └── settings-page/
+│   │   │               ├── settings-page.component.html
+│   │   │               ├── settings-page.component.scss
+│   │   │               └── settings-page.component.ts
+│   │   ├── shared/
+│   │   │   ├── ui/
+│   │   │   │   ├── forms/
+│   │   │   │   │   ├── checkbox-field/
+│   │   │   │   │   │   ├── checkbox-field.component.html
+│   │   │   │   │   │   ├── checkbox-field.component.scss
+│   │   │   │   │   │   └── checkbox-field.component.ts
+│   │   │   │   │   └── text-field/
+│   │   │   │   │       ├── text-field.component.html
+│   │   │   │   │       ├── text-field.component.scss
+│   │   │   │   │       └── text-field.component.ts
+│   │   │   │   └── page-header/
+│   │   │   │       ├── page-header.component.html
+│   │   │   │       ├── page-header.component.scss
+│   │   │   │       └── page-header.component.ts
+│   │   │   └── validation/
+│   │   │       ├── auth.validators.spec.ts
+│   │   │       └── auth.validators.ts
 │   │   ├── app.component.html
 │   │   ├── app.component.scss
 │   │   ├── app.component.spec.ts
