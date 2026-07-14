@@ -203,6 +203,7 @@ Carly-Managed_FE/
 │   │   │   ├── _legal-imprint.scss
 │   │   │   ├── _legal-layout.scss
 │   │   │   ├── _legal-privacy.scss
+│   │   │   ├── _shell-navigation.scss
 │   │   │   ├── _workspace-archive.scss
 │   │   │   ├── _workspace-board.scss
 │   │   │   ├── _workspace-projects.scss

@@ -1,7 +1,6 @@
 // src/app/features/board/pages/board-page/board-page.component.ts
 
 import {
-  CdkDrag,
   CdkDragDrop,
   CdkDropList,
   moveItemInArray,
@@ -11,6 +10,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -22,7 +22,9 @@ import {
 } from '../../../../core/workspace/task-rules';
 import {
   BoardViewMode,
+  TaskPriority,
   WorkspaceColumn,
+  WorkspaceMember,
   WorkspaceTask,
 } from '../../../../core/workspace/workspace.models';
 import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
@@ -40,12 +42,19 @@ const COLUMN_COLORS = [
   '#B9546A',
   '#8A8093',
 ];
+const TASK_DRAWER_CLOSE_MS = 280;
+
+type TaskDrawerTab =
+  | 'details'
+  | 'subtasks'
+  | 'comments'
+  | 'attachments'
+  | 'history';
 
 @Component({
   selector: 'cm-board-page',
   imports: [
     BoardColumnComponent,
-    CdkDrag,
     CdkDropList,
     RouterLink,
     WorkspaceTaskCardComponent,
@@ -61,6 +70,12 @@ export class BoardPageComponent {
   protected readonly columns = signal<WorkspaceColumn[]>([]);
   protected readonly viewMode = signal<BoardViewMode>('board');
   protected readonly selectedTask = signal<WorkspaceTask | null>(null);
+  protected readonly drawerClosing = signal(false);
+  protected readonly activeTaskTab = signal<TaskDrawerTab>('details');
+  protected readonly taskTitleDraft = signal('');
+  protected readonly taskDescriptionDraft = signal('');
+  protected readonly commentDraft = signal('');
+  protected readonly subtaskDraft = signal('');
   protected readonly projectActionsOpen = signal(false);
   protected readonly activeUtilityPanel = signal<'rules' | 'recurrence' | null>(null);
 
@@ -103,9 +118,12 @@ export class BoardPageComponent {
     return `${this.formatDate(project.startedAt)} – ${this.formatDate(project.dueAt)}`;
   });
 
+  private closeTimerId: number | null = null;
+
   constructor(
     route: ActivatedRoute,
     workspaceService: WorkspacePreviewService,
+    destroyRef: DestroyRef,
   ) {
     this.workspaceService = workspaceService;
 
@@ -113,30 +131,29 @@ export class BoardPageComponent {
       const projectId = params.get('projectId') ?? 'personal';
       this.projectId.set(projectId);
       this.columns.set(this.workspaceService.getBoard(projectId));
-      this.selectedTask.set(null);
+      this.resetDrawerImmediately();
       this.activeUtilityPanel.set(null);
 
       if (projectId !== 'personal') {
         this.workspaceService.markProjectOpened(projectId);
       }
     });
+
+    destroyRef.onDestroy(() => {
+      if (this.closeTimerId !== null) {
+        window.clearTimeout(this.closeTimerId);
+      }
+    });
   }
 
-  /**
-   * Wechselt zwischen Kanban- und Listenansicht.
-   */
+  /** Wechselt zwischen Kanban- und Listenansicht. */
   setViewMode(mode: BoardViewMode): void {
     this.viewMode.set(mode);
   }
 
-  /**
-   * Sortiert die Boardspalten horizontal neu.
-   */
+  /** Sortiert die Boardspalten horizontal neu. */
   dropColumn(event: CdkDragDrop<WorkspaceColumn[]>): void {
-    if (this.isReadOnly()) {
-      return;
-    }
-    if (event.previousIndex === event.currentIndex) {
+    if (this.isReadOnly() || event.previousIndex === event.currentIndex) {
       return;
     }
 
@@ -145,9 +162,7 @@ export class BoardPageComponent {
     this.persistColumns(nextColumns);
   }
 
-  /**
-   * Verschiebt eine Aufgabe innerhalb oder zwischen Spalten.
-   */
+  /** Verschiebt eine Aufgabe innerhalb oder zwischen Spalten. */
   dropTask(event: CdkDragDrop<WorkspaceTask[]>): void {
     if (this.isReadOnly()) {
       return;
@@ -170,38 +185,50 @@ export class BoardPageComponent {
     this.persistColumns(this.cloneColumns());
   }
 
-  /**
-   * Öffnet die kompakte Task-Detailansicht.
-   */
+  /** Öffnet die Task-Detailansicht. */
   openTask(task: WorkspaceTask): void {
-    this.selectedTask.set({ ...task, tags: [...task.tags] });
+    if (this.closeTimerId !== null) {
+      window.clearTimeout(this.closeTimerId);
+      this.closeTimerId = null;
+    }
+    this.drawerClosing.set(false);
+    this.selectedTask.set(this.cloneTask(task));
+    this.taskTitleDraft.set(task.title);
+    this.taskDescriptionDraft.set(task.description);
+    this.commentDraft.set('');
+    this.subtaskDraft.set('');
+    this.activeTaskTab.set('details');
   }
 
-  /**
-   * Schließt die Task-Detailansicht.
-   */
+  /** Startet die animierte Schließbewegung des Task-Drawers. */
   closeTask(): void {
-    this.selectedTask.set(null);
+    if (!this.selectedTask() || this.drawerClosing()) {
+      return;
+    }
+
+    this.drawerClosing.set(true);
+    this.closeTimerId = window.setTimeout(() => {
+      this.resetDrawerImmediately();
+    }, TASK_DRAWER_CLOSE_MS);
   }
 
-  /**
-   * Schaltet eine Aufgabe zwischen offen und erledigt um.
-   */
+  /** Wechselt den Inhaltsbereich des Task-Drawers. */
+  setTaskTab(tab: TaskDrawerTab): void {
+    this.activeTaskTab.set(tab);
+  }
+
+  /** Schaltet eine Aufgabe zwischen offen und erledigt um. */
   toggleTaskCompleted(task: WorkspaceTask): void {
     if (this.isReadOnly()) {
       return;
     }
-    const nextColumns = this.workspaceService.toggleTaskCompleted(
-      this.projectId(),
-      task.id,
+    this.columns.set(
+      this.workspaceService.toggleTaskCompleted(this.projectId(), task.id),
     );
-    this.columns.set(nextColumns);
     this.syncSelectedTask(task.id);
   }
 
-  /**
-   * Gibt die geöffnete Hauptaufgabe in den Pool frei.
-   */
+  /** Gibt die geöffnete Hauptaufgabe in den Pool frei. */
   releaseSelectedTaskToPool(): void {
     if (this.isReadOnly()) {
       return;
@@ -211,17 +238,13 @@ export class BoardPageComponent {
       return;
     }
 
-    const nextColumns = this.workspaceService.moveTaskToPool(
-      this.projectId(),
-      task.id,
+    this.columns.set(
+      this.workspaceService.moveTaskToPool(this.projectId(), task.id),
     );
-    this.columns.set(nextColumns);
     this.syncSelectedTask(task.id);
   }
 
-  /**
-   * Fügt in einer Spalte eine neue Aufgabe ein.
-   */
+  /** Fügt in einer Spalte eine neue Aufgabe ein. */
   addTask(columnId: string): void {
     if (this.isReadOnly()) {
       return;
@@ -240,9 +263,7 @@ export class BoardPageComponent {
     }
   }
 
-  /**
-   * Fügt eine neue leere Boardspalte hinzu.
-   */
+  /** Fügt eine neue leere Boardspalte hinzu. */
   addColumn(): void {
     if (this.isReadOnly()) {
       return;
@@ -259,9 +280,7 @@ export class BoardPageComponent {
     this.persistColumns(nextColumns);
   }
 
-  /**
-   * Benennt eine Spalte über den zentralen Vorschauzustand um.
-   */
+  /** Benennt eine Spalte um. */
   renameColumn(payload: { columnId: string; title: string }): void {
     if (this.isReadOnly()) {
       return;
@@ -275,9 +294,7 @@ export class BoardPageComponent {
     );
   }
 
-  /**
-   * Entfernt eine freie Spalte und erhält deren Aufgaben.
-   */
+  /** Entfernt eine freie Spalte und erhält deren Aufgaben. */
   deleteColumn(columnId: string): void {
     if (this.isReadOnly()) {
       return;
@@ -287,9 +304,7 @@ export class BoardPageComponent {
     );
   }
 
-  /**
-   * Wechselt zyklisch durch die verfügbaren semantischen Spaltenakzente.
-   */
+  /** Wechselt zyklisch durch die verfügbaren Spaltenakzente. */
   cycleColumnColor(columnId: string): void {
     if (this.isReadOnly()) {
       return;
@@ -308,9 +323,7 @@ export class BoardPageComponent {
     this.persistColumns(nextColumns);
   }
 
-  /**
-   * Sortiert eine Spalte nach Titel oder Fälligkeitsdatum.
-   */
+  /** Sortiert eine Spalte nach Titel oder Fälligkeitsdatum. */
   sortColumn(payload: { columnId: string; mode: ColumnSortMode }): void {
     if (this.isReadOnly()) {
       return;
@@ -335,51 +348,278 @@ export class BoardPageComponent {
     this.persistColumns(nextColumns);
   }
 
-  /**
-   * Öffnet oder schließt einen der Board-Hilfsbereiche.
-   */
+  /** Speichert einen bearbeiteten Tasktitel. */
+  saveTaskTitle(): void {
+    const task = this.selectedTask();
+    const title = this.taskTitleDraft().trim();
+    if (!task || !title || title === task.title || this.isReadOnly()) {
+      this.taskTitleDraft.set(task?.title ?? '');
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.updateTask(
+        this.projectId(),
+        task.id,
+        { title },
+        'Titel geändert',
+        'title',
+      ),
+      task.id,
+    );
+  }
+
+  /** Speichert die bearbeitete Beschreibung. */
+  saveTaskDescription(): void {
+    const task = this.selectedTask();
+    const description = this.taskDescriptionDraft().trim();
+    if (!task || description === task.description || this.isReadOnly()) {
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.updateTask(
+        this.projectId(),
+        task.id,
+        { description },
+        'Beschreibung geändert',
+        'description',
+      ),
+      task.id,
+    );
+  }
+
+  /** Ändert die Priorität der geöffneten Aufgabe. */
+  changeTaskPriority(priority: TaskPriority): void {
+    const task = this.selectedTask();
+    if (!task || this.isReadOnly()) {
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.updateTaskPriority(
+        this.projectId(),
+        task.id,
+        priority,
+      ),
+      task.id,
+    );
+  }
+
+  /** Ändert die verantwortliche Person. */
+  changeTaskAssignee(memberId: string): void {
+    const task = this.selectedTask();
+    if (!task || this.isReadOnly()) {
+      return;
+    }
+    const member = this.workspaceService.members().find(
+      (item) => item.id === memberId,
+    ) ?? null;
+    this.applyTaskColumns(
+      this.workspaceService.updateTask(
+        this.projectId(),
+        task.id,
+        { assignee: member },
+        member ? `${member.fullName} zugewiesen` : 'Zuweisung entfernt',
+        'assignment_ind',
+      ),
+      task.id,
+    );
+  }
+
+  /** Ändert das Fälligkeitsdatum. */
+  changeTaskDueDate(dueDate: string): void {
+    const task = this.selectedTask();
+    if (!task || this.isReadOnly()) {
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.updateTask(
+        this.projectId(),
+        task.id,
+        { dueDate: dueDate || null },
+        'Fälligkeit geändert',
+        'event',
+      ),
+      task.id,
+    );
+  }
+
+  /** Schaltet eine mitwirkende Person. */
+  toggleCollaborator(member: WorkspaceMember): void {
+    const task = this.selectedTask();
+    if (!task || this.isReadOnly()) {
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.toggleTaskCollaborator(
+        this.projectId(),
+        task.id,
+        member.id,
+      ),
+      task.id,
+    );
+  }
+
+  /** Fügt eine neue Unteraufgabe hinzu. */
+  addSubtask(): void {
+    const task = this.selectedTask();
+    if (!task || !this.subtaskDraft().trim() || this.isReadOnly()) {
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.addSubtask(
+        this.projectId(),
+        task.id,
+        this.subtaskDraft(),
+      ),
+      task.id,
+    );
+    this.subtaskDraft.set('');
+  }
+
+  /** Schaltet eine Unteraufgabe um. */
+  toggleSubtask(subtaskId: string): void {
+    const task = this.selectedTask();
+    if (!task || this.isReadOnly()) {
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.toggleSubtask(
+        this.projectId(),
+        task.id,
+        subtaskId,
+      ),
+      task.id,
+    );
+  }
+
+  /** Entfernt eine Unteraufgabe. */
+  deleteSubtask(subtaskId: string): void {
+    const task = this.selectedTask();
+    if (!task || this.isReadOnly()) {
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.deleteSubtask(
+        this.projectId(),
+        task.id,
+        subtaskId,
+      ),
+      task.id,
+    );
+  }
+
+  /** Fügt einen Kommentar hinzu. */
+  addComment(): void {
+    const task = this.selectedTask();
+    if (!task || !this.commentDraft().trim() || this.isReadOnly()) {
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.addComment(
+        this.projectId(),
+        task.id,
+        this.commentDraft(),
+      ),
+      task.id,
+    );
+    this.commentDraft.set('');
+  }
+
+  /** Entfernt einen Kommentar. */
+  deleteComment(commentId: string): void {
+    const task = this.selectedTask();
+    if (!task || this.isReadOnly()) {
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.deleteComment(
+        this.projectId(),
+        task.id,
+        commentId,
+      ),
+      task.id,
+    );
+  }
+
+  /** Übernimmt ausgewählte Dateimetadaten als lokale Anhänge. */
+  addAttachments(event: Event): void {
+    const task = this.selectedTask();
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    if (!task || files.length === 0 || this.isReadOnly()) {
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.addAttachments(this.projectId(), task.id, files),
+      task.id,
+    );
+    input.value = '';
+  }
+
+  /** Entfernt einen Anhang. */
+  deleteAttachment(attachmentId: string): void {
+    const task = this.selectedTask();
+    if (!task || this.isReadOnly()) {
+      return;
+    }
+    this.applyTaskColumns(
+      this.workspaceService.deleteAttachment(
+        this.projectId(),
+        task.id,
+        attachmentId,
+      ),
+      task.id,
+    );
+  }
+
+  /** Löscht die geöffnete Aufgabe nach Bestätigung. */
+  deleteSelectedTask(): void {
+    const task = this.selectedTask();
+    if (
+      !task ||
+      this.isReadOnly() ||
+      !window.confirm(`Aufgabe „${task.title}“ wirklich löschen?`)
+    ) {
+      return;
+    }
+    this.columns.set(
+      this.workspaceService.deleteTask(this.projectId(), task.id),
+    );
+    this.closeTask();
+  }
+
+  /** Öffnet oder schließt einen Board-Hilfsbereich. */
   toggleUtilityPanel(panel: 'rules' | 'recurrence'): void {
     this.activeUtilityPanel.update((activePanel) =>
       activePanel === panel ? null : panel,
     );
   }
 
-  /**
-   * Liefert den sichtbaren Projektstatus.
-   */
+  /** Liefert den sichtbaren Projektstatus. */
   getProjectStatusLabel(): string {
     const status = this.project()?.status;
-    if (status === 'completed') {
-      return 'Abgeschlossen';
-    }
-    if (status === 'archived') {
-      return 'Archiviert';
-    }
+    if (status === 'completed') return 'Abgeschlossen';
+    if (status === 'archived') return 'Archiviert';
     return 'Aktiv';
   }
 
-  /**
-   * Prüft, ob die geöffnete Aufgabe zur Vergabe bereitliegt.
-   */
+  /** Prüft, ob die geöffnete Aufgabe zur Vergabe bereitliegt. */
   isReadyForAssignment(task: WorkspaceTask): boolean {
     return isOnDemandReadyTask(task);
   }
 
-  /**
-   * Prüft, ob eine Aufgabe in den Pool gegeben werden darf.
-   */
+  /** Prüft, ob eine Aufgabe in den Pool gegeben werden darf. */
   canReleaseToPool(task: WorkspaceTask): boolean {
     return canReleaseTaskToPool(task);
   }
 
-  /**
-   * Formatiert ein ISO-Datum kompakt für die Oberfläche.
-   */
-  formatDate(value: string | null): string {
-    if (!value) {
-      return '—';
-    }
+  /** Prüft, ob eine Person als Mitwirkende eingetragen ist. */
+  isCollaborator(task: WorkspaceTask, memberId: string): boolean {
+    return task.collaborators.some((item) => item.id === memberId);
+  }
 
+  /** Formatiert ein ISO-Datum kompakt. */
+  formatDate(value: string | null): string {
+    if (!value) return '—';
     return new Intl.DateTimeFormat('de-DE', {
       day: '2-digit',
       month: '2-digit',
@@ -387,34 +627,69 @@ export class BoardPageComponent {
     }).format(new Date(`${value.slice(0, 10)}T12:00:00`));
   }
 
-  /**
-   * Persistiert eine neue Boardkopie.
-   */
+  /** Formatiert einen ISO-Zeitpunkt. */
+  formatDateTime(value: string): string {
+    return new Intl.DateTimeFormat('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(value));
+  }
+
+  /** Formatiert eine Dateigröße. */
+  formatFileSize(sizeBytes: number): string {
+    if (sizeBytes < 1024) return `${sizeBytes} B`;
+    if (sizeBytes < 1_048_576) return `${(sizeBytes / 1024).toFixed(1)} KB`;
+    return `${(sizeBytes / 1_048_576).toFixed(1)} MB`;
+  }
+
+  /** Persistiert eine neue Boardkopie. */
   private persistColumns(columns: WorkspaceColumn[]): void {
     this.columns.set(columns);
     this.workspaceService.saveBoard(this.projectId(), columns);
   }
 
-  /**
-   * Erstellt eine ausreichend tiefe Kopie des lokalen Boards.
-   */
+  /** Erstellt eine tiefe Kopie des lokalen Boards. */
   private cloneColumns(): WorkspaceColumn[] {
-    return this.columns().map((column) => ({
-      ...column,
-      tasks: column.tasks.map((task) => ({
-        ...task,
-        tags: [...task.tags],
-      })),
-    }));
+    return this.workspaceService.getBoard(this.projectId());
   }
 
-  /**
-   * Synchronisiert die Detailansicht nach einer Task-Mutation.
-   */
+  /** Wendet mutierte Spalten an und synchronisiert den Drawer. */
+  private applyTaskColumns(columns: WorkspaceColumn[], taskId: string): void {
+    this.columns.set(columns);
+    this.syncSelectedTask(taskId);
+  }
+
+  /** Synchronisiert die Detailansicht nach einer Task-Mutation. */
   private syncSelectedTask(taskId: string): void {
     const task = this.columns()
       .flatMap((column) => column.tasks)
       .find((item) => item.id === taskId);
-    this.selectedTask.set(task ? { ...task, tags: [...task.tags] } : null);
+    if (!task) {
+      this.resetDrawerImmediately();
+      return;
+    }
+    this.selectedTask.set(this.cloneTask(task));
+    this.taskTitleDraft.set(task.title);
+    this.taskDescriptionDraft.set(task.description);
+  }
+
+  /** Erstellt eine tiefe Task-Kopie für den Drawer. */
+  private cloneTask(task: WorkspaceTask): WorkspaceTask {
+    return structuredClone(task);
+  }
+
+  /** Entfernt den Drawer ohne weitere Animation. */
+  private resetDrawerImmediately(): void {
+    if (this.closeTimerId !== null) {
+      window.clearTimeout(this.closeTimerId);
+      this.closeTimerId = null;
+    }
+    this.selectedTask.set(null);
+    this.drawerClosing.set(false);
+    this.commentDraft.set('');
+    this.subtaskDraft.set('');
   }
 }

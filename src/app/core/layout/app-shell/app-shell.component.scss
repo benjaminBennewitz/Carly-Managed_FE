@@ -1,14 +1,15 @@
 /* ==========================================================================
    Datei: src/app/core/layout/app-shell/app-shell.component.scss
    Projekt: Carly Managed
-   Version: 2.1.0
+   Version: 2.2.0
    Beschreibung: Definiert Topbar, Navigation und Arbeitsbereich der App-Shell.
 
    Inhaltsverzeichnis:
    1. Shell
    2. Arbeitsbereich
-   3. Routenfläche
-   4. Mobile Navigation
+   3. Boardmodus
+   4. Routenfläche
+   5. Mobile Navigation
    ========================================================================== */
 
 :host {
@@ -40,6 +41,20 @@
   margin: 0 auto;
 }
 
+.app-shell--board-route .app-shell__main {
+  width: 100%;
+  height: calc(100dvh - var(--layout-topbar-height));
+  max-width: none;
+  min-height: 0;
+  padding: var(--space-8);
+  overflow: hidden;
+}
+
+.app-shell--board-route .app-shell__route {
+  height: 100%;
+  min-height: 0;
+}
+
 .app-shell__route {
   min-height: inherit;
   view-transition-name: app-route;
@@ -56,6 +71,10 @@
 
   .app-shell__main {
     padding: var(--space-6) var(--layout-page-gutter) var(--space-12);
+  }
+
+  .app-shell--board-route .app-shell__main {
+    padding: var(--space-4);
   }
 
   .app-shell__backdrop {

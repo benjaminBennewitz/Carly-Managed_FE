@@ -12,13 +12,13 @@ import { routes } from './app.routes';
 const AUTH_ROUTE_ORDER = ['login', 'register'];
 const APP_ROUTE_ORDER = [
   'dashboard',
-  'projects',
-  'projects/:projectId/board',
   'board',
   'members',
   'inbox',
   'pool',
   'archive',
+  'projects',
+  'projects/:projectId/board',
   'carly',
   'settings',
 ];

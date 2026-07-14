@@ -1,16 +1,34 @@
 <!-- src/app/features/board/components/board-column/board-column.component.html -->
 
-<ng-template cdkDragPreview [matchSize]="true">
-  <div class="board-column-preview" [style.--board-accent]="column().color">
-    <span></span>
-    <strong>{{ column().title }}</strong>
-    <small>{{ column().tasks.length }} Aufgaben</small>
-  </div>
-</ng-template>
+<section
+  class="board-column-ui"
+  cdkDrag
+  [cdkDragData]="column()"
+  cdkDragLockAxis="x"
+  [cdkDragDisabled]="!!column().isFixedPosition || readOnly()"
+  [style.--board-accent]="column().color"
+>
+  <ng-template cdkDragPreview [matchSize]="true">
+    <section class="board-column-preview" [style.--board-accent]="column().color">
+      <header>
+        <span class="material-symbols-outlined" aria-hidden="true">drag_indicator</span>
+        <strong>{{ column().title }}</strong>
+        <small>{{ column().tasks.length }}</small>
+      </header>
+      <div class="board-column-preview__tasks" aria-hidden="true">
+        @for (task of column().tasks.slice(0, 3); track task.id) {
+          <div>
+            <span></span>
+            <strong>{{ task.title }}</strong>
+            <small>{{ task.priority }}</small>
+          </div>
+        }
+      </div>
+    </section>
+  </ng-template>
 
-<div class="board-column-placeholder" *cdkDragPlaceholder></div>
+  <div class="board-column-placeholder" *cdkDragPlaceholder></div>
 
-<section class="board-column-ui" [style.--board-accent]="column().color">
   <header class="board-column-ui__head">
     @if (!isEditingTitle()) {
       <div class="board-column-ui__title" cdkDragHandle>
@@ -26,6 +44,7 @@
         <input
           #titleInput
           type="text"
+          maxlength="80"
           [value]="draftTitle()"
           aria-label="Spaltentitel bearbeiten"
           (input)="draftTitle.set($any($event.target).value)"
@@ -38,63 +57,63 @@
 
     @if (!readOnly()) {
       <div class="board-column-ui__actions">
-      <button
-        class="board-column-ui__icon-button"
-        type="button"
-        aria-label="Spaltenaktionen öffnen"
-        [attr.aria-expanded]="actionMenuOpen()"
-        (click)="toggleActions($event)"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
-      </button>
+        <button
+          class="board-column-ui__icon-button"
+          type="button"
+          aria-label="Spaltenaktionen öffnen"
+          [attr.aria-expanded]="actionMenuOpen()"
+          (click)="toggleActions($event)"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
+        </button>
 
-      @if (actionMenuOpen()) {
-        <div class="board-column-ui__action-menu">
-          <button
-            type="button"
-            title="Nach Titel sortieren"
-            aria-label="Nach Titel sortieren"
-            (click)="sortRequested.emit({ columnId: column().id, mode: 'title' }); actionMenuOpen.set(false)"
-          >
-            <span class="material-symbols-outlined" aria-hidden="true">sort_by_alpha</span>
-          </button>
-          <button
-            type="button"
-            title="Nach Fälligkeit sortieren"
-            aria-label="Nach Fälligkeit sortieren"
-            (click)="sortRequested.emit({ columnId: column().id, mode: 'date' }); actionMenuOpen.set(false)"
-          >
-            <span class="material-symbols-outlined" aria-hidden="true">event</span>
-          </button>
-          <button
-            type="button"
-            title="Spaltenfarbe wechseln"
-            aria-label="Spaltenfarbe wechseln"
-            (click)="colorCycleRequested.emit(column().id); actionMenuOpen.set(false)"
-          >
-            <span class="material-symbols-outlined" aria-hidden="true">palette</span>
-          </button>
-          <button
-            type="button"
-            title="Spalte umbenennen"
-            aria-label="Spalte umbenennen"
-            (click)="startTitleEdit($event); actionMenuOpen.set(false)"
-          >
-            <span class="material-symbols-outlined" aria-hidden="true">edit</span>
-          </button>
-          @if (!column().isFixedPosition) {
+        @if (actionMenuOpen()) {
+          <div class="board-column-ui__action-menu">
             <button
-              class="board-column-ui__danger-action"
               type="button"
-              title="Spalte löschen"
-              aria-label="Spalte löschen"
-              (click)="deleteRequested.emit(column().id); actionMenuOpen.set(false)"
+              title="Nach Titel sortieren"
+              aria-label="Nach Titel sortieren"
+              (click)="sortRequested.emit({ columnId: column().id, mode: 'title' }); actionMenuOpen.set(false)"
             >
-              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+              <span class="material-symbols-outlined" aria-hidden="true">sort_by_alpha</span>
             </button>
-          }
-        </div>
-      }
+            <button
+              type="button"
+              title="Nach Fälligkeit sortieren"
+              aria-label="Nach Fälligkeit sortieren"
+              (click)="sortRequested.emit({ columnId: column().id, mode: 'date' }); actionMenuOpen.set(false)"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">event</span>
+            </button>
+            <button
+              type="button"
+              title="Spaltenfarbe wechseln"
+              aria-label="Spaltenfarbe wechseln"
+              (click)="colorCycleRequested.emit(column().id); actionMenuOpen.set(false)"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">palette</span>
+            </button>
+            <button
+              type="button"
+              title="Spalte umbenennen"
+              aria-label="Spalte umbenennen"
+              (click)="startTitleEdit($event); actionMenuOpen.set(false)"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+            </button>
+            @if (!column().isFixedPosition) {
+              <button
+                class="board-column-ui__danger-action"
+                type="button"
+                title="Spalte löschen"
+                aria-label="Spalte löschen"
+                (click)="deleteRequested.emit(column().id); actionMenuOpen.set(false)"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+              </button>
+            }
+          </div>
+        }
       </div>
     }
   </header>

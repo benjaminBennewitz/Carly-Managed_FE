@@ -5,13 +5,24 @@ import { computed, Injectable, signal } from '@angular/core';
 import { releaseTaskToPool } from './task-rules';
 import {
   ArchivedTaskEntry,
+  TaskPriority,
+  WorkspaceAttachment,
   WorkspaceColumn,
+  WorkspaceComment,
+  WorkspaceHistoryEntry,
   WorkspaceMember,
   WorkspaceProject,
+  WorkspaceSubtask,
   WorkspaceTask,
 } from './workspace.models';
 
 const day = 86_400_000;
+const WORKSPACE_PROJECTS_STORAGE_KEY = 'carly-managed-preview-projects-v2';
+const WORKSPACE_BOARDS_STORAGE_KEY = 'carly-managed-preview-boards-v2';
+const MAX_TASK_TITLE_LENGTH = 160;
+const MAX_TASK_DESCRIPTION_LENGTH = 5_000;
+const MAX_COMMENT_LENGTH = 2_000;
+const MAX_SUBTASK_TITLE_LENGTH = 160;
 
 function isoDate(offsetDays: number): string {
   const date = new Date(Date.now() + offsetDays * day);
@@ -75,7 +86,7 @@ function task(
   title: string,
   overrides: Partial<WorkspaceTask> = {},
 ): WorkspaceTask {
-  return {
+  const createdTask: WorkspaceTask = {
     id,
     title,
     description: 'Konkrete Arbeitspakete, Absprachen und Ergebnisse übersichtlich festhalten.',
@@ -85,15 +96,20 @@ function task(
     parentTaskId: null,
     owner: BEN,
     assignee: BEN,
+    collaborators: [],
     priority: 'mittel',
     startDate: isoDate(-1),
     dueDate: isoDate(5),
     dueTime: null,
     tags: ['Frontend'],
-    subtaskCount: 3,
-    completedSubtaskCount: 1,
-    commentCount: 2,
-    attachmentCount: 1,
+    subtasks: [],
+    comments: [],
+    attachments: [],
+    history: [],
+    subtaskCount: 0,
+    completedSubtaskCount: 0,
+    commentCount: 0,
+    attachmentCount: 0,
     isRecurring: false,
     recurrenceLabel: null,
     isDone: false,
@@ -103,6 +119,58 @@ function task(
     updatedAt: isoDateTime(-1, 14),
     ...overrides,
   };
+
+  if (createdTask.subtasks.length === 0 && (overrides.subtaskCount ?? 0) > 0) {
+    createdTask.subtasks = Array.from(
+      { length: overrides.subtaskCount ?? 0 },
+      (_, index) => ({
+        id: `subtask-${id}-${index + 1}`,
+        title: `Arbeitsschritt ${index + 1}`,
+        isDone: index < (overrides.completedSubtaskCount ?? 0),
+        createdAt: createdTask.createdAt,
+      }),
+    );
+  }
+
+  if (createdTask.comments.length === 0 && (overrides.commentCount ?? 0) > 0) {
+    createdTask.comments = Array.from(
+      { length: overrides.commentCount ?? 0 },
+      (_, index) => ({
+        id: `comment-${id}-${index + 1}`,
+        author: index % 2 === 0 ? MIRA : BEN,
+        body: `Abstimmung ${index + 1} zur Aufgabe.`,
+        createdAt: isoDateTime(-Math.max(1, index + 1), 14),
+      }),
+    );
+  }
+
+  if (createdTask.attachments.length === 0 && (overrides.attachmentCount ?? 0) > 0) {
+    createdTask.attachments = Array.from(
+      { length: overrides.attachmentCount ?? 0 },
+      (_, index) => ({
+        id: `attachment-${id}-${index + 1}`,
+        fileName: `anhang-${index + 1}.pdf`,
+        mimeType: 'application/pdf',
+        sizeBytes: 128_000 + index * 32_000,
+        uploadedBy: BEN,
+        createdAt: isoDateTime(-Math.max(1, index + 1), 10),
+      }),
+    );
+  }
+
+  if (createdTask.history.length === 0) {
+    createdTask.history = [
+      {
+        id: `history-${id}-created`,
+        actor: createdTask.owner,
+        action: 'Aufgabe erstellt',
+        icon: 'add_task',
+        createdAt: createdTask.createdAt,
+      },
+    ];
+  }
+
+  return normalizeTaskCounters(createdTask);
 }
 
 const CARLY_BOARD: WorkspaceColumn[] = [
@@ -167,10 +235,19 @@ const CARLY_BOARD: WorkspaceColumn[] = [
         priority: 'hoch',
         dueDate: isoDate(0),
         tags: ['Frontend', 'Migration'],
-        subtaskCount: 6,
-        completedSubtaskCount: 4,
-        commentCount: 4,
-        attachmentCount: 3,
+        collaborators: [MIRA, LEA],
+        subtasks: [
+          { id: 'subtask-106-1', title: 'Spaltenlayout übertragen', isDone: true, createdAt: isoDateTime(-4) },
+          { id: 'subtask-106-2', title: 'Drag-Vorschau prüfen', isDone: true, createdAt: isoDateTime(-3) },
+          { id: 'subtask-106-3', title: 'Task-Drawer ausbauen', isDone: false, createdAt: isoDateTime(-2) },
+        ],
+        comments: [
+          { id: 'comment-106-1', author: MIRA, body: 'Die horizontale Boardfläche sollte den verfügbaren Viewport vollständig nutzen.', createdAt: isoDateTime(-2, 15) },
+          { id: 'comment-106-2', author: BEN, body: 'Spalten erhalten jeweils einen eigenen vertikalen Scrollbereich.', createdAt: isoDateTime(-1, 11) },
+        ],
+        attachments: [
+          { id: 'attachment-106-1', fileName: 'board-layout-reference.png', mimeType: 'image/png', sizeBytes: 248320, uploadedBy: LEA, createdAt: isoDateTime(-1, 9) },
+        ],
       }),
       task('task-107', 'Pool-Regeln abstimmen', {
         assignee: MIRA,
@@ -470,13 +547,50 @@ const INITIAL_BOARDS: Record<string, WorkspaceColumn[]> = {
   ],
 };
 
-function cloneTask(source: WorkspaceTask): WorkspaceTask {
+function cloneMember(member: WorkspaceMember): WorkspaceMember {
+  return { ...member };
+}
+
+function normalizeTaskCounters(source: WorkspaceTask): WorkspaceTask {
+  const subtasks = source.subtasks ?? [];
+  const comments = source.comments ?? [];
+  const attachments = source.attachments ?? [];
+
   return {
     ...source,
-    owner: { ...source.owner },
-    assignee: source.assignee ? { ...source.assignee } : null,
-    tags: [...source.tags],
+    subtasks,
+    comments,
+    attachments,
+    history: source.history ?? [],
+    collaborators: source.collaborators ?? [],
+    subtaskCount: subtasks.length,
+    completedSubtaskCount: subtasks.filter((item) => item.isDone).length,
+    commentCount: comments.length,
+    attachmentCount: attachments.length,
   };
+}
+
+function cloneTask(source: WorkspaceTask): WorkspaceTask {
+  return normalizeTaskCounters({
+    ...source,
+    owner: cloneMember(source.owner),
+    assignee: source.assignee ? cloneMember(source.assignee) : null,
+    collaborators: (source.collaborators ?? []).map(cloneMember),
+    tags: [...source.tags],
+    subtasks: (source.subtasks ?? []).map((item) => ({ ...item })),
+    comments: (source.comments ?? []).map((item) => ({
+      ...item,
+      author: cloneMember(item.author),
+    })),
+    attachments: (source.attachments ?? []).map((item) => ({
+      ...item,
+      uploadedBy: cloneMember(item.uploadedBy),
+    })),
+    history: (source.history ?? []).map((item) => ({
+      ...item,
+      actor: cloneMember(item.actor),
+    })),
+  });
 }
 
 function cloneColumns(columns: WorkspaceColumn[]): WorkspaceColumn[] {
@@ -486,24 +600,76 @@ function cloneColumns(columns: WorkspaceColumn[]): WorkspaceColumn[] {
   }));
 }
 
-@Injectable({ providedIn: 'root' })
-export class WorkspacePreviewService {
-  private readonly projectsState = signal<WorkspaceProject[]>(
-    INITIAL_PROJECTS.map((project) => ({ ...project })),
-  );
-  private readonly boardsState = signal<Record<string, WorkspaceColumn[]>>(
+function cloneProjects(projects: WorkspaceProject[]): WorkspaceProject[] {
+  return projects.map((project) => ({
+    ...project,
+    owner: cloneMember(project.owner),
+    managers: project.managers.map(cloneMember),
+    collaborators: project.collaborators.map(cloneMember),
+  }));
+}
+
+function loadStoredProjects(): WorkspaceProject[] {
+  try {
+    const storedProjects = window.localStorage.getItem(
+      WORKSPACE_PROJECTS_STORAGE_KEY,
+    );
+    return storedProjects
+      ? cloneProjects(JSON.parse(storedProjects) as WorkspaceProject[])
+      : cloneProjects(INITIAL_PROJECTS);
+  } catch {
+    return cloneProjects(INITIAL_PROJECTS);
+  }
+}
+
+function loadStoredBoards(): Record<string, WorkspaceColumn[]> {
+  const fallback = (): Record<string, WorkspaceColumn[]> =>
     Object.fromEntries(
       Object.entries(INITIAL_BOARDS).map(([key, columns]) => [
         key,
         cloneColumns(columns),
       ]),
-    ),
+    );
+
+  try {
+    const storedBoards = window.localStorage.getItem(
+      WORKSPACE_BOARDS_STORAGE_KEY,
+    );
+    if (!storedBoards) {
+      return fallback();
+    }
+
+    const parsedBoards = JSON.parse(storedBoards) as Record<
+      string,
+      WorkspaceColumn[]
+    >;
+    return Object.fromEntries(
+      Object.entries(parsedBoards).map(([key, columns]) => [
+        key,
+        cloneColumns(columns),
+      ]),
+    );
+  } catch {
+    return fallback();
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class WorkspacePreviewService {
+  private readonly projectsState = signal<WorkspaceProject[]>(
+    loadStoredProjects(),
+  );
+  private readonly boardsState = signal<Record<string, WorkspaceColumn[]>>(
+    loadStoredBoards(),
   );
 
   readonly projects = computed(() =>
     this.projectsState()
       .filter((project) => project.status === 'active')
       .sort((left, right) => Number(right.isPinned) - Number(left.isPinned)),
+  );
+  readonly pinnedProjects = computed(() =>
+    this.projects().filter((project) => project.isPinned),
   );
   readonly archivedProjects = computed(() =>
     this.projectsState().filter((project) => project.status !== 'active'),
@@ -563,6 +729,7 @@ export class WorkspacePreviewService {
       ...boards,
       [projectId]: cloneColumns(columns),
     }));
+    this.persistBoards();
     this.touchProject(projectId);
   }
 
@@ -620,6 +787,7 @@ export class WorkspacePreviewService {
           : project,
       ),
     );
+    this.persistProjects();
   }
 
   /**
@@ -633,6 +801,7 @@ export class WorkspacePreviewService {
           : project,
       ),
     );
+    this.persistProjects();
   }
 
   /**
@@ -689,6 +858,8 @@ export class WorkspacePreviewService {
         },
       ],
     }));
+    this.persistProjects();
+    this.persistBoards();
 
     return createdProject;
   }
@@ -800,6 +971,223 @@ export class WorkspacePreviewService {
   }
 
   /**
+   * Aktualisiert die bearbeitbaren Kerndaten einer Aufgabe.
+   */
+  updateTask(
+    projectId: string,
+    taskId: string,
+    changes: Partial<
+      Pick<
+        WorkspaceTask,
+        'title' | 'description' | 'priority' | 'assignee' | 'dueDate'
+      >
+    >,
+    historyAction = 'Aufgabe aktualisiert',
+    historyIcon = 'edit_note',
+  ): WorkspaceColumn[] {
+    return this.mutateTask(projectId, taskId, (currentTask) => {
+      const nextTitle = changes.title?.trim().slice(0, MAX_TASK_TITLE_LENGTH);
+      const nextDescription = changes.description
+        ?.trim()
+        .slice(0, MAX_TASK_DESCRIPTION_LENGTH);
+      const nextTask = {
+        ...currentTask,
+        ...changes,
+        title: nextTitle || currentTask.title,
+        description:
+          nextDescription === undefined
+            ? currentTask.description
+            : nextDescription,
+        updatedAt: new Date().toISOString(),
+      };
+
+      return this.addHistory(nextTask, historyAction, historyIcon);
+    });
+  }
+
+  /**
+   * Entfernt eine Aufgabe vollständig aus ihrem Board.
+   */
+  deleteTask(projectId: string, taskId: string): WorkspaceColumn[] {
+    const columns = this.getBoard(projectId).map((column) => ({
+      ...column,
+      tasks: column.tasks.filter((item) => item.id !== taskId),
+    }));
+    this.saveBoard(projectId, columns);
+    return columns;
+  }
+
+  /** Fügt einer Aufgabe eine Unteraufgabe hinzu. */
+  addSubtask(projectId: string, taskId: string, title: string): WorkspaceColumn[] {
+    const cleanTitle = title.trim().slice(0, MAX_SUBTASK_TITLE_LENGTH);
+    if (!cleanTitle) return this.getBoard(projectId);
+    return this.mutateTask(projectId, taskId, (currentTask) => {
+      const subtask: WorkspaceSubtask = {
+        id: `subtask-${Date.now()}`,
+        title: cleanTitle,
+        isDone: false,
+        createdAt: new Date().toISOString(),
+      };
+      return this.addHistory(normalizeTaskCounters({
+        ...currentTask,
+        subtasks: [...currentTask.subtasks, subtask],
+        updatedAt: new Date().toISOString(),
+      }), 'Unteraufgabe hinzugefügt', 'account_tree');
+    });
+  }
+
+  /** Schaltet den Status einer Unteraufgabe um. */
+  toggleSubtask(projectId: string, taskId: string, subtaskId: string): WorkspaceColumn[] {
+    return this.mutateTask(projectId, taskId, (currentTask) =>
+      this.addHistory(normalizeTaskCounters({
+        ...currentTask,
+        subtasks: currentTask.subtasks.map((item) =>
+          item.id === subtaskId ? { ...item, isDone: !item.isDone } : item,
+        ),
+        updatedAt: new Date().toISOString(),
+      }), 'Unteraufgabe aktualisiert', 'task_alt'),
+    );
+  }
+
+  /** Entfernt eine Unteraufgabe. */
+  deleteSubtask(projectId: string, taskId: string, subtaskId: string): WorkspaceColumn[] {
+    return this.mutateTask(projectId, taskId, (currentTask) =>
+      this.addHistory(normalizeTaskCounters({
+        ...currentTask,
+        subtasks: currentTask.subtasks.filter((item) => item.id !== subtaskId),
+        updatedAt: new Date().toISOString(),
+      }), 'Unteraufgabe entfernt', 'delete'),
+    );
+  }
+
+  /** Fügt einen Kommentar hinzu. */
+  addComment(projectId: string, taskId: string, body: string): WorkspaceColumn[] {
+    const cleanBody = body.trim().slice(0, MAX_COMMENT_LENGTH);
+    if (!cleanBody) return this.getBoard(projectId);
+    return this.mutateTask(projectId, taskId, (currentTask) => {
+      const comment: WorkspaceComment = {
+        id: `comment-${Date.now()}`,
+        author: BEN,
+        body: cleanBody,
+        createdAt: new Date().toISOString(),
+      };
+      return this.addHistory(normalizeTaskCounters({
+        ...currentTask,
+        comments: [...currentTask.comments, comment],
+        updatedAt: new Date().toISOString(),
+      }), 'Kommentar hinzugefügt', 'forum');
+    });
+  }
+
+  /** Entfernt einen lokalen Kommentar. */
+  deleteComment(projectId: string, taskId: string, commentId: string): WorkspaceColumn[] {
+    return this.mutateTask(projectId, taskId, (currentTask) =>
+      this.addHistory(normalizeTaskCounters({
+        ...currentTask,
+        comments: currentTask.comments.filter((item) => item.id !== commentId),
+        updatedAt: new Date().toISOString(),
+      }), 'Kommentar entfernt', 'delete'),
+    );
+  }
+
+  /** Speichert Dateimetadaten als lokale Vorschauanhänge. */
+  addAttachments(projectId: string, taskId: string, files: File[]): WorkspaceColumn[] {
+    if (files.length === 0) return this.getBoard(projectId);
+    return this.mutateTask(projectId, taskId, (currentTask) => {
+      const createdAt = new Date().toISOString();
+      const attachments: WorkspaceAttachment[] = files.map((file, index) => ({
+        id: `attachment-${Date.now()}-${index}`,
+        fileName: file.name.slice(0, 255),
+        mimeType: file.type || 'application/octet-stream',
+        sizeBytes: file.size,
+        uploadedBy: BEN,
+        createdAt,
+      }));
+      return this.addHistory(normalizeTaskCounters({
+        ...currentTask,
+        attachments: [...currentTask.attachments, ...attachments],
+        updatedAt: createdAt,
+      }), `${attachments.length} Anhang${attachments.length === 1 ? '' : 'e'} hinzugefügt`, 'attach_file');
+    });
+  }
+
+  /** Entfernt einen Anhang. */
+  deleteAttachment(projectId: string, taskId: string, attachmentId: string): WorkspaceColumn[] {
+    return this.mutateTask(projectId, taskId, (currentTask) =>
+      this.addHistory(normalizeTaskCounters({
+        ...currentTask,
+        attachments: currentTask.attachments.filter((item) => item.id !== attachmentId),
+        updatedAt: new Date().toISOString(),
+      }), 'Anhang entfernt', 'delete'),
+    );
+  }
+
+  /** Fügt eine Person als Mitwirkende hinzu oder entfernt sie. */
+  toggleTaskCollaborator(projectId: string, taskId: string, memberId: string): WorkspaceColumn[] {
+    const member = this.members().find((item) => item.id === memberId);
+    if (!member) return this.getBoard(projectId);
+    return this.mutateTask(projectId, taskId, (currentTask) => {
+      const isCollaborator = currentTask.collaborators.some((item) => item.id === memberId);
+      const collaborators = isCollaborator
+        ? currentTask.collaborators.filter((item) => item.id !== memberId)
+        : [...currentTask.collaborators, member];
+      return this.addHistory({ ...currentTask, collaborators, updatedAt: new Date().toISOString() },
+        isCollaborator ? `${member.fullName} entfernt` : `${member.fullName} hinzugefügt`, 'group');
+    });
+  }
+
+  /** Ändert die Priorität einer Aufgabe. */
+  updateTaskPriority(projectId: string, taskId: string, priority: TaskPriority): WorkspaceColumn[] {
+    return this.updateTask(projectId, taskId, { priority }, `Priorität auf ${priority} gesetzt`, 'flag');
+  }
+
+  /** Wendet eine immutable Mutation auf eine einzelne Aufgabe an. */
+  private mutateTask(
+    projectId: string,
+    taskId: string,
+    mutation: (task: WorkspaceTask) => WorkspaceTask,
+  ): WorkspaceColumn[] {
+    const columns = this.getBoard(projectId).map((column) => ({
+      ...column,
+      tasks: column.tasks.map((item) =>
+        item.id === taskId ? normalizeTaskCounters(mutation(item)) : item,
+      ),
+    }));
+    this.saveBoard(projectId, columns);
+    return columns;
+  }
+
+  /** Ergänzt einen Verlaufseintrag. */
+  private addHistory(task: WorkspaceTask, action: string, icon: string): WorkspaceTask {
+    const entry: WorkspaceHistoryEntry = {
+      id: `history-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      actor: BEN,
+      action,
+      icon,
+      createdAt: new Date().toISOString(),
+    };
+    return { ...task, history: [entry, ...task.history] };
+  }
+
+  /** Speichert Projektzustände im lokalen Browser-Speicher. */
+  private persistProjects(): void {
+    try {
+      window.localStorage.setItem(WORKSPACE_PROJECTS_STORAGE_KEY, JSON.stringify(this.projectsState()));
+    } catch {
+      // Die Vorschau bleibt ohne Browser-Speicher funktionsfähig.
+    }
+  }
+
+  /** Speichert Boardzustände im lokalen Browser-Speicher. */
+  private persistBoards(): void {
+    try {
+      window.localStorage.setItem(WORKSPACE_BOARDS_STORAGE_KEY, JSON.stringify(this.boardsState()));
+    } catch {
+      // Die Vorschau bleibt ohne Browser-Speicher funktionsfähig.
+    }
+  }
+
+  /**
    * Aktualisiert den Änderungszeitpunkt eines Projekts.
    */
   private touchProject(projectId: string): void {
@@ -810,5 +1198,6 @@ export class WorkspacePreviewService {
           : project,
       ),
     );
+    this.persistProjects();
   }
 }

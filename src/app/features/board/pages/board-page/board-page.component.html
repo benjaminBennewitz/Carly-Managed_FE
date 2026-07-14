@@ -158,10 +158,6 @@
       >
         @for (column of columns(); track column.id) {
           <cm-board-column
-            cdkDrag
-            [cdkDragData]="column"
-            cdkDragLockAxis="x"
-            [cdkDragDisabled]="!!column.isFixedPosition || isReadOnly()"
             [column]="column"
             [connectedDropListIds]="dropListIds()"
             [showProjectContext]="!project()"
@@ -269,58 +265,355 @@
 @if (selectedTask(); as task) {
   <button
     class="task-drawer-backdrop"
+    [class.task-drawer-backdrop--closing]="drawerClosing()"
     type="button"
     aria-label="Aufgabendetails schließen"
     (click)="closeTask()"
   ></button>
 
-  <aside class="task-drawer" aria-label="Aufgabendetails">
+  <aside
+    class="task-drawer"
+    [class.task-drawer--closing]="drawerClosing()"
+    aria-label="Aufgabendetails"
+  >
     <header class="task-drawer__head">
       <div>
         <span>{{ task.projectTitle || 'Persönliches Board' }}</span>
-        <h2>{{ task.title }}</h2>
+        <input
+          class="task-drawer__title-input"
+          type="text"
+          maxlength="160"
+          [disabled]="isReadOnly()"
+          [value]="taskTitleDraft()"
+          aria-label="Aufgabentitel"
+          (input)="taskTitleDraft.set($any($event.target).value)"
+          (blur)="saveTaskTitle()"
+          (keydown.enter)="$event.preventDefault(); saveTaskTitle()"
+        />
       </div>
       <button type="button" aria-label="Aufgabendetails schließen" (click)="closeTask()">
         <span class="material-symbols-outlined" aria-hidden="true">close</span>
       </button>
     </header>
 
+    <nav class="task-drawer__tabs" aria-label="Aufgabenbereiche">
+      <button
+        type="button"
+        [class.is-active]="activeTaskTab() === 'details'"
+        [attr.aria-pressed]="activeTaskTab() === 'details'"
+        (click)="setTaskTab('details')"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+        Details
+      </button>
+      <button
+        type="button"
+        [class.is-active]="activeTaskTab() === 'subtasks'"
+        [attr.aria-pressed]="activeTaskTab() === 'subtasks'"
+        (click)="setTaskTab('subtasks')"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
+        Unteraufgaben
+        <span>{{ task.subtaskCount }}</span>
+      </button>
+      <button
+        type="button"
+        [class.is-active]="activeTaskTab() === 'comments'"
+        [attr.aria-pressed]="activeTaskTab() === 'comments'"
+        (click)="setTaskTab('comments')"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">forum</span>
+        Kommentare
+        <span>{{ task.commentCount }}</span>
+      </button>
+      <button
+        type="button"
+        [class.is-active]="activeTaskTab() === 'attachments'"
+        [attr.aria-pressed]="activeTaskTab() === 'attachments'"
+        (click)="setTaskTab('attachments')"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">attach_file</span>
+        Anhänge
+        <span>{{ task.attachmentCount }}</span>
+      </button>
+      <button
+        type="button"
+        [class.is-active]="activeTaskTab() === 'history'"
+        [attr.aria-pressed]="activeTaskTab() === 'history'"
+        (click)="setTaskTab('history')"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">history</span>
+        Verlauf
+      </button>
+    </nav>
+
     <div class="task-drawer__body">
-      <cm-workspace-task-card [task]="task" [showProjectContext]="true" />
-
-      <section>
-        <span>Beschreibung</span>
-        <p>{{ task.description }}</p>
-      </section>
-
-      <div class="task-drawer__grid">
-        <section>
-          <span>Verantwortlich</span>
-          <strong>{{ task.assignee?.fullName || 'Nicht zugewiesen' }}</strong>
-        </section>
-        <section>
-          <span>Fällig</span>
-          <strong>{{ formatDate(task.dueDate) }}</strong>
-        </section>
-        <section>
-          <span>Unteraufgaben</span>
-          <strong>{{ task.completedSubtaskCount }} / {{ task.subtaskCount }}</strong>
-        </section>
-        <section>
-          <span>Priorität</span>
-          <strong>{{ task.priority }}</strong>
-        </section>
-      </div>
-
-      @if (isReadyForAssignment(task)) {
-        <div class="task-drawer__notice">
-          <span class="material-symbols-outlined" aria-hidden="true">assignment_ind</span>
-          <strong>Bereit zur Vergabe</strong>
+      @if (activeTaskTab() === 'details') {
+        <div class="task-drawer__summary">
+          <cm-workspace-task-card [task]="task" [showProjectContext]="true" />
         </div>
+
+        <section class="task-drawer__section">
+          <label for="task-description">Beschreibung</label>
+          <textarea
+            id="task-description"
+            rows="5"
+            maxlength="5000"
+            [disabled]="isReadOnly()"
+            [value]="taskDescriptionDraft()"
+            (input)="taskDescriptionDraft.set($any($event.target).value)"
+            (blur)="saveTaskDescription()"
+          ></textarea>
+        </section>
+
+        <div class="task-drawer__form-grid">
+          <label>
+            <span>Priorität</span>
+            <select
+              [disabled]="isReadOnly()"
+              [value]="task.priority"
+              (change)="changeTaskPriority($any($event.target).value)"
+            >
+              <option value="hoch">Hoch</option>
+              <option value="mittel">Mittel</option>
+              <option value="niedrig">Niedrig</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Verantwortlich</span>
+            <select
+              [disabled]="isReadOnly()"
+              [value]="task.assignee?.id || ''"
+              (change)="changeTaskAssignee($any($event.target).value)"
+            >
+              <option value="">Nicht zugewiesen</option>
+              @for (member of workspaceService.members(); track member.id) {
+                <option [value]="member.id">{{ member.fullName }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Fällig</span>
+            <input
+              type="date"
+              [disabled]="isReadOnly()"
+              [value]="task.dueDate || ''"
+              (change)="changeTaskDueDate($any($event.target).value)"
+            />
+          </label>
+
+          <div class="task-drawer__status-field">
+            <span>Status</span>
+            <strong>{{ task.isDone ? 'Erledigt' : 'Offen' }}</strong>
+          </div>
+        </div>
+
+        <section class="task-drawer__section">
+          <span class="task-drawer__section-label">Mitwirkende</span>
+          <div class="task-collaborators">
+            @for (member of workspaceService.members(); track member.id) {
+              <button
+                type="button"
+                [disabled]="isReadOnly()"
+                [class.is-active]="isCollaborator(task, member.id)"
+                [attr.aria-pressed]="isCollaborator(task, member.id)"
+                [attr.title]="member.fullName"
+                (click)="toggleCollaborator(member)"
+              >
+                <span
+                  [style.--task-member-color]="member.avatarColor"
+                  [style.--task-member-text]="member.avatarTextColor"
+                >{{ member.initials }}</span>
+                {{ member.fullName }}
+              </button>
+            }
+          </div>
+        </section>
+
+        @if (isReadyForAssignment(task)) {
+          <div class="task-drawer__notice">
+            <span class="material-symbols-outlined" aria-hidden="true">assignment_ind</span>
+            <strong>Bereit zur Vergabe</strong>
+          </div>
+        }
+      }
+
+      @if (activeTaskTab() === 'subtasks') {
+        <section class="task-drawer__section">
+          @if (!isReadOnly()) {
+            <form class="task-create-row" (submit)="$event.preventDefault(); addSubtask()">
+              <input
+                type="text"
+                maxlength="160"
+                placeholder="Unteraufgabe hinzufügen"
+                [value]="subtaskDraft()"
+                (input)="subtaskDraft.set($any($event.target).value)"
+              />
+              <button type="submit" [disabled]="!subtaskDraft().trim()">
+                <span class="material-symbols-outlined" aria-hidden="true">add</span>
+                Hinzufügen
+              </button>
+            </form>
+          }
+
+          <div class="task-subtask-list">
+            @for (subtask of task.subtasks; track subtask.id) {
+              <article [class.is-done]="subtask.isDone">
+                <button
+                  class="task-subtask-list__check"
+                  type="button"
+                  [disabled]="isReadOnly()"
+                  [attr.aria-label]="subtask.isDone ? 'Unteraufgabe wieder öffnen' : 'Unteraufgabe abschließen'"
+                  (click)="toggleSubtask(subtask.id)"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">check</span>
+                </button>
+                <span>{{ subtask.title }}</span>
+                @if (!isReadOnly()) {
+                  <button
+                    class="task-inline-delete"
+                    type="button"
+                    aria-label="Unteraufgabe löschen"
+                    (click)="deleteSubtask(subtask.id)"
+                  >
+                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                  </button>
+                }
+              </article>
+            } @empty {
+              <div class="task-drawer__empty">
+                <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
+                <p>Keine Unteraufgaben.</p>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      @if (activeTaskTab() === 'comments') {
+        <section class="task-drawer__section">
+          @if (!isReadOnly()) {
+            <form class="task-comment-form" (submit)="$event.preventDefault(); addComment()">
+              <textarea
+                rows="3"
+                maxlength="2000"
+                placeholder="Kommentar schreiben"
+                [value]="commentDraft()"
+                (input)="commentDraft.set($any($event.target).value)"
+              ></textarea>
+              <button type="submit" [disabled]="!commentDraft().trim()">
+                <span class="material-symbols-outlined" aria-hidden="true">send</span>
+                Senden
+              </button>
+            </form>
+          }
+
+          <div class="task-comment-list">
+            @for (comment of task.comments; track comment.id) {
+              <article>
+                <span
+                  class="task-comment-list__avatar"
+                  [style.--task-member-color]="comment.author.avatarColor"
+                  [style.--task-member-text]="comment.author.avatarTextColor"
+                >{{ comment.author.initials }}</span>
+                <div>
+                  <header>
+                    <strong>{{ comment.author.fullName }}</strong>
+                    <time>{{ formatDateTime(comment.createdAt) }}</time>
+                  </header>
+                  <p>{{ comment.body }}</p>
+                </div>
+                @if (!isReadOnly()) {
+                  <button
+                    class="task-inline-delete"
+                    type="button"
+                    aria-label="Kommentar löschen"
+                    (click)="deleteComment(comment.id)"
+                  >
+                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                  </button>
+                }
+              </article>
+            } @empty {
+              <div class="task-drawer__empty">
+                <span class="material-symbols-outlined" aria-hidden="true">forum</span>
+                <p>Keine Kommentare.</p>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      @if (activeTaskTab() === 'attachments') {
+        <section class="task-drawer__section">
+          @if (!isReadOnly()) {
+            <label class="task-file-upload">
+              <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
+              Dateien auswählen
+              <input type="file" multiple (change)="addAttachments($event)" />
+            </label>
+          }
+
+          <div class="task-attachment-list">
+            @for (attachment of task.attachments; track attachment.id) {
+              <article>
+                <span class="material-symbols-outlined" aria-hidden="true">draft</span>
+                <div>
+                  <strong>{{ attachment.fileName }}</strong>
+                  <span>
+                    {{ formatFileSize(attachment.sizeBytes) }} ·
+                    {{ attachment.uploadedBy.fullName }} ·
+                    {{ formatDateTime(attachment.createdAt) }}
+                  </span>
+                </div>
+                @if (!isReadOnly()) {
+                  <button
+                    class="task-inline-delete"
+                    type="button"
+                    aria-label="Anhang entfernen"
+                    (click)="deleteAttachment(attachment.id)"
+                  >
+                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                  </button>
+                }
+              </article>
+            } @empty {
+              <div class="task-drawer__empty">
+                <span class="material-symbols-outlined" aria-hidden="true">attach_file</span>
+                <p>Keine Anhänge.</p>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      @if (activeTaskTab() === 'history') {
+        <section class="task-drawer__section">
+          <div class="task-history-list">
+            @for (entry of task.history; track entry.id) {
+              <article>
+                <span class="material-symbols-outlined" aria-hidden="true">{{ entry.icon }}</span>
+                <div>
+                  <strong>{{ entry.action }}</strong>
+                  <span>{{ entry.actor.fullName }} · {{ formatDateTime(entry.createdAt) }}</span>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
       }
     </div>
 
     <footer class="task-drawer__foot">
+      @if (!isReadOnly()) {
+        <button class="task-drawer__danger" type="button" (click)="deleteSelectedTask()">
+          <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+          Löschen
+        </button>
+      }
+      <span class="task-drawer__foot-spacer"></span>
       @if (!isReadOnly() && canReleaseToPool(task)) {
         <button type="button" (click)="releaseSelectedTaskToPool()">
           <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>

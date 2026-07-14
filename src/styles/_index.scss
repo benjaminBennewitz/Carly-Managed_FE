@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/_index.scss
    Projekt: Carly Managed
-   Version: 1.5.0
+   Version: 1.6.0
    Beschreibung: Bündelt die globalen Designsystem-Dateien.
 
    Inhaltsverzeichnis:
@@ -26,6 +26,7 @@
 @use 'base/icons';
 @use 'base/view-transitions';
 @use 'components/auth-legal';
+@use 'components/shell-navigation';
 @use 'components/legal-layout';
 @use 'components/legal-imprint';
 @use 'components/legal-privacy';

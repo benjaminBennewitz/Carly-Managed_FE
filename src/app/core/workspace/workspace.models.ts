@@ -21,6 +21,37 @@ export interface WorkspaceMember {
   isOnline: boolean;
 }
 
+export interface WorkspaceSubtask {
+  id: string;
+  title: string;
+  isDone: boolean;
+  createdAt: string;
+}
+
+export interface WorkspaceComment {
+  id: string;
+  author: WorkspaceMember;
+  body: string;
+  createdAt: string;
+}
+
+export interface WorkspaceAttachment {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  uploadedBy: WorkspaceMember;
+  createdAt: string;
+}
+
+export interface WorkspaceHistoryEntry {
+  id: string;
+  actor: WorkspaceMember;
+  action: string;
+  icon: string;
+  createdAt: string;
+}
+
 export interface WorkspaceTask {
   id: string;
   title: string;
@@ -31,11 +62,16 @@ export interface WorkspaceTask {
   parentTaskId: string | null;
   owner: WorkspaceMember;
   assignee: WorkspaceMember | null;
+  collaborators: WorkspaceMember[];
   priority: TaskPriority;
   startDate: string | null;
   dueDate: string | null;
   dueTime: string | null;
   tags: string[];
+  subtasks: WorkspaceSubtask[];
+  comments: WorkspaceComment[];
+  attachments: WorkspaceAttachment[];
+  history: WorkspaceHistoryEntry[];
   subtaskCount: number;
   completedSubtaskCount: number;
   commentCount: number;

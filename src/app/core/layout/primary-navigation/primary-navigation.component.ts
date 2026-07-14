@@ -3,6 +3,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  signal,
   input,
   output,
 } from '@angular/core';
@@ -11,6 +12,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthPreviewService } from '../../auth/services/auth-preview.service';
 import { SessionService } from '../../auth/services/session.service';
 import { ConnectivityService } from '../../system/connectivity.service';
+import { WorkspacePreviewService } from '../../workspace/workspace-preview.service';
 
 interface NavigationItem {
   label: string;
@@ -31,27 +33,28 @@ export class PrimaryNavigationComponent {
 
   protected readonly navigation: NavigationItem[] = [
     { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
-    { label: 'Projekte', route: '/projects', icon: 'folder_open' },
     { label: 'Board', route: '/board', icon: 'view_kanban' },
     { label: 'Mitglieder', route: '/members', icon: 'group' },
     { label: 'Inbox', route: '/inbox', icon: 'inbox' },
     { label: 'Pool', route: '/pool', icon: 'inventory_2' },
     { label: 'Archiv', route: '/archive', icon: 'archive' },
-    { label: 'Carly', route: '/carly', icon: 'pets' },
-    { label: 'Einstellungen', route: '/settings', icon: 'settings' },
   ];
 
+  protected readonly projectsOpen = signal(true);
   protected readonly sessionService: SessionService;
   protected readonly connectivityService: ConnectivityService;
+  protected readonly workspaceService: WorkspacePreviewService;
 
   constructor(
     sessionService: SessionService,
     connectivityService: ConnectivityService,
+    workspaceService: WorkspacePreviewService,
     private readonly authPreviewService: AuthPreviewService,
     private readonly router: Router,
   ) {
     this.sessionService = sessionService;
     this.connectivityService = connectivityService;
+    this.workspaceService = workspaceService;
   }
 
   /**
@@ -61,6 +64,13 @@ export class PrimaryNavigationComponent {
     if (window.matchMedia('(max-width: 56rem)').matches) {
       this.closeRequested.emit();
     }
+  }
+
+  /**
+   * Öffnet oder schließt die Liste angepinnter Projekte.
+   */
+  toggleProjects(): void {
+    this.projectsOpen.update((isOpen) => !isOpen);
   }
 
   /**

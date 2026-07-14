@@ -6,7 +6,9 @@ import {
   DestroyRef,
   signal,
 } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 import { PrimaryNavigationComponent } from '../primary-navigation/primary-navigation.component';
 import { TopbarComponent } from '../topbar/topbar.component';
@@ -24,12 +26,31 @@ export class AppShellComponent {
   protected readonly sidebarOpen = signal(
     window.matchMedia(DESKTOP_SIDEBAR_QUERY).matches,
   );
+  protected readonly isBoardRoute = signal(false);
 
-  constructor(destroyRef: DestroyRef) {
+  constructor(
+    destroyRef: DestroyRef,
+    router: Router,
+  ) {
     const desktopMediaQuery = window.matchMedia(DESKTOP_SIDEBAR_QUERY);
     const updateSidebarForViewport = (event: MediaQueryListEvent): void => {
       this.sidebarOpen.set(event.matches);
     };
+    const updateRouteMode = (url: string): void => {
+      this.isBoardRoute.set(
+        url === '/board' || /^\/projects\/[^/]+\/board(?:[?#].*)?$/.test(url),
+      );
+    };
+
+    updateRouteMode(router.url);
+    router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(destroyRef),
+      )
+      .subscribe((event) => {
+        updateRouteMode(event.urlAfterRedirects);
+      });
 
     desktopMediaQuery.addEventListener('change', updateSidebarForViewport);
 

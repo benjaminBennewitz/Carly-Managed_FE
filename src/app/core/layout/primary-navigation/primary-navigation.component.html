@@ -7,21 +7,79 @@
   [attr.aria-hidden]="!open()"
   [attr.inert]="open() ? null : ''"
 >
-  <nav class="primary-navigation__links" aria-label="Hauptnavigation">
-    @for (item of navigation; track item.route) {
-      <a
-        [routerLink]="item.route"
-        routerLinkActive="primary-navigation__link--active"
-        class="primary-navigation__link"
-        (click)="handleNavigation()"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">
-          {{ item.icon }}
-        </span>
-        <span>{{ item.label }}</span>
-      </a>
-    }
-  </nav>
+  <div class="primary-navigation__body">
+    <nav class="primary-navigation__links" aria-label="Hauptnavigation">
+      @for (item of navigation; track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="primary-navigation__link--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="primary-navigation__link"
+          (click)="handleNavigation()"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">
+            {{ item.icon }}
+          </span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <section
+      class="primary-navigation__projects"
+      [class.primary-navigation__projects--open]="projectsOpen()"
+    >
+      <div class="primary-navigation__project-head">
+        <a
+          class="primary-navigation__link primary-navigation__link--projects"
+          routerLink="/projects"
+          routerLinkActive="primary-navigation__link--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="handleNavigation()"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">folder_open</span>
+          <span>Projekte</span>
+        </a>
+
+        @if (workspaceService.pinnedProjects().length > 0) {
+          <button
+            class="primary-navigation__projects-toggle"
+            type="button"
+            [attr.aria-expanded]="projectsOpen()"
+            aria-label="Angepinnte Projekte ein- oder ausblenden"
+            (click)="toggleProjects()"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">
+              keyboard_arrow_down
+            </span>
+          </button>
+        }
+      </div>
+
+      @if (workspaceService.pinnedProjects().length > 0 && projectsOpen()) {
+        <div class="primary-navigation__project-list" aria-label="Angepinnte Projekte">
+          @for (project of workspaceService.pinnedProjects(); track project.id) {
+            <a
+              class="primary-navigation__project-link"
+              [routerLink]="['/projects', project.id, 'board']"
+              routerLinkActive="primary-navigation__project-link--active"
+              (click)="handleNavigation()"
+            >
+              <span
+                class="primary-navigation__project-icon material-symbols-outlined"
+                [style.--project-nav-color]="project.color"
+                aria-hidden="true"
+              >
+                {{ project.icon }}
+              </span>
+              <span>{{ project.name }}</span>
+              <span class="material-symbols-outlined" aria-hidden="true">keep</span>
+            </a>
+          }
+        </div>
+      }
+    </section>
+  </div>
 
   <div class="primary-navigation__footer">
     <div class="primary-navigation__profile">
