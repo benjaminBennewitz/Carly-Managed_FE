@@ -11,6 +11,17 @@ Carly-Managed_FE/
 ├── public/
 │   ├── assets/
 │   │   ├── fonts/
+│   │   │   ├── archivo/
+│   │   │   │   ├── .gitkeep
+│   │   │   │   ├── archivo-latin-variable.ttf
+│   │   │   │   ├── archivo-latin-variable-italic.ttf
+│   │   │   │   ├── OFL.txt
+│   │   │   │   └── README.txt
+│   │   │   ├── bricolage-grotesque/
+│   │   │   │   ├── .gitkeep
+│   │   │   │   ├── bricolage-grotesque-latin-variable.ttf
+│   │   │   │   ├── OFL.txt
+│   │   │   │   └── README.txt
 │   │   │   ├── .gitkeep
 │   │   │   └── material-symbols-outlined-latin-fill-normal.woff2
 │   │   └── img/
@@ -141,6 +152,7 @@ Carly-Managed_FE/
 │   ├── styles/
 │   │   ├── base/
 │   │   │   ├── _accessibility.scss
+│   │   │   ├── _fonts.scss
 │   │   │   ├── _global.scss
 │   │   │   ├── _icons.scss
 │   │   │   ├── _reset.scss
