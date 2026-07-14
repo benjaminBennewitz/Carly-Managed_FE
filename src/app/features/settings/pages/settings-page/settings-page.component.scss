@@ -1,40 +1,14 @@
 /* ==========================================================================
    Datei: src/app/features/settings/pages/settings-page/settings-page.component.scss
    Projekt: Carly Managed
-   Version: 1.0.0
-   Beschreibung: Definiert die erste Platzhalteransicht für den Bereich Einstellungen.
+   Version: 1.1.0
+   Beschreibung: Definiert die Grundansicht für den Bereich Einstellungen.
 
    Inhaltsverzeichnis:
    1. Seite
-   2. Platzhalter
    ========================================================================== */
 
 .feature-page {
   display: grid;
   gap: var(--space-8);
-}
-
-.feature-page__placeholder {
-  display: grid;
-  min-height: 24rem;
-  padding: var(--space-8);
-  place-content: center;
-  place-items: center;
-  gap: var(--space-3);
-  border: var(--border-width-subtle) dashed var(--color-border-strong);
-  border-radius: var(--radius-xl);
-  background: var(--color-surface-primary);
-  text-align: center;
-}
-
-.feature-page__placeholder span {
-  color: var(--color-action-primary);
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-100);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-label);
-}
-
-.feature-page__placeholder p {
-  max-width: 34rem;
 }

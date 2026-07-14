@@ -1,14 +1,13 @@
 /* ==========================================================================
    Datei: src/app/core/layout/app-shell/app-shell.component.scss
    Projekt: Carly Managed
-   Version: 1.1.0
+   Version: 1.2.0
    Beschreibung: Definiert den Arbeitsbereich der geschützten App-Shell.
 
    Inhaltsverzeichnis:
    1. Shell
-   2. Topbar
-   3. Hauptinhalt
-   4. Responsive Darstellung
+   2. Hauptinhalt
+   3. Responsive Darstellung
    ========================================================================== */
 
 :host {
@@ -26,62 +25,9 @@
   margin-left: var(--layout-sidebar-width);
 }
 
-.app-shell__topbar {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-index-sticky);
-  display: flex;
-  min-height: 4.5rem;
-  padding: 0 var(--layout-page-gutter);
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
-  background: color-mix(in srgb, var(--color-surface-primary) 92%, transparent);
-  backdrop-filter: blur(1rem);
-}
-
-.app-shell__presence {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-200);
-}
-
-.app-shell__presence span {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: var(--radius-round);
-  background: var(--color-info);
-  box-shadow: 0 0 0 0.1875rem var(--color-info-surface);
-}
-
-.app-shell__topbar-actions {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.app-shell__topbar-actions button {
-  min-height: var(--size-control-md);
-  padding: 0 var(--space-4);
-  border: var(--border-width-subtle) solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-primary);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-300);
-  font-weight: var(--font-weight-medium);
-}
-
-.app-shell__topbar-actions button:last-child {
-  border-color: var(--color-action-primary);
-  background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
-}
-
 .app-shell__main {
   width: min(100%, var(--layout-content-max));
-  min-height: calc(100dvh - 4.5rem);
+  min-height: 100dvh;
   padding: clamp(1.5rem, 3vw, 3rem) var(--layout-page-gutter) 5rem;
   margin: 0 auto;
 }
@@ -93,11 +39,5 @@
 
   .app-shell__main {
     padding-bottom: 7rem;
-  }
-}
-
-@media (max-width: 36rem) {
-  .app-shell__topbar-actions button:first-child {
-    display: none;
   }
 }

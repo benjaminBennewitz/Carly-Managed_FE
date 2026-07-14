@@ -1,8 +1,8 @@
 /* ==========================================================================
    Datei: src/app/features/dashboard/pages/dashboard-page/dashboard-page.component.scss
    Projekt: Carly Managed
-   Version: 1.0.0
-   Beschreibung: Definiert die erste statische Dashboard-Vorschau.
+   Version: 1.1.0
+   Beschreibung: Definiert die statische Dashboard-Grundansicht.
 
    Inhaltsverzeichnis:
    1. Seite
@@ -83,13 +83,6 @@
   font-size: var(--font-size-100);
   letter-spacing: var(--letter-spacing-label);
   text-transform: uppercase;
-}
-
-.dashboard-page__panel button {
-  min-height: var(--size-control-sm);
-  border: 0;
-  background: transparent;
-  color: var(--color-text-disabled);
 }
 
 .dashboard-page__empty {

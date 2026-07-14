@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/app/core/layout/auth-layout/auth-layout.component.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert das öffentliche Layout für Login und Registrierung.
 
    Inhaltsverzeichnis:
@@ -136,29 +136,6 @@
   display: grid;
   width: min(100%, 31rem);
   gap: var(--space-5);
-}
-
-.auth-layout__preview-note {
-  display: flex;
-  align-items: center;
-  padding: var(--space-3) var(--space-4);
-  gap: var(--space-3);
-  border: var(--border-width-subtle) solid var(--color-info);
-  border-radius: var(--radius-md);
-  background: var(--color-info-surface);
-}
-
-.auth-layout__preview-note span {
-  color: var(--color-info);
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-100);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-label);
-}
-
-.auth-layout__preview-note p {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-200);
 }
 
 @media (max-width: 62rem) {
