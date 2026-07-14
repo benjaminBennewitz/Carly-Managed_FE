@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_workspace-task-card.scss
    Projekt: Carly Managed
-   Version: 1.1.0
+   Version: 1.2.0
    Beschreibung: Definiert die wiederverwendbare Task-Karte.
 
    Inhaltsverzeichnis:
@@ -183,8 +183,13 @@
 }
 
 .workspace-task-card__context--on-demand {
-  background: var(--color-accent-subtle);
-  color: color-mix(in srgb, var(--color-accent) 72%, var(--color-text-primary));
+  border: var(--border-width-subtle) solid
+    color-mix(in srgb, var(--color-accent-text) 18%, var(--color-accent));
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+  font-weight: var(--font-weight-bold);
+  box-shadow: inset 0 0 0 0.0625rem
+    color-mix(in srgb, var(--color-surface-primary) 18%, transparent);
 }
 
 .workspace-task-card__context--pool {

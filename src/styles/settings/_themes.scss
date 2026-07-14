@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/settings/_themes.scss
    Projekt: Carly Managed
-   Version: 1.1.0
+   Version: 1.2.0
    Beschreibung: Definiert die semantischen Farb-Tokens für Light- und Dark-Mode.
 
    Inhaltsverzeichnis:
@@ -44,6 +44,7 @@
   --color-action-disabled-text: #756a7e;
 
   --color-accent: #d5a646;
+  --color-accent-text: #241b2e;
   --color-accent-subtle: #f1d99b;
   --color-brand-soft: #c7b0e7;
   --color-brand-subtle: #eee7f7;
@@ -111,6 +112,7 @@
   --color-action-disabled-text: #91849b;
 
   --color-accent: #e4be66;
+  --color-accent-text: #141019;
   --color-accent-subtle: #f2d993;
   --color-brand-soft: #7d64a1;
   --color-brand-subtle: #31223f;
