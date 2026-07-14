@@ -2,33 +2,41 @@
    Datei: src/app/core/layout/auth-layout/auth-layout.component.scss
    Projekt: Carly Managed
    Version: 1.1.0
-   Beschreibung: Definiert das öffentliche Layout für Login und Registrierung.
+   Beschreibung: Definiert das viewport-feste Layout für Login und Registrierung.
 
    Inhaltsverzeichnis:
    1. Layout
    2. Markenbereich
    3. Vorteile
    4. Inhaltsbereich
-   5. Responsive Darstellung
+   5. Niedrige Viewports
+   6. Kompakte Darstellung
    ========================================================================== */
 
 :host {
   display: block;
-  min-height: 100dvh;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
 }
 
 .auth-layout {
   display: grid;
-  min-height: 100dvh;
-  grid-template-columns: minmax(24rem, 0.92fr) minmax(34rem, 1.08fr);
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  grid-template-columns: minmax(22rem, 0.88fr) minmax(36rem, 1.12fr);
   background: var(--color-page-background);
 }
 
 .auth-layout__brand {
   position: relative;
   display: flex;
-  min-height: 100dvh;
-  padding: clamp(2rem, 3vw, 4rem);
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(1.5rem, 2.8vw, 3.25rem);
   overflow: hidden;
   flex-direction: column;
   background:
@@ -39,11 +47,14 @@
 }
 
 .auth-layout__logo {
-  width: min(17rem, 72%);
+  position: relative;
+  z-index: var(--z-index-raised);
+  width: min(15rem, 72%);
   border-radius: var(--radius-md);
 }
 
-.auth-layout__logo img {
+.auth-layout__logo img,
+.auth-layout__mobile-logo img {
   width: 100%;
   height: auto;
 }
@@ -52,9 +63,9 @@
   position: relative;
   z-index: var(--z-index-raised);
   display: grid;
-  max-width: 36rem;
-  margin-top: clamp(4rem, 9vh, 8rem);
-  gap: var(--space-5);
+  max-width: 34rem;
+  margin-top: clamp(2rem, 7vh, 5.5rem);
+  gap: var(--space-4);
 }
 
 .auth-layout__eyebrow {
@@ -71,7 +82,7 @@
 }
 
 .auth-layout__intro > p:last-child {
-  max-width: 34rem;
+  max-width: 32rem;
   font-size: var(--font-size-500);
 }
 
@@ -82,13 +93,13 @@
   max-width: 35rem;
   padding: 0;
   margin: auto 0 0;
-  gap: var(--space-3);
+  gap: var(--space-2);
   list-style: none;
 }
 
 .auth-layout__benefits li {
   display: grid;
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   grid-template-columns: 2.25rem 1fr;
   gap: var(--space-1) var(--space-3);
   border: var(--border-width-subtle) solid
@@ -117,66 +128,112 @@
 
 .auth-layout__carly {
   position: absolute;
-  right: -5rem;
-  bottom: -5rem;
-  width: min(22rem, 48vw);
+  right: -4rem;
+  bottom: -4rem;
+  width: min(19rem, 42vw);
   height: auto;
-  opacity: 0.24;
+  opacity: 0.22;
   filter: saturate(0.82);
 }
 
 .auth-layout__content {
   display: grid;
-  min-height: 100dvh;
-  padding: clamp(1.5rem, 5vw, 5rem);
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: clamp(0.875rem, 2.4vw, 2.5rem);
+  overflow: hidden;
   place-items: center;
 }
 
 .auth-layout__content-inner {
   display: grid;
-  width: min(100%, 31rem);
-  gap: var(--space-5);
+  width: min(100%, 46rem);
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+}
+
+.auth-layout__mobile-logo {
+  display: none;
+}
+
+@media (min-width: 62.01rem) and (max-height: 48rem) {
+  .auth-layout__brand {
+    padding: var(--space-5) var(--space-8);
+  }
+
+  .auth-layout__logo {
+    width: 12rem;
+  }
+
+  .auth-layout__intro {
+    margin-top: var(--space-6);
+    gap: var(--space-3);
+  }
+
+  .auth-layout__intro h1 {
+    max-width: 30rem;
+    font-size: var(--font-size-800);
+  }
+
+  .auth-layout__intro > p:last-child {
+    font-size: var(--font-size-300);
+  }
+
+  .auth-layout__benefits li {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .auth-layout__carly {
+    width: 15rem;
+  }
+
+  .auth-layout__content {
+    padding: var(--space-3) var(--space-6);
+  }
 }
 
 @media (max-width: 62rem) {
   .auth-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .auth-layout__brand {
-    min-height: auto;
-    padding-bottom: var(--space-8);
-    border-right: 0;
-    border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
-  }
-
-  .auth-layout__intro {
-    margin-top: var(--space-10);
-  }
-
-  .auth-layout__benefits {
-    margin-top: var(--space-8);
-  }
-
-  .auth-layout__carly {
     display: none;
   }
 
   .auth-layout__content {
-    min-height: auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .auth-layout__mobile-logo {
+    display: block;
+    width: min(11rem, 42vw);
+    align-self: start;
+    border-radius: var(--radius-md);
   }
 }
 
 @media (max-width: 40rem) {
-  .auth-layout__brand {
-    padding: var(--space-6) var(--space-5) var(--space-8);
-  }
-
-  .auth-layout__benefits {
-    display: none;
-  }
-
   .auth-layout__content {
-    padding: var(--space-8) var(--space-5);
+    padding: var(--space-3);
+  }
+
+  .auth-layout__mobile-logo {
+    width: min(9rem, 44vw);
+  }
+}
+
+@media (max-height: 43rem) and (max-width: 62rem) {
+  .auth-layout__content {
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
+    padding: var(--space-2);
+  }
+
+  .auth-layout__mobile-logo {
+    display: none;
   }
 }

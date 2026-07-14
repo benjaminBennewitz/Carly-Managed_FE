@@ -2,23 +2,30 @@
    Datei: src/app/features/auth/pages/login-page/login-page.component.scss
    Projekt: Carly Managed
    Version: 1.1.0
-   Beschreibung: Definiert die Darstellung der Login-Seite.
+   Beschreibung: Definiert die viewport-kompakte Darstellung der Login-Seite.
 
    Inhaltsverzeichnis:
-   1. Karte
-   2. Formular
-   3. Status
-   4. Aktionen
+   1. Host
+   2. Karte
+   3. Formular
+   4. Status
+   5. Aktionen
+   6. Niedrige Viewports
    ========================================================================== */
 
 :host {
   display: block;
+  width: min(100%, 31rem);
+  min-width: 0;
 }
 
 .auth-card {
   display: grid;
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-  gap: var(--space-6);
+  width: 100%;
+  max-height: calc(100dvh - 2rem);
+  padding: clamp(1.25rem, 2.4vh, 2rem);
+  gap: clamp(var(--space-4), 1.8vh, var(--space-6));
+  overflow: hidden;
   border: var(--border-width-subtle) solid var(--color-border-subtle);
   border-radius: var(--radius-xl);
   background: var(--color-surface-primary);
@@ -27,7 +34,7 @@
 
 .auth-card__header {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .auth-card__eyebrow {
@@ -49,12 +56,34 @@
 
 form {
   display: grid;
-  gap: var(--space-5);
+  gap: clamp(var(--space-3), 1.5vh, var(--space-5));
+}
+
+.auth-card__status {
+  display: grid;
+  padding: var(--space-3);
+  gap: var(--space-1);
+  border: var(--border-width-subtle) solid var(--color-field-border-invalid);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-surface);
+}
+
+.auth-card__status strong {
+  color: var(--color-field-error);
+  font-size: var(--font-size-300);
+}
+
+.auth-card__status p {
+  font-size: var(--font-size-200);
 }
 
 .auth-card__submit {
+  display: inline-flex;
   min-height: var(--size-control-lg);
   padding: 0 var(--space-5);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   border: var(--border-width-subtle) solid var(--color-action-primary);
   border-radius: var(--radius-md);
   background: var(--color-action-primary);
@@ -75,7 +104,8 @@ form {
 
 .auth-card__footer {
   display: flex;
-  padding-top: var(--space-5);
+  padding-top: var(--space-4);
+  align-items: center;
   justify-content: center;
   gap: var(--space-2);
   border-top: var(--border-width-subtle) solid var(--color-border-subtle);
@@ -84,12 +114,43 @@ form {
 }
 
 .auth-card__footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   font-weight: var(--font-weight-semibold);
+}
+
+.auth-card__footer .material-symbols-outlined {
+  font-size: var(--size-icon-sm);
 }
 
 @media (max-width: 34rem) {
   .auth-card__footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (max-height: 42rem) {
+  .auth-card {
+    max-height: calc(100dvh - 1rem);
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .auth-card__header > p:last-child {
+    display: none;
+  }
+
+  .auth-card__header h2 {
+    font-size: var(--font-size-700);
+  }
+
+  form {
+    gap: var(--space-3);
+  }
+
+  .auth-card__footer {
+    padding-top: var(--space-3);
   }
 }

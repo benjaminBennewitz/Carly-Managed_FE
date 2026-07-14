@@ -43,7 +43,6 @@ export class RegisterPageComponent {
       Validators.minLength(2),
       Validators.maxLength(60),
       displayNameCharactersValidator(),
-      noControlCharactersValidator(),
     ],
   });
 
@@ -112,7 +111,7 @@ export class RegisterPageComponent {
   }
 
   /**
-   * Liefert die Anzahl erfüllter Kriterien für die dezente Stärkeanzeige.
+   * Liefert die Anzahl erfüllter Passwortkriterien.
    */
   passwordScore(): number {
     const value = this.passwordControl.value;
@@ -129,7 +128,28 @@ export class RegisterPageComponent {
   }
 
   /**
-   * Validiert das Formular und startet die Registrierung.
+   * Beschreibt die aktuelle lokale Passwortbewertung barrierearm.
+   */
+  passwordStrengthLabel(): string {
+    const score = this.passwordScore();
+
+    if (!this.passwordControl.value) {
+      return 'Passwortstärke noch nicht bewertet.';
+    }
+
+    if (score <= 1) {
+      return 'Passwortstärke: niedrig.';
+    }
+
+    if (score <= 3) {
+      return 'Passwortstärke: mittel.';
+    }
+
+    return 'Passwortstärke: hoch.';
+  }
+
+  /**
+   * Validiert das Formular und startet die lokale Registrierungsvorschau.
    */
   submit(): void {
     this.submitted.set(true);

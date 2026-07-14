@@ -10,46 +10,48 @@ const COMMON_PASSWORDS = new Set([
   'carlymanaged',
 ]);
 
-const EMAIL_ALLOWED_CHARACTERS = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~@-]+$/;
-const DISPLAY_NAME_ALLOWED_CHARACTERS = /^[\p{L}\p{M}\p{N} .'-]+$/u;
-const CONTROL_CHARACTERS = /[\u0000-\u001F\u007F-\u009F]/;
+const DISPLAY_NAME_PATTERN = /^[\p{L}\p{M}\p{N} .,'’\-]+$/u;
+const INVALID_EMAIL_CHARACTERS = /[\u0000-\u0020\u007f<>{}\\]/u;
+const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/u;
 
 /**
- * Lehnt Zeichen ab, die in den unterstützten E-Mail-Adressen nicht vorkommen dürfen.
- */
-export function emailCharactersValidator(): ValidatorFn {
-  return (control: AbstractControl<string>): ValidationErrors | null => {
-    const value = control.value;
-
-    if (!value || EMAIL_ALLOWED_CHARACTERS.test(value)) {
-      return null;
-    }
-
-    return { emailCharacters: true };
-  };
-}
-
-/**
- * Beschränkt Anzeigenamen auf sichtbare, für Personennamen geeignete Zeichen.
+ * Beschränkt Anzeigenamen auf sichtbare, für Namen geeignete Zeichen.
  */
 export function displayNameCharactersValidator(): ValidatorFn {
   return (control: AbstractControl<string>): ValidationErrors | null => {
     const value = control.value;
 
-    if (!value || DISPLAY_NAME_ALLOWED_CHARACTERS.test(value)) {
+    if (!value || DISPLAY_NAME_PATTERN.test(value)) {
       return null;
     }
 
-    return { displayNameCharacters: true };
+    return { invalidDisplayNameCharacters: true };
   };
 }
 
 /**
- * Verhindert unsichtbare Steuerzeichen, ohne sichere Passwortsonderzeichen einzuschränken.
+ * Erkennt unsichtbare und für die E-Mail-Eingabe ungeeignete Zeichen.
+ */
+export function emailCharactersValidator(): ValidatorFn {
+  return (control: AbstractControl<string>): ValidationErrors | null => {
+    const value = control.value;
+
+    if (!value || !INVALID_EMAIL_CHARACTERS.test(value)) {
+      return null;
+    }
+
+    return { invalidEmailCharacters: true };
+  };
+}
+
+/**
+ * Verhindert unsichtbare Steuerzeichen in Passwortfeldern.
  */
 export function noControlCharactersValidator(): ValidatorFn {
   return (control: AbstractControl<string>): ValidationErrors | null => {
-    if (!control.value || !CONTROL_CHARACTERS.test(control.value)) {
+    const value = control.value;
+
+    if (!value || !CONTROL_CHARACTERS.test(value)) {
       return null;
     }
 

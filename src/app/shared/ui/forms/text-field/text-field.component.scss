@@ -1,23 +1,27 @@
 /* ==========================================================================
    Datei: src/app/shared/ui/forms/text-field/text-field.component.scss
    Projekt: Carly Managed
-   Version: 1.1.0
-   Beschreibung: Definiert ein barrierearmes Texteingabefeld mit Validierungszuständen.
+   Version: 1.2.0
+   Beschreibung: Definiert ein barrierearmes Textfeld mit direkter Validierung.
 
    Inhaltsverzeichnis:
    1. Feld
    2. Beschriftung
-   3. Kontrolle
-   4. Zustände
-   5. Fehlermeldungen
+   3. Eingabefläche
+   4. Passwortaktion
+   5. Zustände
+   6. Fehlermeldung
    ========================================================================== */
 
 :host {
   display: block;
+  min-width: 0;
 }
 
 .text-field {
+  position: relative;
   display: grid;
+  min-width: 0;
   gap: var(--space-2);
 }
 
@@ -47,6 +51,14 @@
   border: var(--border-width-subtle) solid var(--color-field-border);
   border-radius: var(--radius-md);
   background: var(--color-field-background);
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
+    background var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.text-field__control:hover {
+  border-color: var(--color-field-border-hover);
 }
 
 .text-field__control:focus-within {
@@ -100,18 +112,6 @@ input:disabled {
   color: var(--color-icon-primary);
 }
 
-.text-field__toggle svg,
-.text-field__status-icon,
-.text-field__message svg {
-  width: var(--size-icon-md);
-  height: var(--size-icon-md);
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
 .text-field__status-icon {
   flex: 0 0 auto;
   margin-right: var(--space-4);
@@ -123,13 +123,6 @@ input:disabled {
   box-shadow: inset 0 -0.125rem 0 var(--color-field-border-invalid);
 }
 
-.text-field--invalid .text-field__control:focus-within {
-  box-shadow:
-    inset 0 -0.125rem 0 var(--color-field-border-invalid),
-    0 0 0 var(--focus-ring-width)
-      color-mix(in srgb, var(--color-field-border-invalid) 24%, transparent);
-}
-
 .text-field--confirmed .text-field__control {
   border-color: var(--color-field-border-confirmed);
 }
@@ -138,12 +131,17 @@ input:disabled {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
-  color: var(--color-field-error);
+  color: var(--color-field-hint);
   font-size: var(--font-size-200);
-  line-height: 1.45;
+  line-height: 1.35;
 }
 
-.text-field__message svg {
+.text-field__message--error {
+  color: var(--color-field-error);
+}
+
+.text-field__message .material-symbols-outlined {
   flex: 0 0 auto;
   margin-top: 0.05rem;
+  font-size: var(--size-icon-sm);
 }

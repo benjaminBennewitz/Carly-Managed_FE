@@ -1,8 +1,8 @@
 /* ==========================================================================
    Datei: src/app/shared/ui/forms/checkbox-field/checkbox-field.component.scss
    Projekt: Carly Managed
-   Version: 1.0.0
-   Beschreibung: Definiert ein barrierearmes Kontrollkästchen mit Fehlermeldung.
+   Version: 1.1.0
+   Beschreibung: Definiert ein barrierearmes Kontrollkästchen mit Material Symbol.
 
    Inhaltsverzeichnis:
    1. Feld
@@ -25,7 +25,7 @@
   gap: var(--space-3);
   color: var(--color-text-secondary);
   font-size: var(--font-size-300);
-  line-height: 1.5;
+  line-height: 1.4;
   cursor: pointer;
 }
 
@@ -41,7 +41,7 @@ input {
   flex: 0 0 1.25rem;
   width: 1.25rem;
   height: 1.25rem;
-  margin-top: 0.1rem;
+  margin-top: 0.08rem;
   place-items: center;
   border: var(--border-width-subtle) solid var(--color-field-border);
   border-radius: var(--radius-xs);
@@ -49,14 +49,9 @@ input {
   color: var(--color-action-primary-text);
 }
 
-.checkbox-field__box svg {
-  width: 1rem;
-  height: 1rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.checkbox-field__box .material-symbols-outlined {
+  font-size: 1rem;
+  font-weight: 700;
   opacity: 0;
 }
 
@@ -71,7 +66,7 @@ input:checked + .checkbox-field__box {
   background: var(--color-action-primary);
 }
 
-input:checked + .checkbox-field__box svg {
+input:checked + .checkbox-field__box .material-symbols-outlined {
   opacity: 1;
 }
 

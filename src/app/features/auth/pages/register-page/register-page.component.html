@@ -2,9 +2,16 @@
 
 <article class="auth-card" aria-labelledby="register-title">
   <header class="auth-card__header">
-    <p class="auth-card__eyebrow">Neues Konto</p>
-    <h2 id="register-title">Carly Managed ausprobieren</h2>
-    <p>Erstelle dein Konto und richte deinen persönlichen Arbeitsbereich ein.</p>
+    <a class="auth-card__back" routerLink="/auth/login">
+      <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+      <span>Zur Anmeldung</span>
+    </a>
+
+    <div class="auth-card__header-copy">
+      <p class="auth-card__eyebrow">Neues Konto</p>
+      <h2 id="register-title">Carly Managed ausprobieren</h2>
+      <p>Erstelle dein Konto und beginne mit deinem ersten Board.</p>
+    </div>
   </header>
 
   @if (formError()) {
@@ -44,31 +51,12 @@
       label="Passwort"
       type="password"
       autocomplete="new-password"
-      placeholder="Dein Passwort"
+      placeholder="Mindestens 12 Zeichen"
       [required]="true"
       [submitted]="submitted()"
       [allowPasswordToggle]="true"
       [maxlength]="128"
     />
-
-    @if (form.controls.password.value) {
-      <div class="password-guidance" aria-live="polite">
-        <div class="password-guidance__meter" aria-hidden="true">
-          @for (segment of [1, 2, 3, 4]; track segment) {
-            <span [class.password-guidance__segment--active]="passwordScore() >= segment"></span>
-          }
-        </div>
-        <p>
-          @if (passwordScore() <= 1) {
-            Schwach: Verwende mehr Länge und weniger vorhersehbare Begriffe.
-          } @else if (passwordScore() <= 3) {
-            Solide: Etwas mehr Länge erhöht die Sicherheit weiter.
-          } @else {
-            Das Passwort erfüllt die aktuellen Anforderungen.
-          }
-        </p>
-      </div>
-    }
 
     <cm-text-field
       [control]="form.controls.passwordConfirmation"
@@ -83,7 +71,19 @@
       [maxlength]="128"
     />
 
+    <div
+      class="password-meter"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="passwordStrengthLabel()"
+    >
+      @for (segment of [1, 2, 3, 4]; track segment) {
+        <span [class.password-meter__segment--active]="passwordScore() >= segment"></span>
+      }
+    </div>
+
     <cm-checkbox-field
+      class="auth-card__terms"
       [control]="form.controls.acceptedTerms"
       inputId="accepted-terms"
       label="Ich akzeptiere die Nutzungsbedingungen und Datenschutzhinweise."
@@ -93,15 +93,11 @@
 
     <button class="auth-card__submit" type="submit" [disabled]="pending()">
       @if (pending()) {
-        Konto wird erstellt …
+        <span>Konto wird erstellt …</span>
       } @else {
-        Konto erstellen
+        <span>Konto erstellen</span>
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
       }
     </button>
   </form>
-
-  <footer class="auth-card__footer">
-    <span>Bereits registriert?</span>
-    <a routerLink="/auth/login">Zur Anmeldung</a>
-  </footer>
 </article>

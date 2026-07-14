@@ -1,14 +1,15 @@
 /* ==========================================================================
    Datei: src/styles/base/_global.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert die globale visuelle Basis der Anwendung.
 
    Inhaltsverzeichnis:
    1. Dokument
-   2. Typografie
-   3. Interaktion
-   4. Auswahl
+   2. Auth-Viewport
+   3. Typografie
+   4. Interaktion
+   5. Auswahl
    ========================================================================== */
 
 html {
@@ -25,6 +26,22 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+cm-root {
+  display: block;
+  min-height: 100%;
+}
+
+body:has(cm-auth-layout) {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body:has(cm-auth-layout) cm-root {
+  height: 100%;
+  overflow: hidden;
 }
 
 h1,

@@ -59,7 +59,7 @@ export class LoginPageComponent {
   ) {}
 
   /**
-   * Validiert das Formular und startet die Anmeldung.
+   * Validiert das Formular und startet die lokale Vorschau-Sitzung.
    */
   submit(): void {
     this.submitted.set(true);

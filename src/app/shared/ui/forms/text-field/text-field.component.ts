@@ -38,7 +38,8 @@ export class TextFieldComponent {
   }
 
   /**
-   * Kennzeichnet ungültige Eingaben direkt nach der ersten Änderung.
+   * Zeigt einen Fehler direkt nach der ersten Eingabe, nach Verlassen des Feldes
+   * oder nach einem Formularversuch an.
    */
   isInvalid(): boolean {
     const control = this.control();
@@ -52,7 +53,7 @@ export class TextFieldComponent {
   isConfirmed(): boolean {
     const control = this.control();
 
-    return control.valid && control.dirty && control.value.trim().length > 0;
+    return control.valid && control.touched && control.value.trim().length > 0;
   }
 
   /**
@@ -80,7 +81,11 @@ export class TextFieldComponent {
       return 'Dieses Feld wird benötigt.';
     }
 
-    if (errors['emailCharacters']) {
+    if (errors['invalidDisplayNameCharacters']) {
+      return 'Verwende nur Buchstaben, Zahlen, Leerzeichen, Punkte, Apostrophe oder Bindestriche.';
+    }
+
+    if (errors['invalidEmailCharacters']) {
       return 'Die E-Mail-Adresse enthält nicht unterstützte Zeichen.';
     }
 
@@ -88,12 +93,8 @@ export class TextFieldComponent {
       return 'Bitte gib eine gültige E-Mail-Adresse ein.';
     }
 
-    if (errors['displayNameCharacters']) {
-      return 'Verwende Buchstaben, Zahlen, Leerzeichen, Punkte, Apostrophe oder Bindestriche.';
-    }
-
     if (errors['controlCharacters']) {
-      return 'Die Eingabe enthält nicht sichtbare oder unzulässige Steuerzeichen.';
+      return 'Unsichtbare Steuerzeichen sind in diesem Feld nicht erlaubt.';
     }
 
     if (errors['minlength']) {

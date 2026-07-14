@@ -15,30 +15,34 @@ import {
  * Prüft die fachlichen Validatoren der Authentifizierungsformulare.
  */
 describe('Auth-Validatoren', () => {
-  it('erkennt nicht unterstützte Zeichen in E-Mail-Adressen', () => {
-    const control = new FormControl('name<script>@example.com', { nonNullable: true });
-
-    expect(emailCharactersValidator()(control)).toEqual({ emailCharacters: true });
-  });
-
-  it('erlaubt gebräuchliche Sonderzeichen in E-Mail-Adressen', () => {
-    const control = new FormControl("name+projekt.o'neil@example.com", { nonNullable: true });
-
-    expect(emailCharactersValidator()(control)).toBeNull();
-  });
-
-  it('erkennt nicht unterstützte Zeichen in Anzeigenamen', () => {
-    const control = new FormControl('Mira <Sommer>', { nonNullable: true });
+  it('erkennt nicht unterstützte Zeichen im Anzeigenamen', () => {
+    const control = new FormControl('<script>', { nonNullable: true });
 
     expect(displayNameCharactersValidator()(control)).toEqual({
-      displayNameCharacters: true,
+      invalidDisplayNameCharacters: true,
     });
   });
 
-  it('erkennt unsichtbare Steuerzeichen', () => {
-    const control = new FormControl('Sicheres\nPasswort', { nonNullable: true });
+  it('akzeptiert Namen mit Umlauten, Apostroph und Bindestrich', () => {
+    const control = new FormControl("Märta O'Neill-Sommer", { nonNullable: true });
 
-    expect(noControlCharactersValidator()(control)).toEqual({ controlCharacters: true });
+    expect(displayNameCharactersValidator()(control)).toBeNull();
+  });
+
+  it('erkennt nicht unterstützte Zeichen in einer E-Mail-Eingabe', () => {
+    const control = new FormControl('mira <test>@example.com', { nonNullable: true });
+
+    expect(emailCharactersValidator()(control)).toEqual({
+      invalidEmailCharacters: true,
+    });
+  });
+
+  it('erkennt unsichtbare Steuerzeichen im Passwort', () => {
+    const control = new FormControl('SicheresPasswort\u0007', { nonNullable: true });
+
+    expect(noControlCharactersValidator()(control)).toEqual({
+      controlCharacters: true,
+    });
   });
 
   it('erkennt ein häufig verwendetes Passwort', () => {

@@ -1,0 +1,41 @@
+/* ==========================================================================
+   Datei: src/styles/base/_icons.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Bindet Material Symbols Outlined lokal als Icon-Font ein.
+
+   Inhaltsverzeichnis:
+   1. Font Face
+   2. Icon-Klasse
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+  src: url('/assets/fonts/material-symbols-outlined-latin-fill-normal.woff2') format('woff2');
+}
+
+.material-symbols-outlined {
+  display: inline-block;
+  overflow: hidden;
+  font-family: 'Material Symbols Outlined';
+  font-size: var(--size-icon-md);
+  font-style: normal;
+  font-weight: 400;
+  font-feature-settings: 'liga';
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}

@@ -48,15 +48,19 @@
 
     <button class="auth-card__submit" type="submit" [disabled]="pending()">
       @if (pending()) {
-        Anmeldung wird geprüft …
+        <span>Anmeldung wird geprüft …</span>
       } @else {
-        Anmelden
+        <span>Anmelden</span>
+        <span class="material-symbols-outlined" aria-hidden="true">login</span>
       }
     </button>
   </form>
 
   <footer class="auth-card__footer">
     <span>Noch kein Konto?</span>
-    <a routerLink="/auth/register">Kostenlos registrieren</a>
+    <a routerLink="/auth/register">
+      <span>Kostenlos registrieren</span>
+      <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+    </a>
   </footer>
 </article>

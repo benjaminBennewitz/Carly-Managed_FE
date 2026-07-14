@@ -1,24 +1,33 @@
 /* ==========================================================================
    Datei: src/app/features/auth/pages/register-page/register-page.component.scss
    Projekt: Carly Managed
-   Version: 1.0.0
-   Beschreibung: Definiert die Darstellung der Registrierungsseite.
+   Version: 1.2.0
+   Beschreibung: Definiert eine viewport-feste, responsive Registrierung.
 
    Inhaltsverzeichnis:
-   1. Karte
-   2. Formular
-   3. Passwort-Hinweise
-   4. Status und Aktionen
+   1. Host
+   2. Karte
+   3. Kopfbereich
+   4. Formularraster
+   5. Passwortbewertung
+   6. Status und Aktionen
+   7. Einspaltige Darstellung
+   8. Niedrige Viewports
    ========================================================================== */
 
 :host {
   display: block;
+  width: min(100%, 46rem);
+  min-width: 0;
 }
 
 .auth-card {
   display: grid;
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-  gap: var(--space-6);
+  width: 100%;
+  max-height: calc(100dvh - 1.5rem);
+  padding: clamp(1rem, 2vh, 1.75rem);
+  gap: clamp(var(--space-3), 1.4vh, var(--space-5));
+  overflow: hidden;
   border: var(--border-width-subtle) solid var(--color-border-subtle);
   border-radius: var(--radius-xl);
   background: var(--color-surface-primary);
@@ -28,6 +37,36 @@
 .auth-card__header {
   display: grid;
   gap: var(--space-3);
+}
+
+.auth-card__back {
+  display: inline-flex;
+  width: fit-content;
+  min-height: var(--size-click-target);
+  padding: 0 var(--space-3);
+  align-items: center;
+  gap: var(--space-2);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-secondary);
+  color: var(--color-action-secondary-text);
+  font-size: var(--font-size-300);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.auth-card__back:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+}
+
+.auth-card__back .material-symbols-outlined {
+  font-size: var(--size-icon-sm);
+}
+
+.auth-card__header-copy {
+  display: grid;
+  gap: var(--space-1);
 }
 
 .auth-card__eyebrow {
@@ -40,44 +79,46 @@
 }
 
 .auth-card__header h2 {
-  font-size: var(--font-size-800);
+  font-size: var(--font-size-700);
+}
+
+.auth-card__header-copy > p:last-child {
+  font-size: var(--font-size-300);
 }
 
 form {
   display: grid;
-  gap: var(--space-5);
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(var(--space-2), 1.1vh, var(--space-4)) var(--space-4);
 }
 
-.password-guidance {
+.password-meter {
   display: grid;
-  margin-top: calc(var(--space-2) * -1);
-  gap: var(--space-2);
-}
-
-.password-guidance__meter {
-  display: grid;
+  grid-column: 1 / -1;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-2);
 }
 
-.password-guidance__meter span {
+.password-meter span {
   height: 0.25rem;
   border-radius: var(--radius-round);
   background: var(--color-surface-active);
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
-.password-guidance__meter .password-guidance__segment--active {
+.password-meter .password-meter__segment--active {
   background: var(--color-field-border-confirmed);
 }
 
-.password-guidance p {
-  color: var(--color-field-hint);
-  font-size: var(--font-size-200);
+.auth-card__terms,
+.auth-card__submit {
+  grid-column: 1 / -1;
 }
 
 .auth-card__status {
   display: grid;
-  padding: var(--space-4);
+  padding: var(--space-3);
   gap: var(--space-1);
   border: var(--border-width-subtle) solid var(--color-field-border-invalid);
   border-radius: var(--radius-md);
@@ -94,8 +135,12 @@ form {
 }
 
 .auth-card__submit {
+  display: inline-flex;
   min-height: var(--size-control-lg);
   padding: 0 var(--space-5);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   border: var(--border-width-subtle) solid var(--color-action-primary);
   border-radius: var(--radius-md);
   background: var(--color-action-primary);
@@ -114,23 +159,65 @@ form {
   color: var(--color-action-disabled-text);
 }
 
-.auth-card__footer {
-  display: flex;
-  padding-top: var(--space-5);
-  justify-content: center;
-  gap: var(--space-2);
-  border-top: var(--border-width-subtle) solid var(--color-border-subtle);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-300);
+@media (max-width: 42rem) {
+  :host {
+    width: min(100%, 31rem);
+  }
+
+  .auth-card {
+    max-height: calc(100dvh - 1rem);
+  }
+
+  form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .password-meter,
+  .auth-card__terms,
+  .auth-card__submit {
+    grid-column: 1;
+  }
 }
 
-.auth-card__footer a {
-  font-weight: var(--font-weight-semibold);
+@media (max-height: 45rem) {
+  .auth-card {
+    max-height: calc(100dvh - 0.75rem);
+    padding: var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .auth-card__header {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .auth-card__back {
+    min-height: var(--size-control-md);
+    padding: 0 var(--space-2);
+  }
+
+  .auth-card__back span:last-child,
+  .auth-card__eyebrow,
+  .auth-card__header-copy > p:last-child {
+    display: none;
+  }
+
+  .auth-card__header h2 {
+    font-size: var(--font-size-600);
+  }
+
+  form {
+    gap: var(--space-2) var(--space-3);
+  }
 }
 
-@media (max-width: 34rem) {
-  .auth-card__footer {
-    align-items: flex-start;
-    flex-direction: column;
+@media (max-width: 42rem) and (max-height: 48rem) {
+  .auth-card__header-copy > p:last-child {
+    display: none;
+  }
+
+  .auth-card__header h2 {
+    font-size: var(--font-size-600);
   }
 }

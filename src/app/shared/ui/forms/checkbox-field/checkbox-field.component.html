@@ -8,11 +8,10 @@
       type="checkbox"
       [attr.aria-invalid]="isInvalid()"
       [attr.aria-describedby]="isInvalid() ? inputId() + '-error' : null"
+      [attr.aria-errormessage]="isInvalid() ? inputId() + '-error' : null"
     />
     <span class="checkbox-field__box" aria-hidden="true">
-      <svg viewBox="0 0 24 24">
-        <path d="m5.5 12.5 4 4 9-9" />
-      </svg>
+      <span class="material-symbols-outlined">check</span>
     </span>
     <span>{{ label() }}</span>
   </label>
