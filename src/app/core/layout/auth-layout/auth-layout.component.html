@@ -1,0 +1,55 @@
+<!-- src/app/core/layout/auth-layout/auth-layout.component.html -->
+
+<main class="auth-layout">
+  <section class="auth-layout__brand" aria-labelledby="brand-title">
+    <a class="auth-layout__logo" routerLink="/auth/login" aria-label="Carly Managed Startseite">
+      <img src="/assets/img/carly-managed-logo.svg" alt="" width="720" height="180" />
+    </a>
+
+    <div class="auth-layout__intro">
+      <p class="auth-layout__eyebrow">Collaborative workspace</p>
+      <h1 id="brand-title">Gemeinsam planen, ohne den Überblick zu verlieren.</h1>
+      <p>
+        Ruhige Boards, sichtbare Zusammenarbeit und eine optionale magische Katze, die echte
+        Produktivität sympathisch begleitet.
+      </p>
+    </div>
+
+    <ul class="auth-layout__benefits" aria-label="Vorteile von Carly Managed">
+      <li>
+        <span aria-hidden="true">01</span>
+        <strong>Fokussierte Boards</strong>
+        <small>Kanban und Liste ohne unnötige Ablenkung</small>
+      </li>
+      <li>
+        <span aria-hidden="true">02</span>
+        <strong>Live zusammenarbeiten</strong>
+        <small>Präsenz, Aktivitäten und kontrollierte Änderungen</small>
+      </li>
+      <li>
+        <span aria-hidden="true">03</span>
+        <strong>Carly bleibt optional</strong>
+        <small>Motivation ergänzt den Workflow, sie ersetzt ihn nicht</small>
+      </li>
+    </ul>
+
+    <img
+      class="auth-layout__carly"
+      src="/assets/img/carly.webp"
+      alt="Carly, die stilisierte magische Katze"
+      width="360"
+      height="360"
+    />
+  </section>
+
+  <section class="auth-layout__content" aria-label="Authentifizierung">
+    <div class="auth-layout__content-inner">
+      <div class="auth-layout__preview-note" role="note">
+        <span aria-hidden="true">DEV</span>
+        <p>Lokale UI-Vorschau. Die sichere Backend-Authentifizierung folgt separat.</p>
+      </div>
+
+      <router-outlet />
+    </div>
+  </section>
+</main>

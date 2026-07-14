@@ -1,0 +1,205 @@
+/* ==========================================================================
+   Datei: src/app/core/layout/auth-layout/auth-layout.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert das öffentliche Layout für Login und Registrierung.
+
+   Inhaltsverzeichnis:
+   1. Layout
+   2. Markenbereich
+   3. Vorteile
+   4. Inhaltsbereich
+   5. Responsive Darstellung
+   ========================================================================== */
+
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.auth-layout {
+  display: grid;
+  min-height: 100dvh;
+  grid-template-columns: minmax(24rem, 0.92fr) minmax(34rem, 1.08fr);
+  background: var(--color-page-background);
+}
+
+.auth-layout__brand {
+  position: relative;
+  display: flex;
+  min-height: 100dvh;
+  padding: clamp(2rem, 3vw, 4rem);
+  overflow: hidden;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 85% 15%, rgb(228 190 102 / 0.14), transparent 24rem),
+    radial-gradient(circle at 15% 90%, rgb(169 135 222 / 0.2), transparent 26rem),
+    var(--color-surface-secondary);
+  border-right: var(--border-width-subtle) solid var(--color-border-subtle);
+}
+
+.auth-layout__logo {
+  width: min(17rem, 72%);
+  border-radius: var(--radius-md);
+}
+
+.auth-layout__logo img {
+  width: 100%;
+  height: auto;
+}
+
+.auth-layout__intro {
+  position: relative;
+  z-index: var(--z-index-raised);
+  display: grid;
+  max-width: 36rem;
+  margin-top: clamp(4rem, 9vh, 8rem);
+  gap: var(--space-5);
+}
+
+.auth-layout__eyebrow {
+  color: var(--color-action-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.auth-layout__intro h1 {
+  font-size: var(--font-size-900);
+}
+
+.auth-layout__intro > p:last-child {
+  max-width: 34rem;
+  font-size: var(--font-size-500);
+}
+
+.auth-layout__benefits {
+  position: relative;
+  z-index: var(--z-index-raised);
+  display: grid;
+  max-width: 35rem;
+  padding: 0;
+  margin: auto 0 0;
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.auth-layout__benefits li {
+  display: grid;
+  padding: var(--space-4);
+  grid-template-columns: 2.25rem 1fr;
+  gap: var(--space-1) var(--space-3);
+  border: var(--border-width-subtle) solid
+    color-mix(in srgb, var(--color-border-subtle) 70%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-surface-primary) 72%, transparent);
+}
+
+.auth-layout__benefits span {
+  grid-row: 1 / 3;
+  color: var(--color-accent);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-bold);
+}
+
+.auth-layout__benefits strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-300);
+}
+
+.auth-layout__benefits small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-200);
+}
+
+.auth-layout__carly {
+  position: absolute;
+  right: -5rem;
+  bottom: -5rem;
+  width: min(22rem, 48vw);
+  height: auto;
+  opacity: 0.24;
+  filter: saturate(0.82);
+}
+
+.auth-layout__content {
+  display: grid;
+  min-height: 100dvh;
+  padding: clamp(1.5rem, 5vw, 5rem);
+  place-items: center;
+}
+
+.auth-layout__content-inner {
+  display: grid;
+  width: min(100%, 31rem);
+  gap: var(--space-5);
+}
+
+.auth-layout__preview-note {
+  display: flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  gap: var(--space-3);
+  border: var(--border-width-subtle) solid var(--color-info);
+  border-radius: var(--radius-md);
+  background: var(--color-info-surface);
+}
+
+.auth-layout__preview-note span {
+  color: var(--color-info);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+}
+
+.auth-layout__preview-note p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-200);
+}
+
+@media (max-width: 62rem) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-layout__brand {
+    min-height: auto;
+    padding-bottom: var(--space-8);
+    border-right: 0;
+    border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
+  }
+
+  .auth-layout__intro {
+    margin-top: var(--space-10);
+  }
+
+  .auth-layout__benefits {
+    margin-top: var(--space-8);
+  }
+
+  .auth-layout__carly {
+    display: none;
+  }
+
+  .auth-layout__content {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 40rem) {
+  .auth-layout__brand {
+    padding: var(--space-6) var(--space-5) var(--space-8);
+  }
+
+  .auth-layout__benefits {
+    display: none;
+  }
+
+  .auth-layout__content {
+    padding: var(--space-8) var(--space-5);
+  }
+}

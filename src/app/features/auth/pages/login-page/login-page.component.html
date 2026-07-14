@@ -1,0 +1,68 @@
+<!-- src/app/features/auth/pages/login-page/login-page.component.html -->
+
+<article class="auth-card" aria-labelledby="login-title">
+  <header class="auth-card__header">
+    <p class="auth-card__eyebrow">Willkommen zurück</p>
+    <h2 id="login-title">Bei Carly Managed anmelden</h2>
+    <p>Öffne deine Boards und arbeite dort weiter, wo du aufgehört hast.</p>
+  </header>
+
+  @if (formError()) {
+    <div class="auth-card__status" role="alert">
+      <strong>Anmeldung nicht möglich</strong>
+      <p>{{ formError() }}</p>
+    </div>
+  }
+
+  <form [formGroup]="form" novalidate (ngSubmit)="submit()">
+    <cm-text-field
+      [control]="form.controls.email"
+      inputId="login-email"
+      label="E-Mail-Adresse"
+      type="email"
+      autocomplete="email"
+      placeholder="name@beispiel.de"
+      hint="Nutze die E-Mail-Adresse deines Carly-Kontos."
+      [required]="true"
+      [submitted]="submitted()"
+      [maxlength]="254"
+    />
+
+    <cm-text-field
+      [control]="form.controls.password"
+      inputId="login-password"
+      label="Passwort"
+      type="password"
+      autocomplete="current-password"
+      placeholder="Dein Passwort"
+      hint="Passwortmanager und eingefügte Passwörter werden unterstützt."
+      [required]="true"
+      [submitted]="submitted()"
+      [allowPasswordToggle]="true"
+      [maxlength]="128"
+    />
+
+    <div class="auth-card__form-row">
+      <cm-checkbox-field
+        [control]="form.controls.rememberMe"
+        inputId="remember-me"
+        label="Auf diesem Gerät angemeldet bleiben"
+      />
+
+      <button class="auth-card__text-button" type="button" disabled>Passwort vergessen</button>
+    </div>
+
+    <button class="auth-card__submit" type="submit" [disabled]="pending()">
+      @if (pending()) {
+        Anmeldung wird geprüft …
+      } @else {
+        Anmelden
+      }
+    </button>
+  </form>
+
+  <footer class="auth-card__footer">
+    <span>Noch kein Konto?</span>
+    <a routerLink="/auth/register">Kostenlos registrieren</a>
+  </footer>
+</article>

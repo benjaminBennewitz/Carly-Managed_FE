@@ -1,0 +1,136 @@
+/* ==========================================================================
+   Datei: src/app/features/auth/pages/register-page/register-page.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert die Darstellung der Registrierungsseite.
+
+   Inhaltsverzeichnis:
+   1. Karte
+   2. Formular
+   3. Passwort-Hinweise
+   4. Status und Aktionen
+   ========================================================================== */
+
+:host {
+  display: block;
+}
+
+.auth-card {
+  display: grid;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  gap: var(--space-6);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-card__header {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.auth-card__eyebrow {
+  color: var(--color-action-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.auth-card__header h2 {
+  font-size: var(--font-size-800);
+}
+
+form {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.password-guidance {
+  display: grid;
+  margin-top: calc(var(--space-2) * -1);
+  gap: var(--space-2);
+}
+
+.password-guidance__meter {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+}
+
+.password-guidance__meter span {
+  height: 0.25rem;
+  border-radius: var(--radius-round);
+  background: var(--color-surface-active);
+}
+
+.password-guidance__meter .password-guidance__segment--active {
+  background: var(--color-field-border-confirmed);
+}
+
+.password-guidance p {
+  color: var(--color-field-hint);
+  font-size: var(--font-size-200);
+}
+
+.auth-card__status {
+  display: grid;
+  padding: var(--space-4);
+  gap: var(--space-1);
+  border: var(--border-width-subtle) solid var(--color-field-border-invalid);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-surface);
+}
+
+.auth-card__status strong {
+  color: var(--color-field-error);
+  font-size: var(--font-size-300);
+}
+
+.auth-card__status p {
+  font-size: var(--font-size-200);
+}
+
+.auth-card__submit {
+  min-height: var(--size-control-lg);
+  padding: 0 var(--space-5);
+  border: var(--border-width-subtle) solid var(--color-action-primary);
+  border-radius: var(--radius-md);
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.auth-card__submit:hover:not(:disabled) {
+  border-color: var(--color-action-primary-hover);
+  background: var(--color-action-primary-hover);
+}
+
+.auth-card__submit:disabled {
+  border-color: var(--color-action-disabled);
+  background: var(--color-action-disabled);
+  color: var(--color-action-disabled-text);
+}
+
+.auth-card__footer {
+  display: flex;
+  padding-top: var(--space-5);
+  justify-content: center;
+  gap: var(--space-2);
+  border-top: var(--border-width-subtle) solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-300);
+}
+
+.auth-card__footer a {
+  font-weight: var(--font-weight-semibold);
+}
+
+@media (max-width: 34rem) {
+  .auth-card__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

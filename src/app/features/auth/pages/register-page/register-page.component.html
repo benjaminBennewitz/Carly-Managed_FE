@@ -1,0 +1,110 @@
+<!-- src/app/features/auth/pages/register-page/register-page.component.html -->
+
+<article class="auth-card" aria-labelledby="register-title">
+  <header class="auth-card__header">
+    <p class="auth-card__eyebrow">Neues Konto</p>
+    <h2 id="register-title">Carly Managed ausprobieren</h2>
+    <p>Erstelle dein Konto. Die E-Mail-Bestätigung ist bereits im Ablauf vorbereitet.</p>
+  </header>
+
+  @if (formError()) {
+    <div class="auth-card__status" role="alert">
+      <strong>Registrierung nicht möglich</strong>
+      <p>{{ formError() }}</p>
+    </div>
+  }
+
+  <form [formGroup]="form" novalidate (ngSubmit)="submit()">
+    <cm-text-field
+      [control]="form.controls.displayName"
+      inputId="register-display-name"
+      label="Anzeigename"
+      autocomplete="name"
+      placeholder="Wie sollen andere dich sehen?"
+      hint="Der Anzeigename ist später in Boards und Kommentaren sichtbar."
+      [required]="true"
+      [submitted]="submitted()"
+      [maxlength]="60"
+    />
+
+    <cm-text-field
+      [control]="form.controls.email"
+      inputId="register-email"
+      label="E-Mail-Adresse"
+      type="email"
+      autocomplete="email"
+      placeholder="name@beispiel.de"
+      hint="Wir bereiten die spätere E-Mail-Bestätigung direkt mit vor."
+      [required]="true"
+      [submitted]="submitted()"
+      [maxlength]="254"
+    />
+
+    <cm-text-field
+      [control]="form.controls.password"
+      inputId="register-password"
+      label="Passwort"
+      type="password"
+      autocomplete="new-password"
+      placeholder="Ein langes, individuelles Passwort"
+      hint="Mindestens 12 Zeichen. Persönliche Angaben und häufige Passwörter werden abgelehnt."
+      [required]="true"
+      [submitted]="submitted()"
+      [allowPasswordToggle]="true"
+      [maxlength]="128"
+    />
+
+    <div class="password-guidance" aria-live="polite">
+      <div class="password-guidance__meter" aria-hidden="true">
+        @for (segment of [1, 2, 3, 4]; track segment) {
+          <span [class.password-guidance__segment--active]="passwordScore() >= segment"></span>
+        }
+      </div>
+      <p>
+        @if (!form.controls.password.value) {
+          Ein längerer Passwortsatz ist meist sicherer und leichter zu merken.
+        } @else if (passwordScore() <= 1) {
+          Noch schwach: Verwende mehr Länge und weniger vorhersehbare Begriffe.
+        } @else if (passwordScore() <= 3) {
+          Solide Grundlage: Etwas mehr Länge erhöht die Sicherheit weiter.
+        } @else {
+          Die lokalen Passwortprüfungen sind erfüllt.
+        }
+      </p>
+    </div>
+
+    <cm-text-field
+      [control]="form.controls.passwordConfirmation"
+      inputId="register-password-confirmation"
+      label="Passwort wiederholen"
+      type="password"
+      autocomplete="new-password"
+      placeholder="Passwort erneut eingeben"
+      [required]="true"
+      [submitted]="submitted()"
+      [allowPasswordToggle]="true"
+      [maxlength]="128"
+    />
+
+    <cm-checkbox-field
+      [control]="form.controls.acceptedTerms"
+      inputId="accepted-terms"
+      label="Ich akzeptiere die später ergänzten Nutzungsbedingungen und Datenschutzhinweise."
+      error="Bitte bestätige die Bedingungen, um fortzufahren."
+      [submitted]="submitted()"
+    />
+
+    <button class="auth-card__submit" type="submit" [disabled]="pending()">
+      @if (pending()) {
+        Konto wird vorbereitet …
+      } @else {
+        Konto erstellen
+      }
+    </button>
+  </form>
+
+  <footer class="auth-card__footer">
+    <span>Bereits registriert?</span>
+    <a routerLink="/auth/login">Zur Anmeldung</a>
+  </footer>
+</article>
