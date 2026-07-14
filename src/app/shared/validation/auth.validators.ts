@@ -10,6 +10,53 @@ const COMMON_PASSWORDS = new Set([
   'carlymanaged',
 ]);
 
+const EMAIL_ALLOWED_CHARACTERS = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~@-]+$/;
+const DISPLAY_NAME_ALLOWED_CHARACTERS = /^[\p{L}\p{M}\p{N} .'-]+$/u;
+const CONTROL_CHARACTERS = /[\u0000-\u001F\u007F-\u009F]/;
+
+/**
+ * Lehnt Zeichen ab, die in den unterstützten E-Mail-Adressen nicht vorkommen dürfen.
+ */
+export function emailCharactersValidator(): ValidatorFn {
+  return (control: AbstractControl<string>): ValidationErrors | null => {
+    const value = control.value;
+
+    if (!value || EMAIL_ALLOWED_CHARACTERS.test(value)) {
+      return null;
+    }
+
+    return { emailCharacters: true };
+  };
+}
+
+/**
+ * Beschränkt Anzeigenamen auf sichtbare, für Personennamen geeignete Zeichen.
+ */
+export function displayNameCharactersValidator(): ValidatorFn {
+  return (control: AbstractControl<string>): ValidationErrors | null => {
+    const value = control.value;
+
+    if (!value || DISPLAY_NAME_ALLOWED_CHARACTERS.test(value)) {
+      return null;
+    }
+
+    return { displayNameCharacters: true };
+  };
+}
+
+/**
+ * Verhindert unsichtbare Steuerzeichen, ohne sichere Passwortsonderzeichen einzuschränken.
+ */
+export function noControlCharactersValidator(): ValidatorFn {
+  return (control: AbstractControl<string>): ValidationErrors | null => {
+    if (!control.value || !CONTROL_CHARACTERS.test(control.value)) {
+      return null;
+    }
+
+    return { controlCharacters: true };
+  };
+}
+
 /**
  * Verhindert besonders häufig verwendete oder leicht erratbare Passwörter.
  */

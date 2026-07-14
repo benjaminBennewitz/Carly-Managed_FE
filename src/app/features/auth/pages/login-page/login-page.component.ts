@@ -8,6 +8,10 @@ import { finalize } from 'rxjs';
 import { AuthPreviewService } from '../../../../core/auth/services/auth-preview.service';
 import { CheckboxFieldComponent } from '../../../../shared/ui/forms/checkbox-field/checkbox-field.component';
 import { TextFieldComponent } from '../../../../shared/ui/forms/text-field/text-field.component';
+import {
+  emailCharactersValidator,
+  noControlCharactersValidator,
+} from '../../../../shared/validation/auth.validators';
 
 interface LoginForm {
   email: FormControl<string>;
@@ -26,11 +30,20 @@ export class LoginPageComponent {
   protected readonly form = new FormGroup<LoginForm>({
     email: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.email, Validators.maxLength(254)],
+      validators: [
+        Validators.required,
+        Validators.email,
+        Validators.maxLength(254),
+        emailCharactersValidator(),
+      ],
     }),
     password: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(128)],
+      validators: [
+        Validators.required,
+        Validators.maxLength(128),
+        noControlCharactersValidator(),
+      ],
     }),
     rememberMe: new FormControl(false, { nonNullable: true }),
   });
@@ -46,7 +59,7 @@ export class LoginPageComponent {
   ) {}
 
   /**
-   * Validiert das Formular und startet die lokale Vorschau-Sitzung.
+   * Validiert das Formular und startet die Anmeldung.
    */
   submit(): void {
     this.submitted.set(true);

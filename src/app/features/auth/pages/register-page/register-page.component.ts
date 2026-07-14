@@ -10,7 +10,10 @@ import { AuthPreviewService } from '../../../../core/auth/services/auth-preview.
 import { CheckboxFieldComponent } from '../../../../shared/ui/forms/checkbox-field/checkbox-field.component';
 import { TextFieldComponent } from '../../../../shared/ui/forms/text-field/text-field.component';
 import {
+  displayNameCharactersValidator,
+  emailCharactersValidator,
   matchesControlValidator,
+  noControlCharactersValidator,
   personalDataPasswordValidator,
   uncommonPasswordValidator,
 } from '../../../../shared/validation/auth.validators';
@@ -35,12 +38,23 @@ export class RegisterPageComponent {
 
   private readonly displayNameControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.minLength(2), Validators.maxLength(60)],
+    validators: [
+      Validators.required,
+      Validators.minLength(2),
+      Validators.maxLength(60),
+      displayNameCharactersValidator(),
+      noControlCharactersValidator(),
+    ],
   });
 
   private readonly emailControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.email, Validators.maxLength(254)],
+    validators: [
+      Validators.required,
+      Validators.email,
+      Validators.maxLength(254),
+      emailCharactersValidator(),
+    ],
   });
 
   private readonly passwordControl = new FormControl('', {
@@ -49,6 +63,7 @@ export class RegisterPageComponent {
       Validators.required,
       Validators.minLength(12),
       Validators.maxLength(128),
+      noControlCharactersValidator(),
       uncommonPasswordValidator(),
       personalDataPasswordValidator(this.displayNameControl, this.emailControl),
     ],
@@ -63,6 +78,7 @@ export class RegisterPageComponent {
       validators: [
         Validators.required,
         Validators.maxLength(128),
+        noControlCharactersValidator(),
         matchesControlValidator(this.passwordControl),
       ],
     }),
@@ -96,7 +112,7 @@ export class RegisterPageComponent {
   }
 
   /**
-   * Liefert die Anzahl erfüllter Passwort-Hinweise für die dezente Stärkeanzeige.
+   * Liefert die Anzahl erfüllter Kriterien für die dezente Stärkeanzeige.
    */
   passwordScore(): number {
     const value = this.passwordControl.value;
@@ -107,12 +123,13 @@ export class RegisterPageComponent {
       /[a-zA-ZäöüÄÖÜß]/.test(value) && /[^a-zA-ZäöüÄÖÜß]/.test(value),
       !this.passwordControl.hasError('commonPassword') &&
         !this.passwordControl.hasError('containsPersonalData') &&
+        !this.passwordControl.hasError('controlCharacters') &&
         value.length > 0,
     ].filter(Boolean).length;
   }
 
   /**
-   * Validiert das Formular und startet die lokale Registrierungsvorschau.
+   * Validiert das Formular und startet die Registrierung.
    */
   submit(): void {
     this.submitted.set(true);

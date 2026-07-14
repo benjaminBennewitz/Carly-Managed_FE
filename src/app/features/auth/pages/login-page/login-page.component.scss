@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/app/features/auth/pages/login-page/login-page.component.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert die Darstellung der Login-Seite.
 
    Inhaltsverzeichnis:
@@ -52,41 +52,6 @@ form {
   gap: var(--space-5);
 }
 
-.auth-card__form-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
-.auth-card__status {
-  display: grid;
-  padding: var(--space-4);
-  gap: var(--space-1);
-  border: var(--border-width-subtle) solid var(--color-field-border-invalid);
-  border-radius: var(--radius-md);
-  background: var(--color-danger-surface);
-}
-
-.auth-card__status strong {
-  color: var(--color-field-error);
-  font-size: var(--font-size-300);
-}
-
-.auth-card__status p {
-  font-size: var(--font-size-200);
-}
-
-.auth-card__text-button {
-  min-width: auto;
-  min-height: auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-text-disabled);
-  font-size: var(--font-size-300);
-}
-
 .auth-card__submit {
   min-height: var(--size-control-lg);
   padding: 0 var(--space-5);
@@ -123,7 +88,6 @@ form {
 }
 
 @media (max-width: 34rem) {
-  .auth-card__form-row,
   .auth-card__footer {
     align-items: flex-start;
     flex-direction: column;

@@ -19,8 +19,11 @@
       [type]="resolvedType()"
       [autocomplete]="autocomplete()"
       [placeholder]="placeholder()"
+      [attr.inputmode]="type() === 'email' ? 'email' : null"
+      [attr.autocapitalize]="type() === 'email' ? 'none' : null"
       [attr.maxlength]="maxlength()"
       [attr.aria-describedby]="describedBy()"
+      [attr.aria-errormessage]="isInvalid() ? inputId() + '-error' : null"
       [attr.aria-invalid]="isInvalid()"
       [attr.aria-required]="required()"
       spellcheck="false"
@@ -66,7 +69,5 @@
       </svg>
       <span>{{ errorMessage() }}</span>
     </p>
-  } @else if (hint()) {
-    <p class="text-field__message" [id]="inputId() + '-hint'">{{ hint() }}</p>
   }
 </div>

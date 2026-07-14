@@ -4,7 +4,7 @@
   <header class="auth-card__header">
     <p class="auth-card__eyebrow">Neues Konto</p>
     <h2 id="register-title">Carly Managed ausprobieren</h2>
-    <p>Erstelle dein Konto. Die E-Mail-Bestätigung ist bereits im Ablauf vorbereitet.</p>
+    <p>Erstelle dein Konto und richte deinen persönlichen Arbeitsbereich ein.</p>
   </header>
 
   @if (formError()) {
@@ -20,8 +20,7 @@
       inputId="register-display-name"
       label="Anzeigename"
       autocomplete="name"
-      placeholder="Wie sollen andere dich sehen?"
-      hint="Der Anzeigename ist später in Boards und Kommentaren sichtbar."
+      placeholder="Dein Anzeigename"
       [required]="true"
       [submitted]="submitted()"
       [maxlength]="60"
@@ -34,7 +33,6 @@
       type="email"
       autocomplete="email"
       placeholder="name@beispiel.de"
-      hint="Wir bereiten die spätere E-Mail-Bestätigung direkt mit vor."
       [required]="true"
       [submitted]="submitted()"
       [maxlength]="254"
@@ -46,32 +44,31 @@
       label="Passwort"
       type="password"
       autocomplete="new-password"
-      placeholder="Ein langes, individuelles Passwort"
-      hint="Mindestens 12 Zeichen. Persönliche Angaben und häufige Passwörter werden abgelehnt."
+      placeholder="Dein Passwort"
       [required]="true"
       [submitted]="submitted()"
       [allowPasswordToggle]="true"
       [maxlength]="128"
     />
 
-    <div class="password-guidance" aria-live="polite">
-      <div class="password-guidance__meter" aria-hidden="true">
-        @for (segment of [1, 2, 3, 4]; track segment) {
-          <span [class.password-guidance__segment--active]="passwordScore() >= segment"></span>
-        }
+    @if (form.controls.password.value) {
+      <div class="password-guidance" aria-live="polite">
+        <div class="password-guidance__meter" aria-hidden="true">
+          @for (segment of [1, 2, 3, 4]; track segment) {
+            <span [class.password-guidance__segment--active]="passwordScore() >= segment"></span>
+          }
+        </div>
+        <p>
+          @if (passwordScore() <= 1) {
+            Schwach: Verwende mehr Länge und weniger vorhersehbare Begriffe.
+          } @else if (passwordScore() <= 3) {
+            Solide: Etwas mehr Länge erhöht die Sicherheit weiter.
+          } @else {
+            Das Passwort erfüllt die aktuellen Anforderungen.
+          }
+        </p>
       </div>
-      <p>
-        @if (!form.controls.password.value) {
-          Ein längerer Passwortsatz ist meist sicherer und leichter zu merken.
-        } @else if (passwordScore() <= 1) {
-          Noch schwach: Verwende mehr Länge und weniger vorhersehbare Begriffe.
-        } @else if (passwordScore() <= 3) {
-          Solide Grundlage: Etwas mehr Länge erhöht die Sicherheit weiter.
-        } @else {
-          Die lokalen Passwortprüfungen sind erfüllt.
-        }
-      </p>
-    </div>
+    }
 
     <cm-text-field
       [control]="form.controls.passwordConfirmation"
@@ -89,14 +86,14 @@
     <cm-checkbox-field
       [control]="form.controls.acceptedTerms"
       inputId="accepted-terms"
-      label="Ich akzeptiere die später ergänzten Nutzungsbedingungen und Datenschutzhinweise."
+      label="Ich akzeptiere die Nutzungsbedingungen und Datenschutzhinweise."
       error="Bitte bestätige die Bedingungen, um fortzufahren."
       [submitted]="submitted()"
     />
 
     <button class="auth-card__submit" type="submit" [disabled]="pending()">
       @if (pending()) {
-        Konto wird vorbereitet …
+        Konto wird erstellt …
       } @else {
         Konto erstellen
       }

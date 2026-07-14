@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/app/shared/ui/forms/text-field/text-field.component.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert ein barrierearmes Texteingabefeld mit Validierungszuständen.
 
    Inhaltsverzeichnis:
@@ -9,7 +9,7 @@
    2. Beschriftung
    3. Kontrolle
    4. Zustände
-   5. Meldungen
+   5. Fehlermeldungen
    ========================================================================== */
 
 :host {
@@ -123,22 +123,24 @@ input:disabled {
   box-shadow: inset 0 -0.125rem 0 var(--color-field-border-invalid);
 }
 
+.text-field--invalid .text-field__control:focus-within {
+  box-shadow:
+    inset 0 -0.125rem 0 var(--color-field-border-invalid),
+    0 0 0 var(--focus-ring-width)
+      color-mix(in srgb, var(--color-field-border-invalid) 24%, transparent);
+}
+
 .text-field--confirmed .text-field__control {
   border-color: var(--color-field-border-confirmed);
 }
 
 .text-field__message {
   display: flex;
-  gap: var(--space-2);
   align-items: flex-start;
-  min-height: 1.25rem;
-  color: var(--color-field-hint);
+  gap: var(--space-2);
+  color: var(--color-field-error);
   font-size: var(--font-size-200);
   line-height: 1.45;
-}
-
-.text-field__message--error {
-  color: var(--color-field-error);
 }
 
 .text-field__message svg {

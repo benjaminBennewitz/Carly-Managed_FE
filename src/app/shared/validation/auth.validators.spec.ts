@@ -3,7 +3,10 @@
 import { FormControl } from '@angular/forms';
 
 import {
+  displayNameCharactersValidator,
+  emailCharactersValidator,
   matchesControlValidator,
+  noControlCharactersValidator,
   personalDataPasswordValidator,
   uncommonPasswordValidator,
 } from './auth.validators';
@@ -12,6 +15,32 @@ import {
  * Prüft die fachlichen Validatoren der Authentifizierungsformulare.
  */
 describe('Auth-Validatoren', () => {
+  it('erkennt nicht unterstützte Zeichen in E-Mail-Adressen', () => {
+    const control = new FormControl('name<script>@example.com', { nonNullable: true });
+
+    expect(emailCharactersValidator()(control)).toEqual({ emailCharacters: true });
+  });
+
+  it('erlaubt gebräuchliche Sonderzeichen in E-Mail-Adressen', () => {
+    const control = new FormControl("name+projekt.o'neil@example.com", { nonNullable: true });
+
+    expect(emailCharactersValidator()(control)).toBeNull();
+  });
+
+  it('erkennt nicht unterstützte Zeichen in Anzeigenamen', () => {
+    const control = new FormControl('Mira <Sommer>', { nonNullable: true });
+
+    expect(displayNameCharactersValidator()(control)).toEqual({
+      displayNameCharacters: true,
+    });
+  });
+
+  it('erkennt unsichtbare Steuerzeichen', () => {
+    const control = new FormControl('Sicheres\nPasswort', { nonNullable: true });
+
+    expect(noControlCharactersValidator()(control)).toEqual({ controlCharacters: true });
+  });
+
   it('erkennt ein häufig verwendetes Passwort', () => {
     const control = new FormControl('password1234', { nonNullable: true });
 

@@ -19,7 +19,6 @@ export class TextFieldComponent {
   readonly type = input<TextFieldType>('text');
   readonly autocomplete = input<string>('off');
   readonly placeholder = input<string>('');
-  readonly hint = input<string>('');
   readonly required = input<boolean>(false);
   readonly submitted = input<boolean>(false);
   readonly allowPasswordToggle = input<boolean>(false);
@@ -39,12 +38,12 @@ export class TextFieldComponent {
   }
 
   /**
-   * Zeigt Validierungsfehler erst nach Interaktion oder einem Formularversuch an.
+   * Kennzeichnet ungültige Eingaben direkt nach der ersten Änderung.
    */
   isInvalid(): boolean {
     const control = this.control();
 
-    return control.invalid && (control.touched || this.submitted());
+    return control.invalid && (control.dirty || control.touched || this.submitted());
   }
 
   /**
@@ -53,18 +52,14 @@ export class TextFieldComponent {
   isConfirmed(): boolean {
     const control = this.control();
 
-    return control.valid && control.touched && control.value.trim().length > 0;
+    return control.valid && control.dirty && control.value.trim().length > 0;
   }
 
   /**
-   * Verknüpft Hinweise und Fehlermeldungen mit dem Eingabefeld.
+   * Verknüpft die aktuelle Fehlermeldung mit dem Eingabefeld.
    */
   describedBy(): string | null {
-    if (this.isInvalid()) {
-      return `${this.inputId()}-error`;
-    }
-
-    return this.hint() ? `${this.inputId()}-hint` : null;
+    return this.isInvalid() ? `${this.inputId()}-error` : null;
   }
 
   /**
@@ -85,8 +80,20 @@ export class TextFieldComponent {
       return 'Dieses Feld wird benötigt.';
     }
 
+    if (errors['emailCharacters']) {
+      return 'Die E-Mail-Adresse enthält nicht unterstützte Zeichen.';
+    }
+
     if (errors['email']) {
       return 'Bitte gib eine gültige E-Mail-Adresse ein.';
+    }
+
+    if (errors['displayNameCharacters']) {
+      return 'Verwende Buchstaben, Zahlen, Leerzeichen, Punkte, Apostrophe oder Bindestriche.';
+    }
+
+    if (errors['controlCharacters']) {
+      return 'Die Eingabe enthält nicht sichtbare oder unzulässige Steuerzeichen.';
     }
 
     if (errors['minlength']) {
