@@ -20,11 +20,14 @@ import {
 
 import {
   WorkspaceColumn,
+  WorkspaceColumnSortMode,
   WorkspaceTask,
 } from '../../../../core/workspace/workspace.models';
+import {
+  SelectMenuComponent,
+  SelectMenuOption,
+} from '../../../../shared/ui/select-menu/select-menu.component';
 import { WorkspaceTaskCardComponent } from '../../../../shared/ui/workspace-task-card/workspace-task-card.component';
-
-export type ColumnSortMode = 'title' | 'date';
 
 @Component({
   selector: 'cm-board-column',
@@ -34,6 +37,7 @@ export type ColumnSortMode = 'title' | 'date';
     CdkDragPlaceholder,
     CdkDragPreview,
     CdkDropList,
+    SelectMenuComponent,
     WorkspaceTaskCardComponent,
   ],
   templateUrl: './board-column.component.html',
@@ -43,6 +47,8 @@ export type ColumnSortMode = 'title' | 'date';
 export class BoardColumnComponent {
   readonly column = input.required<WorkspaceColumn>();
   readonly connectedDropListIds = input.required<string[]>();
+  readonly colorOptions = input.required<readonly SelectMenuOption[]>();
+  readonly sortOptions = input.required<readonly SelectMenuOption[]>();
   readonly showProjectContext = input(false);
   readonly readOnly = input(false);
 
@@ -52,10 +58,13 @@ export class BoardColumnComponent {
   readonly taskAdd = output<string>();
   readonly titleChange = output<{ columnId: string; title: string }>();
   readonly deleteRequested = output<string>();
-  readonly colorCycleRequested = output<string>();
+  readonly colorChangeRequested = output<{
+    columnId: string;
+    color: string;
+  }>();
   readonly sortRequested = output<{
     columnId: string;
-    mode: ColumnSortMode;
+    mode: WorkspaceColumnSortMode;
   }>();
 
   protected readonly isEditingTitle = signal(false);
@@ -63,9 +72,7 @@ export class BoardColumnComponent {
   protected readonly actionMenuOpen = signal(false);
   protected readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
 
-  /**
-   * Öffnet die Inline-Bearbeitung des Spaltentitels.
-   */
+  /** Öffnet die Inline-Bearbeitung des Spaltentitels. */
   startTitleEdit(event: MouseEvent): void {
     event.stopPropagation();
     this.draftTitle.set(this.column().title);
@@ -77,9 +84,7 @@ export class BoardColumnComponent {
     });
   }
 
-  /**
-   * Übernimmt einen gültigen Spaltentitel.
-   */
+  /** Übernimmt einen gültigen Spaltentitel. */
   saveTitle(): void {
     const title = this.draftTitle().trim();
     this.isEditingTitle.set(false);
@@ -89,9 +94,7 @@ export class BoardColumnComponent {
     }
   }
 
-  /**
-   * Reagiert auf Tastaturaktionen im Spaltentitel.
-   */
+  /** Reagiert auf Tastaturaktionen im Spaltentitel. */
   handleTitleKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -104,18 +107,29 @@ export class BoardColumnComponent {
     }
   }
 
-  /**
-   * Öffnet oder schließt die kompakte Aktionsleiste.
-   */
+  /** Öffnet oder schließt das Aktionsmenü. */
   toggleActions(event: MouseEvent): void {
     event.stopPropagation();
     this.actionMenuOpen.update((open) => !open);
   }
 
-  /**
-   * Leitet einen Task-Drop an die Boardseite weiter.
-   */
+  /** Leitet einen Task-Drop an die Boardseite weiter. */
   handleTaskDrop(event: CdkDragDrop<WorkspaceTask[]>): void {
     this.taskDrop.emit(event);
+  }
+
+  /** Übernimmt die ausgewählte Spaltenfarbe. */
+  changeColor(color: string): void {
+    this.colorChangeRequested.emit({
+      columnId: this.column().id,
+      color,
+    });
+  }
+
+  /** Übernimmt die ausgewählte Sortierung. */
+  changeSort(value: string): void {
+    const mode: WorkspaceColumnSortMode =
+      value === 'title' || value === 'date' ? value : null;
+    this.sortRequested.emit({ columnId: this.column().id, mode });
   }
 }

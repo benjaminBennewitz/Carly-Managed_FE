@@ -173,10 +173,18 @@ Carly-Managed_FE/
 │   │   │   │   │       ├── text-field.component.html
 │   │   │   │   │       ├── text-field.component.scss
 │   │   │   │   │       └── text-field.component.ts
+│   │   │   │   ├── member-select/
+│   │   │   │   │   ├── member-select.component.html
+│   │   │   │   │   ├── member-select.component.scss
+│   │   │   │   │   └── member-select.component.ts
 │   │   │   │   ├── page-header/
 │   │   │   │   │   ├── page-header.component.html
 │   │   │   │   │   ├── page-header.component.scss
 │   │   │   │   │   └── page-header.component.ts
+│   │   │   │   ├── select-menu/
+│   │   │   │   │   ├── select-menu.component.html
+│   │   │   │   │   ├── select-menu.component.scss
+│   │   │   │   │   └── select-menu.component.ts
 │   │   │   │   └── workspace-task-card/
 │   │   │   │       ├── workspace-task-card.component.html
 │   │   │   │       ├── workspace-task-card.component.scss
@@ -206,6 +214,7 @@ Carly-Managed_FE/
 │   │   │   ├── _shell-navigation.scss
 │   │   │   ├── _workspace-archive.scss
 │   │   │   ├── _workspace-board.scss
+│   │   │   ├── _workspace-controls.scss
 │   │   │   ├── _workspace-projects.scss
 │   │   │   └── _workspace-task-card.scss
 │   │   ├── settings/

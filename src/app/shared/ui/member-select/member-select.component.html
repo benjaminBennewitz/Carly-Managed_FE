@@ -1,0 +1,83 @@
+<!-- src/app/shared/ui/member-select/member-select.component.html -->
+
+<div class="member-select" [class.member-select--open]="open()">
+  <span class="member-select__label">{{ label() }}</span>
+
+  <button
+    class="member-select__trigger"
+    type="button"
+    [disabled]="disabled()"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="listbox"
+    (click)="toggle()"
+  >
+    @if (selectedMember(); as member) {
+      <span
+        class="member-select__avatar"
+        [style.--member-select-color]="member.avatarColor"
+        [style.--member-select-text]="member.avatarTextColor"
+        aria-hidden="true"
+      >{{ member.initials }}</span>
+      <span class="member-select__value">{{ getFirstName(member) }}</span>
+    } @else {
+      <span class="member-select__avatar member-select__avatar--empty" aria-hidden="true">
+        <span class="material-symbols-outlined">person</span>
+      </span>
+      <span class="member-select__placeholder">{{ placeholder() }}</span>
+    }
+
+    <span class="material-symbols-outlined member-select__chevron" aria-hidden="true">
+      expand_more
+    </span>
+  </button>
+
+  @if (open()) {
+    <div class="member-select__menu" role="listbox" [attr.aria-label]="label()">
+      @if (allowEmpty()) {
+        <button
+          class="member-select__option"
+          type="button"
+          role="option"
+          [class.member-select__option--selected]="!value()"
+          [attr.aria-selected]="!value()"
+          (click)="selectMember('')"
+        >
+          <span class="member-select__avatar member-select__avatar--empty" aria-hidden="true">
+            <span class="material-symbols-outlined">person_off</span>
+          </span>
+          <span class="member-select__option-copy">
+            <strong>Nicht zugewiesen</strong>
+          </span>
+        </button>
+      }
+
+      @for (member of members(); track member.id) {
+        <button
+          class="member-select__option"
+          type="button"
+          role="option"
+          [class.member-select__option--selected]="member.id === value()"
+          [attr.aria-selected]="member.id === value()"
+          (click)="selectMember(member.id)"
+        >
+          <span
+            class="member-select__avatar"
+            [style.--member-select-color]="member.avatarColor"
+            [style.--member-select-text]="member.avatarTextColor"
+            aria-hidden="true"
+          >{{ member.initials }}</span>
+          <span class="member-select__option-copy">
+            <strong>{{ getFirstName(member) }}</strong>
+            <small>{{ member.email }}</small>
+          </span>
+          <span
+            class="member-select__presence"
+            [class.member-select__presence--online]="member.isOnline"
+            [attr.title]="member.isOnline ? 'Online' : 'Offline'"
+            aria-hidden="true"
+          ></span>
+        </button>
+      }
+    </div>
+  }
+</div>

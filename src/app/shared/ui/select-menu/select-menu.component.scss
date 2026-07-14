@@ -1,0 +1,14 @@
+/* ========================================================================== 
+   Datei: src/app/shared/ui/select-menu/select-menu.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Verankert das wiederverwendbare Auswahlmenü.
+
+   Inhaltsverzeichnis:
+   1. Host
+   ========================================================================== */
+
+:host {
+  display: block;
+  min-width: 0;
+}

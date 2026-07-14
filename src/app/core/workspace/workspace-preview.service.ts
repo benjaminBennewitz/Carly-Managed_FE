@@ -8,6 +8,7 @@ import {
   TaskPriority,
   WorkspaceAttachment,
   WorkspaceColumn,
+  WorkspaceColumnSortMode,
   WorkspaceComment,
   WorkspaceHistoryEntry,
   WorkspaceMember,
@@ -600,6 +601,21 @@ function cloneColumns(columns: WorkspaceColumn[]): WorkspaceColumn[] {
   }));
 }
 
+function sortTasks(
+  tasks: WorkspaceTask[],
+  mode: Exclude<WorkspaceColumnSortMode, null>,
+): WorkspaceTask[] {
+  return [...tasks].sort((left, right) => {
+    if (mode === 'title') {
+      return left.title.localeCompare(right.title, 'de');
+    }
+
+    return (left.dueDate ?? '9999-12-31').localeCompare(
+      right.dueDate ?? '9999-12-31',
+    );
+  });
+}
+
 function cloneProjects(projects: WorkspaceProject[]): WorkspaceProject[] {
   return projects.map((project) => ({
     ...project,
@@ -900,6 +916,84 @@ export class WorkspacePreviewService {
   }
 
   /**
+   * Verschiebt eine Aufgabe innerhalb oder zwischen Boardspalten.
+   */
+  moveTask(
+    projectId: string,
+    taskId: string,
+    sourceColumnId: string,
+    targetColumnId: string,
+    targetIndex: number,
+  ): WorkspaceColumn[] {
+    const columns = this.getBoard(projectId);
+    const sourceColumn = columns.find((column) => column.id === sourceColumnId);
+    const targetColumn = columns.find((column) => column.id === targetColumnId);
+    const taskIndex = sourceColumn?.tasks.findIndex((item) => item.id === taskId) ?? -1;
+
+    if (!sourceColumn || !targetColumn || taskIndex < 0) {
+      return columns;
+    }
+
+    const [movedTask] = sourceColumn.tasks.splice(taskIndex, 1);
+    if (!movedTask) {
+      return columns;
+    }
+
+    const safeTargetIndex = Math.max(0, Math.min(targetIndex, targetColumn.tasks.length));
+    const taskWithHistory = this.addHistory(
+      { ...movedTask, updatedAt: new Date().toISOString() },
+      sourceColumnId === targetColumnId
+        ? 'Aufgabenreihenfolge geändert'
+        : `In „${targetColumn.title}“ verschoben`,
+      'drag_indicator',
+    );
+    targetColumn.tasks.splice(safeTargetIndex, 0, taskWithHistory);
+    sourceColumn.sortMode = null;
+    targetColumn.sortMode = null;
+
+    this.saveBoard(projectId, columns);
+    return columns;
+  }
+
+  /**
+   * Speichert die Akzentfarbe einer Boardspalte.
+   */
+  updateColumnColor(
+    projectId: string,
+    columnId: string,
+    color: string,
+  ): WorkspaceColumn[] {
+    const columns = this.getBoard(projectId).map((column) =>
+      column.id === columnId ? { ...column, color } : column,
+    );
+    this.saveBoard(projectId, columns);
+    return columns;
+  }
+
+  /**
+   * Sortiert eine Spalte und speichert die aktive Sortierung.
+   */
+  sortColumn(
+    projectId: string,
+    columnId: string,
+    mode: WorkspaceColumnSortMode,
+  ): WorkspaceColumn[] {
+    const columns = this.getBoard(projectId).map((column) => {
+      if (column.id !== columnId) {
+        return column;
+      }
+
+      return {
+        ...column,
+        sortMode: mode,
+        tasks: mode ? sortTasks(column.tasks, mode) : column.tasks,
+      };
+    });
+    this.saveBoard(projectId, columns);
+    return columns;
+  }
+
+  /**
    * Fügt eine neue Aufgabe am Anfang einer Spalte ein.
    */
   addTask(projectId: string, columnId: string): WorkspaceColumn[] {
@@ -920,7 +1014,7 @@ export class WorkspacePreviewService {
 
     const columns = this.getBoard(projectId).map((column) =>
       column.id === columnId
-        ? { ...column, tasks: [newTask, ...column.tasks] }
+        ? { ...column, sortMode: null, tasks: [newTask, ...column.tasks] }
         : column,
     );
     this.saveBoard(projectId, columns);
@@ -963,7 +1057,7 @@ export class WorkspacePreviewService {
       .filter((column) => column.id !== columnId)
       .map((column) =>
         column.id === fallbackColumn.id
-          ? { ...column, tasks: [...column.tasks, ...deletedColumn.tasks] }
+          ? { ...column, sortMode: null, tasks: [...column.tasks, ...deletedColumn.tasks] }
           : column,
       );
     this.saveBoard(projectId, nextColumns);
@@ -979,7 +1073,7 @@ export class WorkspacePreviewService {
     changes: Partial<
       Pick<
         WorkspaceTask,
-        'title' | 'description' | 'priority' | 'assignee' | 'dueDate'
+        'title' | 'description' | 'priority' | 'assignee' | 'startDate' | 'dueDate'
       >
     >,
     historyAction = 'Aufgabe aktualisiert',
@@ -1046,6 +1140,26 @@ export class WorkspacePreviewService {
         ),
         updatedAt: new Date().toISOString(),
       }), 'Unteraufgabe aktualisiert', 'task_alt'),
+    );
+  }
+
+  /** Ändert den Titel einer Unteraufgabe. */
+  updateSubtask(
+    projectId: string,
+    taskId: string,
+    subtaskId: string,
+    title: string,
+  ): WorkspaceColumn[] {
+    const cleanTitle = title.trim().slice(0, MAX_SUBTASK_TITLE_LENGTH);
+    if (!cleanTitle) return this.getBoard(projectId);
+    return this.mutateTask(projectId, taskId, (currentTask) =>
+      this.addHistory(normalizeTaskCounters({
+        ...currentTask,
+        subtasks: currentTask.subtasks.map((item) =>
+          item.id === subtaskId ? { ...item, title: cleanTitle } : item,
+        ),
+        updatedAt: new Date().toISOString(),
+      }), 'Unteraufgabe umbenannt', 'edit'),
     );
   }
 

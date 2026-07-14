@@ -1,0 +1,270 @@
+/* ==========================================================================
+   Datei: src/styles/components/_workspace-controls.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert wiederverwendbare Auswahl- und Aktionskomponenten.
+
+   Inhaltsverzeichnis:
+   1. Select-Menü
+   2. Personenauswahl
+   3. Close-Buttons
+   ========================================================================== */
+
+.ui-select,
+.member-select {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.ui-select__label,
+.member-select__label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-semibold);
+}
+
+.ui-select__trigger,
+.member-select__trigger {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--size-control-md);
+  padding: var(--space-2) var(--space-3);
+  align-items: center;
+  gap: var(--space-2);
+  border: var(--border-width-subtle) solid var(--color-field-border);
+  border-radius: var(--radius-md);
+  background: var(--color-field-background);
+  color: var(--color-field-text);
+  text-align: left;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    background var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.ui-select__trigger:hover,
+.member-select__trigger:hover {
+  border-color: var(--color-field-border-hover);
+  background: var(--color-field-background-hover);
+}
+
+.ui-select--open .ui-select__trigger,
+.member-select--open .member-select__trigger {
+  border-color: var(--color-field-border-focus);
+  box-shadow: 0 0 0 0.18rem color-mix(in srgb, var(--color-focus) 18%, transparent);
+}
+
+.ui-select--active .ui-select__trigger {
+  border-color: color-mix(in srgb, var(--color-action-primary) 55%, var(--color-border-subtle));
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+}
+
+.ui-select--compact {
+  gap: 0.2rem;
+}
+
+.ui-select--compact .ui-select__label {
+  font-size: 0.65rem;
+}
+
+.ui-select--compact .ui-select__trigger {
+  min-height: 2.25rem;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-200);
+}
+
+.ui-select__value,
+.member-select__value,
+.member-select__placeholder {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--space-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-select__placeholder,
+.member-select__placeholder {
+  color: var(--color-field-placeholder);
+}
+
+.ui-select__chevron,
+.member-select__chevron {
+  flex: 0 0 auto;
+  color: var(--color-icon-muted);
+  font-size: 1.1rem;
+  transition: transform var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.ui-select--open .ui-select__chevron,
+.member-select--open .member-select__chevron {
+  transform: rotate(180deg);
+}
+
+.ui-select__menu,
+.member-select__menu {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  left: 0;
+  z-index: calc(var(--z-index-dropdown) + 5);
+  display: grid;
+  max-height: 18rem;
+  padding: var(--space-2);
+  gap: var(--space-1);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-md);
+  overflow-y: auto;
+  scrollbar-color: var(--color-brand-soft) transparent;
+  scrollbar-width: thin;
+}
+
+.ui-select__option,
+.member-select__option {
+  display: grid;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--space-2);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  text-align: left;
+}
+
+.ui-select__option:hover,
+.member-select__option:hover,
+.ui-select__option--selected,
+.member-select__option--selected {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.ui-select__option--selected,
+.member-select__option--selected {
+  box-shadow: inset 0.18rem 0 0 var(--color-action-primary);
+}
+
+.ui-select__option-copy,
+.member-select__option-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.ui-select__option-copy strong,
+.member-select__option-copy strong,
+.ui-select__option-copy small,
+.member-select__option-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-select__option-copy strong,
+.member-select__option-copy strong {
+  font-size: var(--font-size-200);
+}
+
+.ui-select__option-copy small,
+.member-select__option-copy small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+}
+
+.ui-select__swatch {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  border: 0.125rem solid color-mix(in srgb, var(--color-surface-primary) 72%, transparent);
+  border-radius: var(--radius-round);
+  background: var(--select-option-color);
+  box-shadow: 0 0 0 0.0625rem var(--color-border-subtle);
+}
+
+.ui-select__option > .material-symbols-outlined,
+.ui-select__value > .material-symbols-outlined {
+  color: var(--color-action-primary);
+  font-size: 1.05rem;
+}
+
+.ui-select__check {
+  color: var(--color-action-primary);
+  font-size: 1rem;
+}
+
+.member-select__avatar {
+  display: grid;
+  width: 1.85rem;
+  height: 1.85rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--member-select-color);
+  color: var(--member-select-text);
+  font-size: 0.58rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.member-select__avatar--empty {
+  background: var(--color-surface-secondary);
+  color: var(--color-icon-muted);
+}
+
+.member-select__avatar--empty .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.member-select__presence {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-round);
+  background: var(--color-text-disabled);
+}
+
+.member-select__presence--online {
+  background: var(--color-success);
+  box-shadow: 0 0 0 0.18rem var(--color-success-surface);
+}
+
+.ui-close-button {
+  display: grid;
+  width: var(--size-control-md);
+  min-width: var(--size-control-md);
+  height: var(--size-control-md);
+  min-height: var(--size-control-md);
+  padding: 0;
+  place-items: center;
+  border: var(--border-width-subtle) solid transparent;
+  border-radius: var(--radius-round);
+  background: transparent;
+  color: var(--color-icon-secondary);
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    background var(--motion-duration-fast) var(--motion-easing-standard),
+    color var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-normal) var(--motion-easing-emphasized);
+}
+
+.ui-close-button:hover {
+  border-color: color-mix(in srgb, var(--color-danger) 24%, var(--color-border-subtle));
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+  transform: rotate(90deg) scale(1.04);
+}
+
+.ui-close-button:active {
+  transform: rotate(90deg) scale(0.94);
+}

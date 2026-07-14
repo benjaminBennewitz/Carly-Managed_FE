@@ -9,6 +9,7 @@ export type ProjectDueState =
   | 'ueberfaellig';
 export type TaskPriority = 'hoch' | 'mittel' | 'niedrig';
 export type BoardViewMode = 'board' | 'list';
+export type WorkspaceColumnSortMode = 'title' | 'date' | null;
 
 export interface WorkspaceMember {
   id: string;
@@ -91,6 +92,7 @@ export interface WorkspaceColumn {
   color: string;
   tasks: WorkspaceTask[];
   isFixedPosition?: boolean;
+  sortMode?: WorkspaceColumnSortMode;
 }
 
 export interface WorkspaceProject {

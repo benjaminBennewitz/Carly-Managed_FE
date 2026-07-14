@@ -90,4 +90,60 @@ describe('WorkspacePreviewService', () => {
     expect(task?.history.length).toBeGreaterThan(1);
   });
 
+  it('persistiert Taskverschiebungen zwischen Projektspalten', () => {
+    const before = service.getBoard('carly-managed');
+    const source = before.find((column) => column.tasks.some((task) => task.id === 'task-101'));
+    const target = before.find((column) => column.id !== source?.id);
+
+    expect(source).toBeDefined();
+    expect(target).toBeDefined();
+
+    service.moveTask(
+      'carly-managed',
+      'task-101',
+      source?.id ?? '',
+      target?.id ?? '',
+      0,
+    );
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({});
+    const restoredService = TestBed.inject(WorkspacePreviewService);
+    const restored = restoredService.getBoard('carly-managed');
+
+    expect(
+      restored.find((column) => column.id === source?.id)?.tasks
+        .some((task) => task.id === 'task-101'),
+    ).toBe(false);
+    expect(
+      restored.find((column) => column.id === target?.id)?.tasks[0]?.id,
+    ).toBe('task-101');
+  });
+
+  it('persistiert Sortierung und erlaubt das Umbenennen von Unteraufgaben', () => {
+    const sorted = service.sortColumn('carly-managed', 'backlog', 'title');
+    expect(sorted.find((column) => column.id === 'backlog')?.sortMode).toBe('title');
+
+    service.addSubtask('carly-managed', 'task-101', 'Alter Titel');
+    const task = service
+      .getBoard('carly-managed')
+      .flatMap((column) => column.tasks)
+      .find((item) => item.id === 'task-101');
+    const subtask = task?.subtasks.find((item) => item.title === 'Alter Titel');
+
+    expect(subtask).toBeDefined();
+
+    const columns = service.updateSubtask(
+      'carly-managed',
+      'task-101',
+      subtask?.id ?? '',
+      'Neuer Titel',
+    );
+    const updatedTask = columns
+      .flatMap((column) => column.tasks)
+      .find((item) => item.id === 'task-101');
+
+    expect(updatedTask?.subtasks.some((item) => item.title === 'Neuer Titel')).toBe(true);
+  });
+
 });

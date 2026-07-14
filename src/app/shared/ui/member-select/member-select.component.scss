@@ -1,0 +1,14 @@
+/* ========================================================================== 
+   Datei: src/app/shared/ui/member-select/member-select.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Verankert die wiederverwendbare Personenauswahl.
+
+   Inhaltsverzeichnis:
+   1. Host
+   ========================================================================== */
+
+:host {
+  display: block;
+  min-width: 0;
+}

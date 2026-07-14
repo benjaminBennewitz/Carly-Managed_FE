@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_workspace-board.scss
    Projekt: Carly Managed
-   Version: 2.0.0
+   Version: 2.1.0
    Beschreibung: Definiert Projektkopf, Kanban, Liste und Task-Drawer.
 
    Inhaltsverzeichnis:
@@ -1489,5 +1489,310 @@
 
   .task-drawer__form-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   10. Interaktive Board-Steuerung
+   ========================================================================== */
+
+.board-column-ui__sort-indicator {
+  display: grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+}
+
+.board-column-ui__sort-indicator .material-symbols-outlined {
+  font-size: 0.9rem;
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 550,
+    'GRAD' 0,
+    'opsz' 18;
+}
+
+.board-column-ui__action-menu {
+  right: 0;
+  display: grid;
+  width: 15.5rem;
+  padding: var(--space-3);
+  gap: var(--space-3);
+}
+
+.board-column-ui__menu-action {
+  display: flex;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-semibold);
+  text-align: left;
+}
+
+.board-column-ui__menu-action:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.board-column-ui__menu-action--danger {
+  border-top: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  color: var(--color-danger);
+}
+
+.board-column-ui__menu-action--danger:hover {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.task-drawer__form-grid {
+  align-items: end;
+}
+
+.task-date-field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.task-drawer__collaboration {
+  padding-top: var(--space-1);
+}
+
+.task-collaborators button {
+  position: relative;
+  padding-right: var(--space-2);
+  overflow: hidden;
+}
+
+.task-collaborators__avatar {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--task-member-color);
+  color: var(--task-member-text);
+  font-size: 0.6rem;
+  font-weight: var(--font-weight-bold);
+  transition:
+    opacity var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.task-collaborators__remove {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: var(--space-1);
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+  font-size: 0.9rem;
+  opacity: 0;
+  transform: translateX(0.35rem) rotate(-45deg);
+  transition:
+    opacity var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-normal) var(--motion-easing-emphasized);
+}
+
+.task-collaborators button:hover {
+  border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border-subtle));
+  background: var(--color-danger-surface);
+}
+
+.task-collaborators button:hover .task-collaborators__remove,
+.task-collaborators button:focus-visible .task-collaborators__remove {
+  opacity: 1;
+  transform: translateX(0) rotate(0);
+}
+
+.task-subtask-list article {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+
+.task-subtask-list article.is-editing {
+  border-color: var(--color-focus);
+  background: var(--color-brand-subtle);
+}
+
+.task-subtask-list__edit {
+  min-width: 0;
+}
+
+.task-inline-action,
+.task-inline-close {
+  display: grid;
+  width: 2rem;
+  min-width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-icon-muted);
+}
+
+.task-inline-action:hover {
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+}
+
+.task-inline-close {
+  width: 2rem;
+  min-width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+}
+
+.task-comment-form__editor {
+  position: relative;
+}
+
+.task-mention-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--space-2));
+  left: 0;
+  z-index: calc(var(--z-index-dropdown) + 8);
+  display: grid;
+  max-height: 14rem;
+  padding: var(--space-2);
+  gap: var(--space-1);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-md);
+  overflow-y: auto;
+}
+
+.task-mention-menu button {
+  display: grid;
+  width: 100%;
+  min-height: 2.8rem;
+  padding: var(--space-2);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  text-align: left;
+}
+
+.task-mention-menu button:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.task-mention-menu button > span {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--task-member-color);
+  color: var(--task-member-text);
+  font-size: 0.6rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.task-mention-menu small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+}
+
+.task-file-dropzone {
+  position: relative;
+  display: grid;
+  min-height: 10rem;
+  padding: var(--space-5);
+  place-items: center;
+  align-content: center;
+  gap: var(--space-2);
+  border: 0.125rem dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-brand-subtle) 60%, transparent),
+      transparent
+    ),
+    var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-duration-normal) var(--motion-easing-standard),
+    background var(--motion-duration-normal) var(--motion-easing-standard),
+    transform var(--motion-duration-normal) var(--motion-easing-emphasized);
+}
+
+.task-file-dropzone:hover,
+.task-file-dropzone--active {
+  border-color: var(--color-action-primary);
+  background: var(--color-brand-subtle);
+  transform: translateY(-0.125rem);
+}
+
+.task-file-dropzone > .material-symbols-outlined {
+  color: var(--color-action-primary);
+  font-size: 2rem;
+}
+
+.task-file-dropzone > span:not(.material-symbols-outlined):not(.task-file-dropzone__button) {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-200);
+}
+
+.task-file-dropzone__button {
+  display: inline-flex;
+  min-height: var(--size-control-md);
+  padding: 0 var(--space-4);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-semibold);
+}
+
+.task-file-dropzone input {
+  position: absolute;
+  width: 0.0625rem;
+  height: 0.0625rem;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+@media (max-width: 36rem) {
+  .board-column-ui__action-menu {
+    right: -0.5rem;
+    width: min(15.5rem, calc(100vw - 3rem));
+  }
+
+  .task-subtask-list article,
+  .task-subtask-list article.is-editing {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .task-inline-close {
+    grid-column: 3;
   }
 }

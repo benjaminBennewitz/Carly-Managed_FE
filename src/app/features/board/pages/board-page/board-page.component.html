@@ -160,6 +160,8 @@
           <cm-board-column
             [column]="column"
             [connectedDropListIds]="dropListIds()"
+            [colorOptions]="columnColorOptions"
+            [sortOptions]="columnSortOptions"
             [showProjectContext]="!project()"
             [readOnly]="isReadOnly()"
             (taskDrop)="dropTask($event)"
@@ -168,7 +170,7 @@
             (taskAdd)="addTask($event)"
             (titleChange)="renameColumn($event)"
             (deleteRequested)="deleteColumn($event)"
-            (colorCycleRequested)="cycleColumnColor($event)"
+            (colorChangeRequested)="changeColumnColor($event)"
             (sortRequested)="sortColumn($event)"
           />
         }
@@ -291,7 +293,7 @@
           (keydown.enter)="$event.preventDefault(); saveTaskTitle()"
         />
       </div>
-      <button type="button" aria-label="Aufgabendetails schließen" (click)="closeTask()">
+      <button class="ui-close-button" type="button" aria-label="Aufgabendetails schließen" (click)="closeTask()">
         <span class="material-symbols-outlined" aria-hidden="true">close</span>
       </button>
     </header>
@@ -367,39 +369,40 @@
         </section>
 
         <div class="task-drawer__form-grid">
-          <label>
-            <span>Priorität</span>
-            <select
+          <cm-select-menu
+            label="Priorität"
+            [value]="task.priority"
+            [options]="priorityOptions"
+            [disabled]="isReadOnly()"
+            (valueChange)="changeTaskPriority($any($event))"
+          />
+
+          <cm-member-select
+            label="Verantwortlich"
+            [value]="task.assignee?.id || null"
+            [members]="workspaceService.members()"
+            [disabled]="isReadOnly()"
+            (valueChange)="changeTaskAssignee($event)"
+          />
+
+          <label class="task-date-field">
+            <span>Startdatum</span>
+            <input
+              type="date"
               [disabled]="isReadOnly()"
-              [value]="task.priority"
-              (change)="changeTaskPriority($any($event.target).value)"
-            >
-              <option value="hoch">Hoch</option>
-              <option value="mittel">Mittel</option>
-              <option value="niedrig">Niedrig</option>
-            </select>
+              [value]="task.startDate || ''"
+              [attr.max]="task.dueDate || null"
+              (change)="changeTaskStartDate($any($event.target).value)"
+            />
           </label>
 
-          <label>
-            <span>Verantwortlich</span>
-            <select
-              [disabled]="isReadOnly()"
-              [value]="task.assignee?.id || ''"
-              (change)="changeTaskAssignee($any($event.target).value)"
-            >
-              <option value="">Nicht zugewiesen</option>
-              @for (member of workspaceService.members(); track member.id) {
-                <option [value]="member.id">{{ member.fullName }}</option>
-              }
-            </select>
-          </label>
-
-          <label>
-            <span>Fällig</span>
+          <label class="task-date-field">
+            <span>Enddatum</span>
             <input
               type="date"
               [disabled]="isReadOnly()"
               [value]="task.dueDate || ''"
+              [attr.min]="task.startDate || null"
               (change)="changeTaskDueDate($any($event.target).value)"
             />
           </label>
@@ -410,26 +413,43 @@
           </div>
         </div>
 
-        <section class="task-drawer__section">
+        <section class="task-drawer__section task-drawer__collaboration">
           <span class="task-drawer__section-label">Mitwirkende</span>
-          <div class="task-collaborators">
-            @for (member of workspaceService.members(); track member.id) {
-              <button
-                type="button"
-                [disabled]="isReadOnly()"
-                [class.is-active]="isCollaborator(task, member.id)"
-                [attr.aria-pressed]="isCollaborator(task, member.id)"
-                [attr.title]="member.fullName"
-                (click)="toggleCollaborator(member)"
-              >
-                <span
-                  [style.--task-member-color]="member.avatarColor"
-                  [style.--task-member-text]="member.avatarTextColor"
-                >{{ member.initials }}</span>
-                {{ member.fullName }}
-              </button>
-            }
-          </div>
+
+          @if (task.collaborators.length > 0) {
+            <div class="task-collaborators">
+              @for (member of task.collaborators; track member.id) {
+                <button
+                  type="button"
+                  [disabled]="isReadOnly()"
+                  [attr.aria-label]="member.fullName + ' entfernen'"
+                  [attr.title]="member.fullName + ' entfernen'"
+                  (click)="removeCollaborator(member)"
+                >
+                  <span
+                    class="task-collaborators__avatar"
+                    [style.--task-member-color]="member.avatarColor"
+                    [style.--task-member-text]="member.avatarTextColor"
+                  >{{ member.initials }}</span>
+                  <span>{{ member.fullName.split(' ')[0] }}</span>
+                  <span class="material-symbols-outlined task-collaborators__remove" aria-hidden="true">
+                    close
+                  </span>
+                </button>
+              }
+            </div>
+          }
+
+          @if (!isReadOnly() && availableCollaborators().length > 0) {
+            <cm-member-select
+              label="Person hinzufügen"
+              placeholder="Mitwirkende auswählen"
+              [allowEmpty]="false"
+              [value]="collaboratorSelection()"
+              [members]="availableCollaborators()"
+              (valueChange)="addCollaborator($event)"
+            />
+          }
         </section>
 
         @if (isReadyForAssignment(task)) {
@@ -460,7 +480,7 @@
 
           <div class="task-subtask-list">
             @for (subtask of task.subtasks; track subtask.id) {
-              <article [class.is-done]="subtask.isDone">
+              <article [class.is-done]="subtask.isDone" [class.is-editing]="editingSubtaskId() === subtask.id">
                 <button
                   class="task-subtask-list__check"
                   type="button"
@@ -470,16 +490,54 @@
                 >
                   <span class="material-symbols-outlined" aria-hidden="true">check</span>
                 </button>
-                <span>{{ subtask.title }}</span>
-                @if (!isReadOnly()) {
+
+                @if (editingSubtaskId() === subtask.id) {
+                  <input
+                    class="task-subtask-list__edit"
+                    type="text"
+                    maxlength="160"
+                    [value]="subtaskEditDraft()"
+                    aria-label="Unteraufgabe bearbeiten"
+                    (input)="subtaskEditDraft.set($any($event.target).value)"
+                    (keydown.enter)="$event.preventDefault(); saveSubtaskEdit()"
+                    (keydown.escape)="cancelSubtaskEdit()"
+                  />
                   <button
-                    class="task-inline-delete"
+                    class="task-inline-action"
                     type="button"
-                    aria-label="Unteraufgabe löschen"
-                    (click)="deleteSubtask(subtask.id)"
+                    aria-label="Änderung speichern"
+                    (click)="saveSubtaskEdit()"
                   >
-                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                    <span class="material-symbols-outlined" aria-hidden="true">check</span>
                   </button>
+                  <button
+                    class="ui-close-button task-inline-close"
+                    type="button"
+                    aria-label="Bearbeitung abbrechen"
+                    (click)="cancelSubtaskEdit()"
+                  >
+                    <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                  </button>
+                } @else {
+                  <span>{{ subtask.title }}</span>
+                  @if (!isReadOnly()) {
+                    <button
+                      class="task-inline-action"
+                      type="button"
+                      aria-label="Unteraufgabe bearbeiten"
+                      (click)="startSubtaskEdit(subtask.id, subtask.title)"
+                    >
+                      <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                    </button>
+                    <button
+                      class="task-inline-delete"
+                      type="button"
+                      aria-label="Unteraufgabe löschen"
+                      (click)="deleteSubtask(subtask.id)"
+                    >
+                      <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                    </button>
+                  }
                 }
               </article>
             } @empty {
@@ -496,13 +554,31 @@
         <section class="task-drawer__section">
           @if (!isReadOnly()) {
             <form class="task-comment-form" (submit)="$event.preventDefault(); addComment()">
-              <textarea
-                rows="3"
-                maxlength="2000"
-                placeholder="Kommentar schreiben"
-                [value]="commentDraft()"
-                (input)="commentDraft.set($any($event.target).value)"
-              ></textarea>
+              <div class="task-comment-form__editor">
+                <textarea
+                  rows="3"
+                  maxlength="2000"
+                  placeholder="Kommentar schreiben · @ für Personen"
+                  [value]="commentDraft()"
+                  (input)="commentDraft.set($any($event.target).value)"
+                ></textarea>
+
+                @if (mentionCandidates().length > 0) {
+                  <div class="task-mention-menu" role="listbox" aria-label="Person erwähnen">
+                    @for (member of mentionCandidates(); track member.id) {
+                      <button type="button" role="option" (click)="insertMention(member)">
+                        <span
+                          [style.--task-member-color]="member.avatarColor"
+                          [style.--task-member-text]="member.avatarTextColor"
+                          aria-hidden="true"
+                        >{{ member.initials }}</span>
+                        <strong>{{ member.fullName.split(' ')[0] }}</strong>
+                        <small>{{ member.email }}</small>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
               <button type="submit" [disabled]="!commentDraft().trim()">
                 <span class="material-symbols-outlined" aria-hidden="true">send</span>
                 Senden
@@ -549,9 +625,18 @@
       @if (activeTaskTab() === 'attachments') {
         <section class="task-drawer__section">
           @if (!isReadOnly()) {
-            <label class="task-file-upload">
-              <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
-              Dateien auswählen
+            <label
+              class="task-file-dropzone"
+              [class.task-file-dropzone--active]="attachmentDragActive()"
+              (dragenter)="handleAttachmentDrag($event, true)"
+              (dragover)="handleAttachmentDrag($event, true)"
+              (dragleave)="handleAttachmentDrag($event, false)"
+              (drop)="dropAttachments($event)"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">cloud_upload</span>
+              <strong>Dateien hier ablegen</strong>
+              <span>oder</span>
+              <span class="task-file-dropzone__button">Dateien hinzufügen</span>
               <input type="file" multiple (change)="addAttachments($event)" />
             </label>
           }

@@ -37,6 +37,16 @@
         }
         <h3 [attr.title]="column().title">{{ column().title }}</h3>
         <span class="board-column-ui__count">{{ column().tasks.length }}</span>
+        @if (column().sortMode) {
+          <span
+            class="board-column-ui__sort-indicator"
+            [attr.title]="column().sortMode === 'title' ? 'Nach Titel sortiert' : 'Nach Fälligkeit sortiert'"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">
+              {{ column().sortMode === 'title' ? 'sort_by_alpha' : 'event' }}
+            </span>
+          </span>
+        }
       </div>
     } @else {
       <div class="board-column-ui__title-edit">
@@ -69,47 +79,40 @@
 
         @if (actionMenuOpen()) {
           <div class="board-column-ui__action-menu">
+            <cm-select-menu
+              label="Sortierung"
+              [compact]="true"
+              [active]="!!column().sortMode"
+              [value]="column().sortMode || 'manual'"
+              [options]="sortOptions()"
+              (valueChange)="changeSort($event)"
+            />
+
+            <cm-select-menu
+              label="Spaltenfarbe"
+              [compact]="true"
+              [value]="column().color"
+              [options]="colorOptions()"
+              (valueChange)="changeColor($event)"
+            />
+
             <button
+              class="board-column-ui__menu-action"
               type="button"
-              title="Nach Titel sortieren"
-              aria-label="Nach Titel sortieren"
-              (click)="sortRequested.emit({ columnId: column().id, mode: 'title' }); actionMenuOpen.set(false)"
-            >
-              <span class="material-symbols-outlined" aria-hidden="true">sort_by_alpha</span>
-            </button>
-            <button
-              type="button"
-              title="Nach Fälligkeit sortieren"
-              aria-label="Nach Fälligkeit sortieren"
-              (click)="sortRequested.emit({ columnId: column().id, mode: 'date' }); actionMenuOpen.set(false)"
-            >
-              <span class="material-symbols-outlined" aria-hidden="true">event</span>
-            </button>
-            <button
-              type="button"
-              title="Spaltenfarbe wechseln"
-              aria-label="Spaltenfarbe wechseln"
-              (click)="colorCycleRequested.emit(column().id); actionMenuOpen.set(false)"
-            >
-              <span class="material-symbols-outlined" aria-hidden="true">palette</span>
-            </button>
-            <button
-              type="button"
-              title="Spalte umbenennen"
-              aria-label="Spalte umbenennen"
               (click)="startTitleEdit($event); actionMenuOpen.set(false)"
             >
               <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+              Spalte umbenennen
             </button>
+
             @if (!column().isFixedPosition) {
               <button
-                class="board-column-ui__danger-action"
+                class="board-column-ui__menu-action board-column-ui__menu-action--danger"
                 type="button"
-                title="Spalte löschen"
-                aria-label="Spalte löschen"
                 (click)="deleteRequested.emit(column().id); actionMenuOpen.set(false)"
               >
                 <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                Spalte löschen
               </button>
             }
           </div>
