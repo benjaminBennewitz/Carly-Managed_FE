@@ -1,8 +1,8 @@
 /* ==========================================================================
-   Datei: src/app/features/board/pages/board-page/board-page.component.scss
+   Datei: src/app/features/board/components/board-column/board-column.component.scss
    Projekt: Carly Managed
-   Version: 2.0.0
-   Beschreibung: Verankert die globale Projektboard-Darstellung.
+   Version: 1.0.0
+   Beschreibung: Verankert die globale Boardspalten-Darstellung.
 
    Inhaltsverzeichnis:
    1. Host
@@ -10,5 +10,6 @@
 
 :host {
   display: block;
-  min-width: 0;
+  width: var(--board-column-width);
+  min-width: var(--board-column-width);
 }

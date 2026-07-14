@@ -1,9 +1,338 @@
 <!-- src/app/features/board/pages/board-page/board-page.component.html -->
 
-<section class="feature-page">
-  <cm-page-header
-    eyebrow="Gemeinsam organisieren"
-    title="Board"
-    description="Organisiere Aufgaben übersichtlich in Kanban- und Listenansichten."
-  />
+<section class="project-board-page" [class.project-board-page--personal]="!project()">
+  <header class="board-page-head">
+    <div class="board-page-head__copy">
+      <div class="board-page-head__title-row">
+        <h1>{{ title() }}</h1>
+
+        @if (project(); as activeProject) {
+          <span class="head-status">{{ getProjectStatusLabel() }}</span>
+          <span
+            class="project-owner-avatar"
+            [style.--project-owner-color]="activeProject.owner.avatarColor"
+            [style.--project-owner-text-color]="activeProject.owner.avatarTextColor"
+            [attr.title]="activeProject.owner.fullName + ' · Verantwortlich'"
+          >
+            {{ activeProject.owner.initials }}
+          </span>
+          <span class="head-chip head-chip--date">
+            <span class="material-symbols-outlined" aria-hidden="true">event</span>
+            {{ scheduleLabel() }}
+          </span>
+
+          <div class="project-actions">
+            <button
+              class="icon-btn"
+              type="button"
+              aria-label="Projektaktionen öffnen"
+              [attr.aria-expanded]="projectActionsOpen()"
+              (click)="projectActionsOpen.update(open => !open)"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
+            </button>
+
+            @if (projectActionsOpen()) {
+              <div class="project-actions__menu">
+                <a routerLink="/projects">
+                  <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
+                  Projektübersicht
+                </a>
+                <button
+                  type="button"
+                  (click)="workspaceService.toggleProjectPinned(activeProject.id); projectActionsOpen.set(false)"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">
+                    {{ activeProject.isPinned ? 'keep_off' : 'keep' }}
+                  </span>
+                  {{ activeProject.isPinned ? 'Projekt entpinnen' : 'Projekt anpinnen' }}
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      @if (subtitle()) {
+        <p>{{ subtitle() }}</p>
+      }
+    </div>
+
+    <div class="board-page-head__side">
+      <div class="view-switcher" role="group" aria-label="Boardansicht wechseln">
+        <button
+          type="button"
+          [class.is-active]="viewMode() === 'board'"
+          [attr.aria-pressed]="viewMode() === 'board'"
+          (click)="setViewMode('board')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">view_kanban</span>
+          <span>Board</span>
+        </button>
+        <button
+          type="button"
+          [class.is-active]="viewMode() === 'list'"
+          [attr.aria-pressed]="viewMode() === 'list'"
+          (click)="setViewMode('list')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">view_list</span>
+          <span>Liste</span>
+        </button>
+      </div>
+
+      <div class="board-page-head__meta">
+        <button
+          class="head-chip head-chip--button"
+          type="button"
+          [class.is-active]="activeUtilityPanel() === 'rules'"
+          (click)="toggleUtilityPanel('rules')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">automation</span>
+          Regeln
+          <span class="head-chip__count">2</span>
+        </button>
+
+        <button
+          class="head-chip head-chip--button"
+          type="button"
+          [class.is-active]="activeUtilityPanel() === 'recurrence'"
+          (click)="toggleUtilityPanel('recurrence')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">rule_settings</span>
+          Wiederholungen
+        </button>
+
+        <span class="head-chip">
+          <span class="material-symbols-outlined" aria-hidden="true">view_column</span>
+          {{ columns().length }} Spalten
+        </span>
+        <span class="head-chip">{{ taskCount() }} Aufgaben</span>
+
+        @if (project()) {
+          <a class="head-chip head-chip--link" routerLink="/projects">
+            <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+            Alle Projekte
+          </a>
+        }
+      </div>
+    </div>
+  </header>
+
+  @if (activeUtilityPanel(); as panel) {
+    <section class="board-utility-panel" [attr.aria-label]="panel === 'rules' ? 'Aktive Regeln' : 'Wiederholungen'">
+      @if (panel === 'rules') {
+        <article>
+          <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
+          <div>
+            <strong>Review automatisch zuweisen</strong>
+            <p>Neue Aufgaben in „Review“ werden der Projektleitung zugewiesen.</p>
+          </div>
+        </article>
+        <article>
+          <span class="material-symbols-outlined" aria-hidden="true">notifications_active</span>
+          <div>
+            <strong>Fälligkeit beobachten</strong>
+            <p>24 Stunden vor Ablauf erscheint eine Inbox-Benachrichtigung.</p>
+          </div>
+        </article>
+      } @else {
+        <article>
+          <span class="material-symbols-outlined" aria-hidden="true">repeat</span>
+          <div>
+            <strong>Wöchentliche Abstimmung</strong>
+            <p>Jeden Montag wird eine neue Team-Abstimmung vorbereitet.</p>
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  @if (viewMode() === 'board') {
+    <section class="board-wrapper" [attr.aria-label]="title() + ' Board'">
+      <div
+        class="board-columns"
+        cdkDropList
+        [cdkDropListData]="columns()"
+        cdkDropListOrientation="horizontal"
+        (cdkDropListDropped)="dropColumn($event)"
+      >
+        @for (column of columns(); track column.id) {
+          <cm-board-column
+            cdkDrag
+            [cdkDragData]="column"
+            cdkDragLockAxis="x"
+            [cdkDragDisabled]="!!column.isFixedPosition || isReadOnly()"
+            [column]="column"
+            [connectedDropListIds]="dropListIds()"
+            [showProjectContext]="!project()"
+            [readOnly]="isReadOnly()"
+            (taskDrop)="dropTask($event)"
+            (taskOpen)="openTask($event)"
+            (taskCompleteToggle)="toggleTaskCompleted($event)"
+            (taskAdd)="addTask($event)"
+            (titleChange)="renameColumn($event)"
+            (deleteRequested)="deleteColumn($event)"
+            (colorCycleRequested)="cycleColumnColor($event)"
+            (sortRequested)="sortColumn($event)"
+          />
+        }
+
+        @if (!isReadOnly()) {
+          <button class="board-add-column" type="button" (click)="addColumn()">
+            <span class="material-symbols-outlined" aria-hidden="true">add</span>
+            Spalte hinzufügen
+          </button>
+        }
+      </div>
+    </section>
+  } @else {
+    <section class="board-list" aria-label="Aufgabenliste">
+      <div class="board-list__header" aria-hidden="true">
+        <span>Status</span>
+        <span>Aufgabe</span>
+        <span>Prio</span>
+        <span>Owner</span>
+        <span>Assignee</span>
+        <span>Gehört zu</span>
+        <span>Ende</span>
+        <span>Counters</span>
+      </div>
+
+      <div class="board-list__rows">
+        @for (row of listRows(); track row.task.id) {
+          <article
+            class="board-list-row"
+            [class.board-list-row--done]="row.task.isDone"
+            [style.--board-list-accent]="row.column.color"
+            role="button"
+            tabindex="0"
+            (click)="openTask(row.task)"
+            (keydown.enter)="openTask(row.task)"
+          >
+            <button
+              class="board-list-row__check"
+              [class.board-list-row__check--done]="row.task.isDone"
+              type="button"
+              [disabled]="isReadOnly()"
+              [attr.aria-label]="row.task.isDone ? 'Aufgabe wieder öffnen' : 'Aufgabe abschließen'"
+              (click)="$event.stopPropagation(); toggleTaskCompleted(row.task)"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">check</span>
+            </button>
+
+            <div class="board-list-row__main">
+              <div>
+                <strong>{{ row.task.title }}</strong>
+                <span>{{ row.column.title }}</span>
+              </div>
+              <p>{{ row.task.description }}</p>
+            </div>
+
+            <span class="board-list-row__priority board-list-row__priority--{{ row.task.priority }}">
+              {{ row.task.priority }}
+            </span>
+
+            <span
+              class="board-list-row__avatar"
+              [style.--list-avatar-color]="row.task.owner.avatarColor"
+              [style.--list-avatar-text-color]="row.task.owner.avatarTextColor"
+              [attr.title]="row.task.owner.fullName"
+            >{{ row.task.owner.initials }}</span>
+
+            <span
+              class="board-list-row__avatar"
+              [style.--list-avatar-color]="row.task.assignee?.avatarColor || 'var(--color-surface-secondary)'"
+              [style.--list-avatar-text-color]="row.task.assignee?.avatarTextColor || 'var(--color-text-muted)'"
+              [attr.title]="row.task.assignee?.fullName || 'Nicht zugewiesen'"
+            >{{ row.task.assignee?.initials || '—' }}</span>
+
+            <span class="board-list-row__context">
+              <span class="material-symbols-outlined" aria-hidden="true">folder_open</span>
+              {{ row.task.projectTitle || 'Persönlich' }}
+            </span>
+
+            <span>{{ formatDate(row.task.dueDate) }}</span>
+
+            <div class="board-list-row__counters">
+              <span><span class="material-symbols-outlined" aria-hidden="true">forum</span>{{ row.task.commentCount }}</span>
+              <span><span class="material-symbols-outlined" aria-hidden="true">attach_file</span>{{ row.task.attachmentCount }}</span>
+              <span><span class="material-symbols-outlined" aria-hidden="true">account_tree</span>{{ row.task.subtaskCount }}</span>
+              <span><span class="material-symbols-outlined" aria-hidden="true">repeat</span>{{ row.task.isRecurring ? 1 : 0 }}</span>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
 </section>
+
+@if (selectedTask(); as task) {
+  <button
+    class="task-drawer-backdrop"
+    type="button"
+    aria-label="Aufgabendetails schließen"
+    (click)="closeTask()"
+  ></button>
+
+  <aside class="task-drawer" aria-label="Aufgabendetails">
+    <header class="task-drawer__head">
+      <div>
+        <span>{{ task.projectTitle || 'Persönliches Board' }}</span>
+        <h2>{{ task.title }}</h2>
+      </div>
+      <button type="button" aria-label="Aufgabendetails schließen" (click)="closeTask()">
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <div class="task-drawer__body">
+      <cm-workspace-task-card [task]="task" [showProjectContext]="true" />
+
+      <section>
+        <span>Beschreibung</span>
+        <p>{{ task.description }}</p>
+      </section>
+
+      <div class="task-drawer__grid">
+        <section>
+          <span>Verantwortlich</span>
+          <strong>{{ task.assignee?.fullName || 'Nicht zugewiesen' }}</strong>
+        </section>
+        <section>
+          <span>Fällig</span>
+          <strong>{{ formatDate(task.dueDate) }}</strong>
+        </section>
+        <section>
+          <span>Unteraufgaben</span>
+          <strong>{{ task.completedSubtaskCount }} / {{ task.subtaskCount }}</strong>
+        </section>
+        <section>
+          <span>Priorität</span>
+          <strong>{{ task.priority }}</strong>
+        </section>
+      </div>
+
+      @if (isReadyForAssignment(task)) {
+        <div class="task-drawer__notice">
+          <span class="material-symbols-outlined" aria-hidden="true">assignment_ind</span>
+          <strong>Bereit zur Vergabe</strong>
+        </div>
+      }
+    </div>
+
+    <footer class="task-drawer__foot">
+      @if (!isReadOnly() && canReleaseToPool(task)) {
+        <button type="button" (click)="releaseSelectedTaskToPool()">
+          <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+          In den Pool geben
+        </button>
+      }
+      @if (!isReadOnly()) {
+        <button class="task-drawer__primary" type="button" (click)="toggleTaskCompleted(task)">
+          <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+          {{ task.isDone ? 'Wieder öffnen' : 'Abschließen' }}
+        </button>
+      }
+    </footer>
+  </aside>
+}

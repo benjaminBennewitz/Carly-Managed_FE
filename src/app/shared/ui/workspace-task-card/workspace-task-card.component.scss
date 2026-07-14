@@ -1,8 +1,8 @@
 /* ==========================================================================
-   Datei: src/app/features/board/pages/board-page/board-page.component.scss
+   Datei: src/app/shared/ui/workspace-task-card/workspace-task-card.component.scss
    Projekt: Carly Managed
-   Version: 2.0.0
-   Beschreibung: Verankert die globale Projektboard-Darstellung.
+   Version: 1.0.0
+   Beschreibung: Verankert die globale Task-Kartenklasse im Komponentenhost.
 
    Inhaltsverzeichnis:
    1. Host
@@ -10,5 +10,4 @@
 
 :host {
   display: block;
-  min-width: 0;
 }

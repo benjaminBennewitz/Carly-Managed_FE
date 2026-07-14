@@ -83,6 +83,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'projects/:projectId/board',
+        title: 'Projektboard | Carly Managed',
+        loadComponent: () =>
+          import('./features/board/pages/board-page/board-page.component').then(
+            (module) => module.BoardPageComponent,
+          ),
+      },
+      {
         path: 'board',
         title: 'Board | Carly Managed',
         loadComponent: () =>
@@ -112,6 +120,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/pool/pages/pool-page/pool-page.component').then(
             (module) => module.PoolPageComponent,
+          ),
+      },
+      {
+        path: 'archive',
+        title: 'Archiv | Carly Managed',
+        loadComponent: () =>
+          import('./features/archive/pages/archive-page/archive-page.component').then(
+            (module) => module.ArchivePageComponent,
           ),
       },
       {

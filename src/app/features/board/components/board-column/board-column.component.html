@@ -1,0 +1,159 @@
+<!-- src/app/features/board/components/board-column/board-column.component.html -->
+
+<ng-template cdkDragPreview [matchSize]="true">
+  <div class="board-column-preview" [style.--board-accent]="column().color">
+    <span></span>
+    <strong>{{ column().title }}</strong>
+    <small>{{ column().tasks.length }} Aufgaben</small>
+  </div>
+</ng-template>
+
+<div class="board-column-placeholder" *cdkDragPlaceholder></div>
+
+<section class="board-column-ui" [style.--board-accent]="column().color">
+  <header class="board-column-ui__head">
+    @if (!isEditingTitle()) {
+      <div class="board-column-ui__title" cdkDragHandle>
+        @if (!column().isFixedPosition) {
+          <span class="material-symbols-outlined" aria-hidden="true">drag_indicator</span>
+        }
+        <h3 [attr.title]="column().title">{{ column().title }}</h3>
+        <span class="board-column-ui__count">{{ column().tasks.length }}</span>
+      </div>
+    } @else {
+      <div class="board-column-ui__title-edit">
+        <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+        <input
+          #titleInput
+          type="text"
+          [value]="draftTitle()"
+          aria-label="Spaltentitel bearbeiten"
+          (input)="draftTitle.set($any($event.target).value)"
+          (blur)="saveTitle()"
+          (keydown)="handleTitleKeydown($event)"
+        />
+        <span class="board-column-ui__count">{{ column().tasks.length }}</span>
+      </div>
+    }
+
+    @if (!readOnly()) {
+      <div class="board-column-ui__actions">
+      <button
+        class="board-column-ui__icon-button"
+        type="button"
+        aria-label="Spaltenaktionen öffnen"
+        [attr.aria-expanded]="actionMenuOpen()"
+        (click)="toggleActions($event)"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
+      </button>
+
+      @if (actionMenuOpen()) {
+        <div class="board-column-ui__action-menu">
+          <button
+            type="button"
+            title="Nach Titel sortieren"
+            aria-label="Nach Titel sortieren"
+            (click)="sortRequested.emit({ columnId: column().id, mode: 'title' }); actionMenuOpen.set(false)"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">sort_by_alpha</span>
+          </button>
+          <button
+            type="button"
+            title="Nach Fälligkeit sortieren"
+            aria-label="Nach Fälligkeit sortieren"
+            (click)="sortRequested.emit({ columnId: column().id, mode: 'date' }); actionMenuOpen.set(false)"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">event</span>
+          </button>
+          <button
+            type="button"
+            title="Spaltenfarbe wechseln"
+            aria-label="Spaltenfarbe wechseln"
+            (click)="colorCycleRequested.emit(column().id); actionMenuOpen.set(false)"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">palette</span>
+          </button>
+          <button
+            type="button"
+            title="Spalte umbenennen"
+            aria-label="Spalte umbenennen"
+            (click)="startTitleEdit($event); actionMenuOpen.set(false)"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+          </button>
+          @if (!column().isFixedPosition) {
+            <button
+              class="board-column-ui__danger-action"
+              type="button"
+              title="Spalte löschen"
+              aria-label="Spalte löschen"
+              (click)="deleteRequested.emit(column().id); actionMenuOpen.set(false)"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+            </button>
+          }
+        </div>
+      }
+      </div>
+    }
+  </header>
+
+  <div class="board-column-ui__body">
+    <div
+      class="board-column-ui__dropzone"
+      cdkDropList
+      [id]="column().id"
+      [cdkDropListData]="column().tasks"
+      [cdkDropListConnectedTo]="connectedDropListIds()"
+      (cdkDropListDropped)="handleTaskDrop($event)"
+    >
+      @for (task of column().tasks; track task.id) {
+        <article
+          class="board-task-shell"
+          cdkDrag
+          [cdkDragData]="task"
+          [cdkDragDisabled]="readOnly()"
+          role="button"
+          tabindex="0"
+          [attr.aria-label]="'Aufgabe öffnen: ' + task.title"
+          (click)="taskOpen.emit(task)"
+          (keydown.enter)="taskOpen.emit(task)"
+          (keydown.space)="taskOpen.emit(task); $event.preventDefault()"
+        >
+          <ng-template cdkDragPreview [matchSize]="true">
+            <div class="board-task-preview" [style.--board-accent]="column().color">
+              <cm-workspace-task-card
+                [task]="task"
+                [showProjectContext]="showProjectContext()"
+              />
+            </div>
+          </ng-template>
+
+          <div class="board-task-placeholder" *cdkDragPlaceholder></div>
+
+          <cm-workspace-task-card
+            [task]="task"
+            [showProjectContext]="showProjectContext()"
+            [canToggleComplete]="!readOnly()"
+            (completeToggle)="taskCompleteToggle.emit($event)"
+          />
+        </article>
+      } @empty {
+        <div class="board-column-ui__empty">
+          <span class="material-symbols-outlined" aria-hidden="true">inbox</span>
+          <p>Keine Aufgaben in dieser Spalte.</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (!readOnly()) {
+    <footer class="board-column-ui__foot">
+      <button type="button" (click)="taskAdd.emit(column().id)">
+        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+        Aufgabe hinzufügen
+      </button>
+    </footer>
+  }
+</section>

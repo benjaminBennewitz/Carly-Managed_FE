@@ -1,35 +1,162 @@
 <!-- src/app/features/projects/pages/projects-page/projects-page.component.html -->
 
 <section class="projects-page">
-  <cm-page-header
-    eyebrow="Arbeitsbereiche"
-    title="Projekte"
-    description="Gemeinsame Boards, Mitglieder und Aufgaben nach Projekt organisiert."
-  />
-
-  <div class="projects-page__grid">
-    <article class="projects-page__project">
-      <header>
-        <span class="material-symbols-outlined" aria-hidden="true">folder_open</span>
-        <span class="projects-page__status">Aktiv</span>
-      </header>
-
-      <div>
-        <span>PROJEKT 01</span>
-        <h2>Carly Managed</h2>
-        <p>Produktentwicklung, Designsystem und kollaborative Workflows.</p>
-      </div>
-
-      <dl>
-        <div>
-          <dt>Boards</dt>
-          <dd>02</dd>
-        </div>
-        <div>
-          <dt>Mitglieder</dt>
-          <dd>01</dd>
-        </div>
-      </dl>
+  <section class="projects-kpis" aria-label="Projektmetriken">
+    <article class="project-kpi-card">
+      <span>Gesamt</span>
+      <strong>{{ projects().length }}</strong>
+      <small>Alle offenen Projekte</small>
     </article>
-  </div>
+
+    <article class="project-kpi-card">
+      <span>Mitwirkung</span>
+      <strong>{{ collaborativeProjects().length }}</strong>
+      <small>Projekte mit mir</small>
+    </article>
+
+    <article class="project-kpi-card project-kpi-card--wide">
+      <span>Zuletzt geöffnet</span>
+      @if (lastOpenedProject(); as lastProject) {
+        <strong>{{ lastProject.name }}</strong>
+        <small>{{ formatDate(lastProject.lastOpenedAt, true) }}</small>
+      } @else {
+        <strong>—</strong>
+        <small>Noch kein Projekt geöffnet</small>
+      }
+    </article>
+
+    <article class="project-kpi-card">
+      <span>Meine offenen Projekte</span>
+      <strong>{{ myOpenProjects().length }}</strong>
+      <small>Mit offenen Aufgaben</small>
+    </article>
+
+    <article class="project-kpi-card project-kpi-card--action">
+      <button type="button" (click)="createProject()">
+        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+        <span>Projekt anlegen</span>
+      </button>
+    </article>
+  </section>
+
+  <section class="projects-content" aria-label="Projektkarten">
+    <div class="projects-grid">
+      @for (project of projects(); track project.id) {
+        <article
+          class="project-card {{ getDueStateClass(project.dueState) }}"
+        >
+          <div class="project-card__top">
+            <div class="project-card__title-wrap">
+              <div class="project-card__slug-row">
+                <span
+                  class="project-card__icon material-symbols-outlined"
+                  [style.color]="project.color"
+                  aria-hidden="true"
+                >{{ project.icon }}</span>
+                <span class="project-card__slug">{{ project.slugLabel }}</span>
+              </div>
+              <h2>{{ project.name }}</h2>
+            </div>
+
+            <button
+              class="project-card__pin"
+              [class.project-card__pin--active]="project.isPinned"
+              type="button"
+              [attr.aria-label]="project.isPinned ? 'Projekt entpinnen' : 'Projekt pinnen'"
+              (click)="togglePinned($event, project)"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">
+                {{ project.isPinned ? 'keep' : 'keep_off' }}
+              </span>
+            </button>
+          </div>
+
+          <p class="project-card__description">{{ project.description }}</p>
+
+          <div class="project-card__chips">
+            <span class="project-chip project-chip--due">{{ project.dueSummary }}</span>
+            <span class="project-chip">{{ workspaceService.getColumnCount(project.id) }} Spalten</span>
+            <span class="project-chip">{{ workspaceService.getOpenTaskCount(project.id) }} offen</span>
+            <span class="project-chip project-chip--accent">Mitwirkung</span>
+          </div>
+
+          <div class="project-card__due-hint">
+            <span>
+              <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+              {{ getScheduleLabel(project) }}
+            </span>
+            <span>
+              <span class="material-symbols-outlined" aria-hidden="true">assignment</span>
+              {{ workspaceService.getOpenTaskCount(project.id) }} offene Pakete
+            </span>
+          </div>
+
+          <div class="project-card__summary-grid">
+            <div>
+              <span>Verantwortlich</span>
+              <strong>{{ project.owner.fullName }}</strong>
+            </div>
+            <div>
+              <span>Zeitraum</span>
+              <strong>{{ getScheduleLabel(project) }}</strong>
+            </div>
+          </div>
+
+          <div class="project-card__stats">
+            <article>
+              <span>Aufgaben gesamt</span>
+              <strong>{{ workspaceService.getTaskCount(project.id) }}</strong>
+            </article>
+            <article class="project-card__stat-warning">
+              <span>Überfällige Aufgaben</span>
+              <strong>{{ workspaceService.getOverdueTaskCount(project.id) }}</strong>
+            </article>
+          </div>
+
+          <div class="project-card__members">
+            <div>
+              <span class="project-card__section-title">Admins</span>
+              <div class="project-member-list">
+                @for (member of project.managers.slice(0, 4); track member.id) {
+                  <span
+                    class="project-member-avatar"
+                    [class.project-member-avatar--owner]="member.role === 'owner'"
+                    [style.background]="member.avatarColor"
+                    [style.color]="member.avatarTextColor"
+                    [attr.title]="member.fullName"
+                  >{{ member.initials }}</span>
+                }
+              </div>
+            </div>
+
+            <div>
+              <span class="project-card__section-title">Mitwirkende</span>
+              <div class="project-member-list">
+                @for (member of project.collaborators.slice(0, 4); track member.id) {
+                  <span
+                    class="project-member-avatar"
+                    [style.background]="member.avatarColor"
+                    [style.color]="member.avatarTextColor"
+                    [attr.title]="member.fullName"
+                  >{{ member.initials }}</span>
+                }
+                @if (project.collaborators.length > 4) {
+                  <span class="project-member-avatar project-member-avatar--more">
+                    +{{ project.collaborators.length - 4 }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <footer class="project-card__foot">
+            <small>Aktualisiert {{ formatDate(project.updatedAt, true) }}</small>
+            <button type="button" (click)="openProject(project)">
+              Projekt anzeigen
+            </button>
+          </footer>
+        </article>
+      }
+    </div>
+  </section>
 </section>

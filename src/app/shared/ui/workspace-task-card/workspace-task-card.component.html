@@ -1,0 +1,114 @@
+<!-- src/app/shared/ui/workspace-task-card/workspace-task-card.component.html -->
+
+<div
+  class="workspace-task-card"
+  [class.workspace-task-card--done]="task().isDone"
+  [class.workspace-task-card--overdue]="isOverdue()"
+>
+  <div class="workspace-task-card__head">
+    <h4 [class.workspace-task-card__title--done]="task().isDone">
+      {{ task().title }}
+    </h4>
+
+    <div class="workspace-task-card__head-right">
+      <button
+        class="workspace-task-card__complete"
+        [class.workspace-task-card__complete--done]="task().isDone"
+        type="button"
+        [disabled]="!canToggleComplete()"
+        [attr.aria-label]="task().isDone ? 'Aufgabe wieder öffnen' : 'Aufgabe abschließen'"
+        [attr.title]="task().isDone ? 'Aufgabe wieder öffnen' : 'Aufgabe abschließen'"
+        (click)="toggleComplete($event)"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">check</span>
+      </button>
+
+      <span
+        class="workspace-task-card__avatar"
+        [style.--task-avatar-color]="task().assignee?.avatarColor || 'var(--color-surface-secondary)'"
+        [style.--task-avatar-text-color]="task().assignee?.avatarTextColor || 'var(--color-text-muted)'"
+        [attr.title]="task().assignee?.fullName || 'Nicht zugewiesen'"
+      >
+        {{ task().assignee?.initials || '—' }}
+      </span>
+
+      <span
+        class="workspace-task-card__priority"
+        [class.workspace-task-card__priority--high]="task().priority === 'hoch'"
+        [class.workspace-task-card__priority--medium]="task().priority === 'mittel'"
+        [class.workspace-task-card__priority--low]="task().priority === 'niedrig'"
+      >
+        {{ task().priority }}
+      </span>
+    </div>
+  </div>
+
+  @if (showProjectContext() && task().projectTitle) {
+    <div class="workspace-task-card__context" [attr.title]="task().projectTitle">
+      <span class="material-symbols-outlined" aria-hidden="true">folder_open</span>
+      <span>{{ task().projectTitle }}</span>
+    </div>
+  }
+
+  @if (isOnDemandReady()) {
+    <div class="workspace-task-card__context workspace-task-card__context--on-demand">
+      <span class="material-symbols-outlined" aria-hidden="true">assignment_ind</span>
+      <span>Bereit zur Vergabe</span>
+    </div>
+  }
+
+  @if (task().isSharedPool) {
+    <div class="workspace-task-card__context workspace-task-card__context--pool">
+      <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+      <span>Im Pool freigegeben</span>
+    </div>
+  }
+
+  @if (task().tags.length > 0) {
+    <div class="workspace-task-card__tags" aria-label="Labels">
+      @for (tag of task().tags; track tag) {
+        <span>{{ tag }}</span>
+      }
+    </div>
+  }
+
+  <div class="workspace-task-card__meta">
+    <span
+      class="workspace-task-card__date"
+      [class.workspace-task-card__date--today]="isDueToday()"
+      [class.workspace-task-card__date--overdue]="isOverdue()"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">event</span>
+      <span>{{ scheduleLabel() }}</span>
+    </span>
+
+    <div class="workspace-task-card__counters" aria-label="Aufgabenkennzahlen">
+      @if (task().isRecurring) {
+        <span [attr.title]="task().recurrenceLabel || 'Wiederholung'">
+          <span class="material-symbols-outlined" aria-hidden="true">repeat</span>
+        </span>
+      }
+
+      @if (task().subtaskCount > 0) {
+        <span [attr.title]="task().subtaskCount + ' Unteraufgaben'">
+          <span class="material-symbols-outlined" aria-hidden="true">checklist</span>
+          {{ task().subtaskCount }}
+        </span>
+      }
+
+      @if (task().commentCount > 0) {
+        <span [attr.title]="task().commentCount + ' Kommentare'">
+          <span class="material-symbols-outlined" aria-hidden="true">comment</span>
+          {{ task().commentCount }}
+        </span>
+      }
+
+      @if (task().attachmentCount > 0) {
+        <span [attr.title]="task().attachmentCount + ' Anhänge'">
+          <span class="material-symbols-outlined" aria-hidden="true">attach_file</span>
+          {{ task().attachmentCount }}
+        </span>
+      }
+    </div>
+  </div>
+</div>

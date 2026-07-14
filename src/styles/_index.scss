@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/_index.scss
    Projekt: Carly Managed
-   Version: 1.4.0
+   Version: 1.5.0
    Beschreibung: Bündelt die globalen Designsystem-Dateien.
 
    Inhaltsverzeichnis:
@@ -14,7 +14,8 @@
    7. Seitenübergänge
    8. Authentifizierungslinks
    9. Rechtliche Seiten
-   10. Barrierefreiheit
+   10. Workspace-Komponenten
+   11. Barrierefreiheit
    ========================================================================== */
 
 @use 'settings/design-tokens';
@@ -28,4 +29,8 @@
 @use 'components/legal-layout';
 @use 'components/legal-imprint';
 @use 'components/legal-privacy';
+@use 'components/workspace-task-card';
+@use 'components/workspace-projects';
+@use 'components/workspace-board';
+@use 'components/workspace-archive';
 @use 'base/accessibility';
