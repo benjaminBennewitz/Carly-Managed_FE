@@ -33,15 +33,20 @@
   <div class="topbar__actions">
     <button
       class="topbar__theme"
+      [class.topbar__theme--dark]="themeService.mode() === 'dark'"
       type="button"
       [attr.aria-label]="'Darstellung wechseln. Aktuell ' + themeService.label()"
       [attr.aria-pressed]="themeService.mode() === 'dark'"
       (click)="themeService.toggleMode()"
     >
-      <span class="material-symbols-outlined" aria-hidden="true">
-        {{ themeService.modeIcon() }}
+      <span class="topbar__theme-switch" aria-hidden="true">
+        <span class="topbar__theme-thumb">
+          <span class="material-symbols-outlined">
+            {{ themeService.modeIcon() }}
+          </span>
+        </span>
       </span>
-      <span>{{ themeService.label() }}</span>
+      <span class="topbar__theme-label">{{ themeService.label() }}</span>
     </button>
 
     <a

@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/app/core/layout/primary-navigation/primary-navigation.component.scss
    Projekt: Carly Managed
-   Version: 2.0.0
+   Version: 2.1.0
    Beschreibung: Definiert die vollständig ein- und ausblendbare Sidebar.
 
    Inhaltsverzeichnis:
@@ -100,42 +100,6 @@
   gap: var(--space-4);
 }
 
-.primary-navigation__connection {
-  display: grid;
-  min-height: var(--size-control-lg);
-  padding: var(--space-3);
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-3);
-  border: var(--border-width-subtle) solid
-    color-mix(in srgb, var(--color-warning) 32%, var(--color-border-subtle));
-  border-radius: var(--radius-md);
-  background: var(--color-warning-surface);
-  color: var(--color-warning);
-}
-
-.primary-navigation__connection--online {
-  border-color:
-    color-mix(in srgb, var(--color-success) 32%, var(--color-border-subtle));
-  background: var(--color-success-surface);
-  color: var(--color-success);
-}
-
-.primary-navigation__connection > span:last-child {
-  display: grid;
-  min-width: 0;
-}
-
-.primary-navigation__connection small {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-100);
-}
-
-.primary-navigation__connection strong {
-  color: currentColor;
-  font-size: var(--font-size-300);
-}
-
 .primary-navigation__profile {
   display: grid;
   min-width: 0;
@@ -194,6 +158,29 @@
 .primary-navigation__logout:hover {
   background: var(--color-surface-hover);
   color: var(--color-text-primary);
+}
+
+.primary-navigation__connection {
+  display: inline-flex;
+  min-height: auto;
+  padding: var(--space-2) var(--space-1) 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-top: var(--border-width-subtle) solid var(--color-border-subtle);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+  opacity: 0.72;
+}
+
+.primary-navigation__connection .material-symbols-outlined {
+  color: var(--color-warning);
+  font-size: 0.95rem;
+}
+
+.primary-navigation__connection--online .material-symbols-outlined {
+  color: var(--color-success);
 }
 
 @media (max-width: 56rem) {

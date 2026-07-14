@@ -1,14 +1,15 @@
 /* ==========================================================================
    Datei: src/app/core/layout/topbar/topbar.component.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert die globale Topbar der geschützten Anwendung.
 
    Inhaltsverzeichnis:
    1. Topbar
    2. Marke und Datum
    3. Aktionen
-   4. Responsive Darstellung
+   4. Theme-Switch
+   5. Responsive Darstellung
    ========================================================================== */
 
 :host {
@@ -57,9 +58,9 @@
   color: var(--color-icon-secondary);
   text-decoration: none;
   transition:
-    border-color var(--motion-duration-fast) var(--motion-easing-standard),
-    background var(--motion-duration-fast) var(--motion-easing-standard),
-    color var(--motion-duration-fast) var(--motion-easing-standard),
+    border-color var(--motion-duration-normal) var(--motion-easing-standard),
+    background var(--motion-duration-normal) var(--motion-easing-standard),
+    color var(--motion-duration-normal) var(--motion-easing-standard),
     transform var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
@@ -122,9 +123,65 @@
 }
 
 .topbar__theme {
-  padding-inline: var(--space-3);
+  padding-inline: var(--space-2) var(--space-3);
   font-size: var(--font-size-200);
   font-weight: var(--font-weight-semibold);
+}
+
+.topbar__theme-switch {
+  position: relative;
+  display: inline-flex;
+  width: 3.35rem;
+  height: 1.75rem;
+  padding: 0.2rem;
+  align-items: center;
+  flex: 0 0 auto;
+  border: var(--border-width-subtle) solid
+    color-mix(in srgb, var(--color-action-primary) 25%, var(--color-border-subtle));
+  border-radius: var(--radius-round);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-accent-subtle) 76%, var(--color-surface-primary)),
+      color-mix(in srgb, var(--color-brand-soft) 72%, var(--color-surface-primary))
+    );
+  overflow: hidden;
+}
+
+.topbar__theme-thumb {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--color-surface-primary);
+  color: var(--color-action-primary);
+  box-shadow: var(--shadow-xs);
+  transform: translateX(0);
+  transition:
+    transform var(--motion-duration-slow) var(--motion-easing-emphasized),
+    background var(--motion-duration-normal) var(--motion-easing-standard),
+    color var(--motion-duration-normal) var(--motion-easing-standard);
+}
+
+.topbar__theme-thumb .material-symbols-outlined {
+  font-size: 0.9rem;
+  transition:
+    transform var(--motion-duration-slow) var(--motion-easing-emphasized);
+}
+
+.topbar__theme--dark .topbar__theme-thumb {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  transform: translateX(1.55rem);
+}
+
+.topbar__theme--dark .topbar__theme-thumb .material-symbols-outlined {
+  transform: rotate(180deg);
+}
+
+.topbar__theme-label {
+  white-space: nowrap;
 }
 
 .topbar__notifications--sidebar-closed {
@@ -160,7 +217,7 @@
     margin-left: var(--space-1);
   }
 
-  .topbar__theme span:last-child {
+  .topbar__theme-label {
     display: none;
   }
 }

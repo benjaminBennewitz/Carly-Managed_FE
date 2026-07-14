@@ -10,6 +10,16 @@ import {
 import { routes } from './app.routes';
 
 const AUTH_ROUTE_ORDER = ['login', 'register'];
+const APP_ROUTE_ORDER = [
+  'dashboard',
+  'projects',
+  'board',
+  'members',
+  'inbox',
+  'pool',
+  'carly',
+  'settings',
+];
 
 /**
  * Ermittelt den Pfad der tiefsten aktiven Route.
@@ -24,6 +34,22 @@ function getLeafRoutePath(snapshot: ActivatedRouteSnapshot): string {
   return currentSnapshot.routeConfig?.path ?? '';
 }
 
+/**
+ * Setzt eine temporäre Richtungsinformation für einen Seitenübergang.
+ */
+function setTransitionDirection(
+  attributeName: 'authTransitionDirection' | 'appTransitionDirection',
+  direction: 'forward' | 'backward',
+  transition: { finished: Promise<void> },
+): void {
+  const rootElement = document.documentElement;
+  rootElement.dataset[attributeName] = direction;
+
+  void transition.finished.finally(() => {
+    delete rootElement.dataset[attributeName];
+  });
+}
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -32,20 +58,39 @@ export const appConfig: ApplicationConfig = {
       withViewTransitions({
         skipInitialTransition: true,
         onViewTransitionCreated: ({ from, to, transition }) => {
-          const fromIndex = AUTH_ROUTE_ORDER.indexOf(getLeafRoutePath(from));
-          const toIndex = AUTH_ROUTE_ORDER.indexOf(getLeafRoutePath(to));
+          const fromPath = getLeafRoutePath(from);
+          const toPath = getLeafRoutePath(to);
 
-          if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) {
+          const fromAuthIndex = AUTH_ROUTE_ORDER.indexOf(fromPath);
+          const toAuthIndex = AUTH_ROUTE_ORDER.indexOf(toPath);
+
+          if (
+            fromAuthIndex >= 0 &&
+            toAuthIndex >= 0 &&
+            fromAuthIndex !== toAuthIndex
+          ) {
+            setTransitionDirection(
+              'authTransitionDirection',
+              toAuthIndex > fromAuthIndex ? 'forward' : 'backward',
+              transition,
+            );
             return;
           }
 
-          const rootElement = document.documentElement;
-          rootElement.dataset['authTransitionDirection'] =
-            toIndex > fromIndex ? 'forward' : 'backward';
+          const fromAppIndex = APP_ROUTE_ORDER.indexOf(fromPath);
+          const toAppIndex = APP_ROUTE_ORDER.indexOf(toPath);
 
-          void transition.finished.finally(() => {
-            delete rootElement.dataset['authTransitionDirection'];
-          });
+          if (
+            fromAppIndex >= 0 &&
+            toAppIndex >= 0 &&
+            fromAppIndex !== toAppIndex
+          ) {
+            setTransitionDirection(
+              'appTransitionDirection',
+              toAppIndex > fromAppIndex ? 'forward' : 'backward',
+              transition,
+            );
+          }
         },
       }),
     ),

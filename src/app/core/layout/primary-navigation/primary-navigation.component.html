@@ -24,21 +24,6 @@
   </nav>
 
   <div class="primary-navigation__footer">
-    <div
-      class="primary-navigation__connection"
-      [class.primary-navigation__connection--online]="connectivityService.isOnline()"
-      role="status"
-      aria-live="polite"
-    >
-      <span class="material-symbols-outlined" aria-hidden="true">
-        {{ connectivityService.icon() }}
-      </span>
-      <span>
-        <small>Netzwerkstatus</small>
-        <strong>{{ connectivityService.label() }}</strong>
-      </span>
-    </div>
-
     <div class="primary-navigation__profile">
       <span class="primary-navigation__avatar" aria-hidden="true">
         {{ sessionService.currentUser()?.displayName?.charAt(0) || 'C' }}
@@ -53,5 +38,18 @@
       <span class="material-symbols-outlined" aria-hidden="true">logout</span>
       <span>Abmelden</span>
     </button>
+
+    <div
+      class="primary-navigation__connection"
+      [class.primary-navigation__connection--online]="connectivityService.isOnline()"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="'Netzwerkstatus: ' + connectivityService.label()"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">
+        {{ connectivityService.icon() }}
+      </span>
+      <span>{{ connectivityService.label() }}</span>
+    </div>
   </div>
 </aside>

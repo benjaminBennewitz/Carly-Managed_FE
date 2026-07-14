@@ -6,6 +6,14 @@ import { computed, Inject, Injectable, signal } from '@angular/core';
 type ThemeMode = 'light' | 'dark';
 type ThemeName = 'default';
 
+interface ThemeViewTransition {
+  finished: Promise<void>;
+}
+
+interface OptionalViewTransitionDocument {
+  startViewTransition?: (updateCallback: () => void) => ThemeViewTransition;
+}
+
 const THEME_MODE_STORAGE_KEY = 'carly-managed-theme-mode';
 
 @Injectable({
@@ -34,10 +42,33 @@ export class ThemeService {
   }
 
   /**
-   * Wechselt zwischen hellem und dunklem Darstellungsmodus.
+   * Wechselt den Darstellungsmodus mit einem horizontalen Übergang.
    */
   toggleMode(): void {
-    this.setMode(this.modeState() === 'dark' ? 'light' : 'dark');
+    const nextMode = this.modeState() === 'dark' ? 'light' : 'dark';
+    const transitionDocument =
+      this.document as unknown as OptionalViewTransitionDocument;
+    const startViewTransition =
+      transitionDocument.startViewTransition?.bind(this.document);
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+
+    if (!startViewTransition || reduceMotion) {
+      this.setMode(nextMode);
+      return;
+    }
+
+    const rootElement = this.document.documentElement;
+    rootElement.dataset['themeTransitionDirection'] = nextMode;
+
+    const transition = startViewTransition(() => {
+      this.setMode(nextMode);
+    });
+
+    void transition.finished.finally(() => {
+      delete rootElement.dataset['themeTransitionDirection'];
+    });
   }
 
   /**

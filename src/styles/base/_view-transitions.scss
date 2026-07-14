@@ -1,16 +1,18 @@
 /* ==========================================================================
    Datei: src/styles/base/_view-transitions.scss
    Projekt: Carly Managed
-   Version: 1.1.0
-   Beschreibung: Definiert native Seitenübergänge für Auth- und Legal-Routen.
+   Version: 1.2.0
+   Beschreibung: Definiert native Übergänge für Auth-, Legal-, App- und Theme-Wechsel.
 
    Inhaltsverzeichnis:
    1. Benannte Übergangselemente
    2. Auth-Vorwärtsnavigation
    3. Auth-Rückwärtsnavigation
-   4. Legal-Übergänge
-   5. Schlüsselbilder
-   6. Reduzierte Bewegung
+   4. App-Routen
+   5. Legal-Übergänge
+   6. Theme-Wechsel
+   7. Schlüsselbilder
+   8. Reduzierte Bewegung
    ========================================================================== */
 
 .auth-card {
@@ -23,6 +25,7 @@
 }
 
 ::view-transition-group(auth-card),
+::view-transition-group(app-route),
 ::view-transition-group(legal-shell),
 ::view-transition-group(legal-document),
 ::view-transition-group(legal-title) {
@@ -44,6 +47,22 @@
 
 :root[data-auth-transition-direction='backward']::view-transition-new(auth-card) {
   animation: surface-enter-left var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+}
+
+::view-transition-old(app-route) {
+  animation: app-route-exit-left var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+}
+
+::view-transition-new(app-route) {
+  animation: app-route-enter-right var(--motion-duration-slow) var(--motion-easing-emphasized) both;
+}
+
+:root[data-app-transition-direction='backward']::view-transition-old(app-route) {
+  animation-name: app-route-exit-right;
+}
+
+:root[data-app-transition-direction='backward']::view-transition-new(app-route) {
+  animation-name: app-route-enter-left;
 }
 
 ::view-transition-old(legal-shell) {
@@ -78,6 +97,19 @@
   animation: title-enter var(--motion-duration-slow) var(--motion-easing-emphasized) both;
 }
 
+:root[data-theme-transition-direction='dark']::view-transition-old(root),
+:root[data-theme-transition-direction='light']::view-transition-old(root) {
+  animation: none;
+}
+
+:root[data-theme-transition-direction='dark']::view-transition-new(root) {
+  animation: theme-swipe-in-right 420ms var(--motion-easing-emphasized) both;
+}
+
+:root[data-theme-transition-direction='light']::view-transition-new(root) {
+  animation: theme-swipe-in-left 420ms var(--motion-easing-emphasized) both;
+}
+
 @keyframes surface-exit-left {
   to {
     opacity: 0;
@@ -103,6 +135,38 @@
   from {
     opacity: 0;
     transform: translateX(-1.5rem) scale(0.985);
+  }
+}
+
+@keyframes app-route-exit-left {
+  to {
+    opacity: 0;
+    transform: translateX(-1rem);
+    filter: blur(0.15rem);
+  }
+}
+
+@keyframes app-route-enter-right {
+  from {
+    opacity: 0;
+    transform: translateX(1.35rem);
+    filter: blur(0.15rem);
+  }
+}
+
+@keyframes app-route-exit-right {
+  to {
+    opacity: 0;
+    transform: translateX(1rem);
+    filter: blur(0.15rem);
+  }
+}
+
+@keyframes app-route-enter-left {
+  from {
+    opacity: 0;
+    transform: translateX(-1.35rem);
+    filter: blur(0.15rem);
   }
 }
 
@@ -134,34 +198,64 @@
   }
 }
 
+@keyframes theme-swipe-in-right {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes theme-swipe-in-left {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0);
+  }
+}
+
 :root[data-motion='reduced']::view-transition-group(auth-card),
+:root[data-motion='reduced']::view-transition-group(app-route),
 :root[data-motion='reduced']::view-transition-group(legal-shell),
 :root[data-motion='reduced']::view-transition-group(legal-document),
 :root[data-motion='reduced']::view-transition-group(legal-title),
 :root[data-motion='reduced']::view-transition-old(auth-card),
 :root[data-motion='reduced']::view-transition-new(auth-card),
+:root[data-motion='reduced']::view-transition-old(app-route),
+:root[data-motion='reduced']::view-transition-new(app-route),
 :root[data-motion='reduced']::view-transition-old(legal-shell),
 :root[data-motion='reduced']::view-transition-new(legal-shell),
 :root[data-motion='reduced']::view-transition-old(legal-document),
 :root[data-motion='reduced']::view-transition-new(legal-document),
 :root[data-motion='reduced']::view-transition-old(legal-title),
-:root[data-motion='reduced']::view-transition-new(legal-title) {
+:root[data-motion='reduced']::view-transition-new(legal-title),
+:root[data-motion='reduced']::view-transition-old(root),
+:root[data-motion='reduced']::view-transition-new(root) {
   animation-duration: 0.01ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(auth-card),
+  ::view-transition-group(app-route),
   ::view-transition-group(legal-shell),
   ::view-transition-group(legal-document),
   ::view-transition-group(legal-title),
   ::view-transition-old(auth-card),
   ::view-transition-new(auth-card),
+  ::view-transition-old(app-route),
+  ::view-transition-new(app-route),
   ::view-transition-old(legal-shell),
   ::view-transition-new(legal-shell),
   ::view-transition-old(legal-document),
   ::view-transition-new(legal-document),
   ::view-transition-old(legal-title),
-  ::view-transition-new(legal-title) {
+  ::view-transition-new(legal-title),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
     animation-duration: 0.01ms;
   }
 }
