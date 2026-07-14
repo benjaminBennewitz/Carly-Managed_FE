@@ -46,21 +46,14 @@ describe('WorkspacePreviewService', () => {
 
     expect(deletableColumn).toBeDefined();
 
-    const result = service.deleteColumn(
-      'portfolio-relaunch',
-      deletableColumn?.id ?? '',
-    );
+    const result = service.deleteColumn('portfolio-relaunch', deletableColumn?.id ?? '');
 
     expect(result.some((column) => column.id === deletableColumn?.id)).toBe(false);
     expect(service.getTaskCount('portfolio-relaunch')).toBe(before);
   });
   it('persistiert Spaltenreihenfolge und Farben im Browser-Speicher', () => {
     const columns = service.getBoard('carly-managed');
-    const reordered = [
-      { ...columns[1], color: '#B9546A' },
-      columns[0],
-      ...columns.slice(2),
-    ];
+    const reordered = [{ ...columns[1], color: '#B9546A' }, columns[0], ...columns.slice(2)];
 
     service.saveBoard('carly-managed', reordered);
     TestBed.resetTestingModule();
@@ -75,14 +68,8 @@ describe('WorkspacePreviewService', () => {
   it('verwaltet Unteraufgaben, Kommentare und Priorität lokal', () => {
     service.addSubtask('carly-managed', 'task-101', 'Sicherheit prüfen');
     service.addComment('carly-managed', 'task-101', 'Bitte vor dem Merge prüfen.');
-    const columns = service.updateTaskPriority(
-      'carly-managed',
-      'task-101',
-      'niedrig',
-    );
-    const task = columns
-      .flatMap((column) => column.tasks)
-      .find((item) => item.id === 'task-101');
+    const columns = service.updateTaskPriority('carly-managed', 'task-101', 'niedrig');
+    const task = columns.flatMap((column) => column.tasks).find((item) => item.id === 'task-101');
 
     expect(task?.subtasks.some((item) => item.title === 'Sicherheit prüfen')).toBe(true);
     expect(task?.comments.some((item) => item.body.includes('Merge'))).toBe(true);
@@ -98,13 +85,7 @@ describe('WorkspacePreviewService', () => {
     expect(source).toBeDefined();
     expect(target).toBeDefined();
 
-    service.moveTask(
-      'carly-managed',
-      'task-101',
-      source?.id ?? '',
-      target?.id ?? '',
-      0,
-    );
+    service.moveTask('carly-managed', 'task-101', source?.id ?? '', target?.id ?? '', 0);
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({});
@@ -112,12 +93,11 @@ describe('WorkspacePreviewService', () => {
     const restored = restoredService.getBoard('carly-managed');
 
     expect(
-      restored.find((column) => column.id === source?.id)?.tasks
-        .some((task) => task.id === 'task-101'),
+      restored
+        .find((column) => column.id === source?.id)
+        ?.tasks.some((task) => task.id === 'task-101'),
     ).toBe(false);
-    expect(
-      restored.find((column) => column.id === target?.id)?.tasks[0]?.id,
-    ).toBe('task-101');
+    expect(restored.find((column) => column.id === target?.id)?.tasks[0]?.id).toBe('task-101');
   });
 
   it('persistiert Sortierung und erlaubt das Umbenennen von Unteraufgaben', () => {
@@ -146,4 +126,27 @@ describe('WorkspacePreviewService', () => {
     expect(updatedTask?.subtasks.some((item) => item.title === 'Neuer Titel')).toBe(true);
   });
 
+  it('sperrt Inhaltsänderungen an erledigten Aufgaben bis zur Wiederöffnung', () => {
+    service.toggleTaskCompleted('carly-managed', 'task-101');
+    service.updateTaskPriority('carly-managed', 'task-101', 'niedrig');
+
+    const lockedTask = service
+      .getBoard('carly-managed')
+      .flatMap((column) => column.tasks)
+      .find((item) => item.id === 'task-101');
+
+    expect(lockedTask?.isDone).toBe(true);
+    expect(lockedTask?.priority).toBe('hoch');
+
+    service.toggleTaskCompleted('carly-managed', 'task-101');
+    service.updateTaskPriority('carly-managed', 'task-101', 'niedrig');
+
+    const reopenedTask = service
+      .getBoard('carly-managed')
+      .flatMap((column) => column.tasks)
+      .find((item) => item.id === 'task-101');
+
+    expect(reopenedTask?.isDone).toBe(false);
+    expect(reopenedTask?.priority).toBe('niedrig');
+  });
 });

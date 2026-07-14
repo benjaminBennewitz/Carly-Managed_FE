@@ -80,6 +80,8 @@ Carly-Managed_FE/
 │   │   │       ├── task-rules.spec.ts
 │   │   │       ├── task-rules.ts
 │   │   │       ├── workspace.models.ts
+│   │   │       ├── workspace-display-preferences.service.spec.ts
+│   │   │       ├── workspace-display-preferences.service.ts
 │   │   │       ├── workspace-preview.service.spec.ts
 │   │   │       └── workspace-preview.service.ts
 │   │   ├── features/

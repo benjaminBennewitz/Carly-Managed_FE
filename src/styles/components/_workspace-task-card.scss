@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_workspace-task-card.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert die wiederverwendbare Task-Karte.
 
    Inhaltsverzeichnis:
@@ -9,6 +9,7 @@
    2. Kopf
    3. Kontext und Tags
    4. Metadaten
+  5. Abschlusszustand
    ========================================================================== */
 
 .workspace-task-card {
@@ -24,17 +25,26 @@
   transition:
     border-color var(--motion-duration-fast) var(--motion-easing-standard),
     box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
+    opacity var(--motion-duration-normal) var(--motion-easing-standard),
     transform var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 .workspace-task-card:hover {
-  border-color: color-mix(in srgb, var(--board-accent, var(--color-action-primary)) 30%, var(--color-border-subtle));
+  border-color: color-mix(
+    in srgb,
+    var(--board-accent, var(--color-action-primary)) 30%,
+    var(--color-border-subtle)
+  );
   box-shadow: var(--shadow-sm);
   transform: translateY(-0.0625rem);
 }
 
 .workspace-task-card--done {
-  opacity: 0.72;
+  opacity: var(--completed-task-opacity, 0.85);
+}
+
+.workspace-task-card--done:hover {
+  opacity: min(1, calc(var(--completed-task-opacity, 0.85) + 0.08));
 }
 
 .workspace-task-card--overdue {

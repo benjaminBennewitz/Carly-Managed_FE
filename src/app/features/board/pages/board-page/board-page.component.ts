@@ -1,24 +1,11 @@
 // src/app/features/board/pages/board-page/board-page.component.ts
 
-import {
-  CdkDragDrop,
-  CdkDropList,
-  moveItemInArray,
-} from '@angular/cdk/drag-drop';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  DestroyRef,
-  signal,
-} from '@angular/core';
+import { CdkDragDrop, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import {
-  canReleaseTaskToPool,
-  isOnDemandReadyTask,
-} from '../../../../core/workspace/task-rules';
+import { canReleaseTaskToPool, isOnDemandReadyTask } from '../../../../core/workspace/task-rules';
 import {
   BoardViewMode,
   TaskPriority,
@@ -27,6 +14,7 @@ import {
   WorkspaceMember,
   WorkspaceTask,
 } from '../../../../core/workspace/workspace.models';
+import { WorkspaceDisplayPreferencesService } from '../../../../core/workspace/workspace-display-preferences.service';
 import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
 import { MemberSelectComponent } from '../../../../shared/ui/member-select/member-select.component';
 import {
@@ -53,12 +41,7 @@ const PRIORITY_OPTIONS: readonly SelectMenuOption[] = [
 
 const TASK_DRAWER_CLOSE_MS = 280;
 
-type TaskDrawerTab =
-  | 'details'
-  | 'subtasks'
-  | 'comments'
-  | 'attachments'
-  | 'history';
+type TaskDrawerTab = 'details' | 'subtasks' | 'comments' | 'attachments' | 'history';
 
 @Component({
   selector: 'cm-board-page',
@@ -73,9 +56,13 @@ type TaskDrawerTab =
   templateUrl: './board-page.component.html',
   styleUrl: './board-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[style.--completed-task-opacity]': 'displayPreferences.completedTaskOpacity()',
+  },
 })
 export class BoardPageComponent {
   protected readonly workspaceService: WorkspacePreviewService;
+  protected readonly displayPreferences: WorkspaceDisplayPreferencesService;
   protected readonly columnColorOptions = COLUMN_COLOR_OPTIONS;
   protected readonly priorityOptions = PRIORITY_OPTIONS;
 
@@ -97,34 +84,24 @@ export class BoardPageComponent {
   protected readonly activeUtilityPanel = signal<'rules' | 'recurrence' | null>(null);
 
   protected readonly project = computed(() =>
-    this.projectId() === 'personal'
-      ? null
-      : this.workspaceService.getProject(this.projectId()),
+    this.projectId() === 'personal' ? null : this.workspaceService.getProject(this.projectId()),
   );
-  protected readonly title = computed(() =>
-    this.project()?.name ?? 'Mein Board',
-  );
+  protected readonly title = computed(() => this.project()?.name ?? 'Mein Board');
   protected readonly subtitle = computed(() =>
-    this.project()
-      ? ''
-      : 'Persönliche Aufgaben und direkt zugewiesene Projektarbeit.',
+    this.project() ? '' : 'Persönliche Aufgaben und direkt zugewiesene Projektarbeit.',
   );
-  protected readonly isReadOnly = computed(() =>
-    !!this.project() && this.project()?.status !== 'active',
+  protected readonly isReadOnly = computed(
+    () => !!this.project() && this.project()?.status !== 'active',
+  );
+  protected readonly taskEditingDisabled = computed(
+    () => this.isReadOnly() || this.selectedTask()?.isDone === true,
   );
   protected readonly taskCount = computed(() =>
-    this.columns().reduce(
-      (count, column) => count + column.tasks.length,
-      0,
-    ),
+    this.columns().reduce((count, column) => count + column.tasks.length, 0),
   );
-  protected readonly dropListIds = computed(() =>
-    this.columns().map((column) => column.id),
-  );
+  protected readonly dropListIds = computed(() => this.columns().map((column) => column.id));
   protected readonly listRows = computed(() =>
-    this.columns().flatMap((column) =>
-      column.tasks.map((task) => ({ column, task })),
-    ),
+    this.columns().flatMap((column) => column.tasks.map((task) => ({ column, task }))),
   );
   protected readonly scheduleLabel = computed(() => {
     const project = this.project();
@@ -141,9 +118,9 @@ export class BoardPageComponent {
       return this.workspaceService.members();
     }
 
-    return this.workspaceService.members().filter(
-      (member) => !task.collaborators.some((item) => item.id === member.id),
-    );
+    return this.workspaceService
+      .members()
+      .filter((member) => !task.collaborators.some((item) => item.id === member.id));
   });
   protected readonly mentionCandidates = computed(() => {
     const match = this.commentDraft().match(/(?:^|\s)@([^\s@]*)$/);
@@ -152,10 +129,13 @@ export class BoardPageComponent {
     }
 
     const query = (match[1] ?? '').toLocaleLowerCase('de');
-    return this.workspaceService.members().filter((member) =>
-      [member.fullName, member.email]
-        .some((value) => value.toLocaleLowerCase('de').includes(query)),
-    );
+    return this.workspaceService
+      .members()
+      .filter((member) =>
+        [member.fullName, member.email].some((value) =>
+          value.toLocaleLowerCase('de').includes(query),
+        ),
+      );
   });
 
   private closeTimerId: number | null = null;
@@ -163,9 +143,11 @@ export class BoardPageComponent {
   constructor(
     route: ActivatedRoute,
     workspaceService: WorkspacePreviewService,
+    displayPreferences: WorkspaceDisplayPreferencesService,
     destroyRef: DestroyRef,
   ) {
     this.workspaceService = workspaceService;
+    this.displayPreferences = displayPreferences;
 
     route.paramMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const projectId = params.get('projectId') ?? 'personal';
@@ -263,15 +245,13 @@ export class BoardPageComponent {
     if (this.isReadOnly()) {
       return;
     }
-    this.columns.set(
-      this.workspaceService.toggleTaskCompleted(this.projectId(), task.id),
-    );
+    this.columns.set(this.workspaceService.toggleTaskCompleted(this.projectId(), task.id));
     this.syncSelectedTask(task.id);
   }
 
   /** Gibt die geöffnete Hauptaufgabe in den Pool frei. */
   releaseSelectedTaskToPool(): void {
-    if (this.isReadOnly()) {
+    if (this.taskEditingDisabled()) {
       return;
     }
     const task = this.selectedTask();
@@ -279,9 +259,7 @@ export class BoardPageComponent {
       return;
     }
 
-    this.columns.set(
-      this.workspaceService.moveTaskToPool(this.projectId(), task.id),
-    );
+    this.columns.set(this.workspaceService.moveTaskToPool(this.projectId(), task.id));
     this.syncSelectedTask(task.id);
   }
 
@@ -290,14 +268,9 @@ export class BoardPageComponent {
     if (this.isReadOnly()) {
       return;
     }
-    const nextColumns = this.workspaceService.addTask(
-      this.projectId(),
-      columnId,
-    );
+    const nextColumns = this.workspaceService.addTask(this.projectId(), columnId);
     this.columns.set(nextColumns);
-    const createdTask = nextColumns
-      .find((column) => column.id === columnId)
-      ?.tasks[0];
+    const createdTask = nextColumns.find((column) => column.id === columnId)?.tasks[0];
 
     if (createdTask) {
       this.openTask(createdTask);
@@ -314,7 +287,9 @@ export class BoardPageComponent {
       {
         id: `column-${Date.now()}`,
         title: 'Neue Spalte',
-        color: COLUMN_COLOR_OPTIONS[this.columns().length % COLUMN_COLOR_OPTIONS.length]?.value ?? '#7752B3',
+        color:
+          COLUMN_COLOR_OPTIONS[this.columns().length % COLUMN_COLOR_OPTIONS.length]?.value ??
+          '#7752B3',
         tasks: [],
       },
     ];
@@ -327,11 +302,7 @@ export class BoardPageComponent {
       return;
     }
     this.columns.set(
-      this.workspaceService.renameColumn(
-        this.projectId(),
-        payload.columnId,
-        payload.title,
-      ),
+      this.workspaceService.renameColumn(this.projectId(), payload.columnId, payload.title),
     );
   }
 
@@ -340,9 +311,7 @@ export class BoardPageComponent {
     if (this.isReadOnly()) {
       return;
     }
-    this.columns.set(
-      this.workspaceService.deleteColumn(this.projectId(), columnId),
-    );
+    this.columns.set(this.workspaceService.deleteColumn(this.projectId(), columnId));
   }
 
   /** Speichert die ausgewählte Spaltenfarbe. */
@@ -351,28 +320,17 @@ export class BoardPageComponent {
       return;
     }
     this.columns.set(
-      this.workspaceService.updateColumnColor(
-        this.projectId(),
-        payload.columnId,
-        payload.color,
-      ),
+      this.workspaceService.updateColumnColor(this.projectId(), payload.columnId, payload.color),
     );
   }
 
   /** Sortiert eine Spalte und speichert den aktiven Modus. */
-  sortColumn(payload: {
-    columnId: string;
-    mode: WorkspaceColumnSortMode;
-  }): void {
+  sortColumn(payload: { columnId: string; mode: WorkspaceColumnSortMode }): void {
     if (this.isReadOnly()) {
       return;
     }
     this.columns.set(
-      this.workspaceService.sortColumn(
-        this.projectId(),
-        payload.columnId,
-        payload.mode,
-      ),
+      this.workspaceService.sortColumn(this.projectId(), payload.columnId, payload.mode),
     );
   }
 
@@ -380,7 +338,7 @@ export class BoardPageComponent {
   saveTaskTitle(): void {
     const task = this.selectedTask();
     const title = this.taskTitleDraft().trim();
-    if (!task || !title || title === task.title || this.isReadOnly()) {
+    if (!task || !title || title === task.title || this.taskEditingDisabled()) {
       this.taskTitleDraft.set(task?.title ?? '');
       return;
     }
@@ -400,7 +358,7 @@ export class BoardPageComponent {
   saveTaskDescription(): void {
     const task = this.selectedTask();
     const description = this.taskDescriptionDraft().trim();
-    if (!task || description === task.description || this.isReadOnly()) {
+    if (!task || description === task.description || this.taskEditingDisabled()) {
       return;
     }
     this.applyTaskColumns(
@@ -418,15 +376,11 @@ export class BoardPageComponent {
   /** Ändert die Priorität der geöffneten Aufgabe. */
   changeTaskPriority(priority: TaskPriority): void {
     const task = this.selectedTask();
-    if (!task || this.isReadOnly()) {
+    if (!task || this.taskEditingDisabled()) {
       return;
     }
     this.applyTaskColumns(
-      this.workspaceService.updateTaskPriority(
-        this.projectId(),
-        task.id,
-        priority,
-      ),
+      this.workspaceService.updateTaskPriority(this.projectId(), task.id, priority),
       task.id,
     );
   }
@@ -434,12 +388,10 @@ export class BoardPageComponent {
   /** Ändert die verantwortliche Person. */
   changeTaskAssignee(memberId: string): void {
     const task = this.selectedTask();
-    if (!task || this.isReadOnly()) {
+    if (!task || this.taskEditingDisabled()) {
       return;
     }
-    const member = this.workspaceService.members().find(
-      (item) => item.id === memberId,
-    ) ?? null;
+    const member = this.workspaceService.members().find((item) => item.id === memberId) ?? null;
     this.applyTaskColumns(
       this.workspaceService.updateTask(
         this.projectId(),
@@ -455,12 +407,12 @@ export class BoardPageComponent {
   /** Aktiviert oder entfernt das optionale Startdatum. */
   toggleTaskStartDate(enabled: boolean): void {
     const task = this.selectedTask();
-    if (!task || this.isReadOnly()) {
+    if (!task || this.taskEditingDisabled()) {
       return;
     }
 
     const nextStartDate = enabled
-      ? task.startDate ?? this.getDefaultStartDate(task.dueDate)
+      ? (task.startDate ?? this.getDefaultStartDate(task.dueDate))
       : null;
     this.applyTaskColumns(
       this.workspaceService.updateTask(
@@ -477,7 +429,7 @@ export class BoardPageComponent {
   /** Ändert das Startdatum der Aufgabe. */
   changeTaskStartDate(startDate: string): void {
     const task = this.selectedTask();
-    if (!task || this.isReadOnly()) {
+    if (!task || this.taskEditingDisabled()) {
       return;
     }
     const normalizedStartDate = startDate || null;
@@ -500,7 +452,7 @@ export class BoardPageComponent {
   /** Ändert das Fälligkeitsdatum. */
   changeTaskDueDate(dueDate: string): void {
     const task = this.selectedTask();
-    if (!task || this.isReadOnly()) {
+    if (!task || this.taskEditingDisabled()) {
       return;
     }
     this.applyTaskColumns(
@@ -509,9 +461,7 @@ export class BoardPageComponent {
         task.id,
         {
           startDate:
-            dueDate && task.startDate && dueDate < task.startDate
-              ? dueDate
-              : task.startDate,
+            dueDate && task.startDate && dueDate < task.startDate ? dueDate : task.startDate,
           dueDate: dueDate || null,
         },
         'Zeitraum geändert',
@@ -523,20 +473,14 @@ export class BoardPageComponent {
 
   /** Fügt eine ausgewählte Person als Mitwirkende hinzu. */
   addCollaborator(memberId: string): void {
-    const member = this.workspaceService.members().find(
-      (item) => item.id === memberId,
-    );
+    const member = this.workspaceService.members().find((item) => item.id === memberId);
     const task = this.selectedTask();
-    if (!member || !task || this.isReadOnly() || this.isCollaborator(task, member.id)) {
+    if (!member || !task || this.taskEditingDisabled() || this.isCollaborator(task, member.id)) {
       this.collaboratorSelection.set(null);
       return;
     }
     this.applyTaskColumns(
-      this.workspaceService.toggleTaskCollaborator(
-        this.projectId(),
-        task.id,
-        member.id,
-      ),
+      this.workspaceService.toggleTaskCollaborator(this.projectId(), task.id, member.id),
       task.id,
     );
     this.collaboratorSelection.set(null);
@@ -545,15 +489,11 @@ export class BoardPageComponent {
   /** Entfernt eine mitwirkende Person direkt aus dem Task. */
   removeCollaborator(member: WorkspaceMember): void {
     const task = this.selectedTask();
-    if (!task || this.isReadOnly() || !this.isCollaborator(task, member.id)) {
+    if (!task || this.taskEditingDisabled() || !this.isCollaborator(task, member.id)) {
       return;
     }
     this.applyTaskColumns(
-      this.workspaceService.toggleTaskCollaborator(
-        this.projectId(),
-        task.id,
-        member.id,
-      ),
+      this.workspaceService.toggleTaskCollaborator(this.projectId(), task.id, member.id),
       task.id,
     );
   }
@@ -561,15 +501,11 @@ export class BoardPageComponent {
   /** Fügt eine neue Unteraufgabe hinzu. */
   addSubtask(): void {
     const task = this.selectedTask();
-    if (!task || !this.subtaskDraft().trim() || this.isReadOnly()) {
+    if (!task || !this.subtaskDraft().trim() || this.taskEditingDisabled()) {
       return;
     }
     this.applyTaskColumns(
-      this.workspaceService.addSubtask(
-        this.projectId(),
-        task.id,
-        this.subtaskDraft(),
-      ),
+      this.workspaceService.addSubtask(this.projectId(), task.id, this.subtaskDraft()),
       task.id,
     );
     this.subtaskDraft.set('');
@@ -582,22 +518,18 @@ export class BoardPageComponent {
   /** Schaltet eine Unteraufgabe um. */
   toggleSubtask(subtaskId: string): void {
     const task = this.selectedTask();
-    if (!task || this.isReadOnly()) {
+    if (!task || this.taskEditingDisabled()) {
       return;
     }
     this.applyTaskColumns(
-      this.workspaceService.toggleSubtask(
-        this.projectId(),
-        task.id,
-        subtaskId,
-      ),
+      this.workspaceService.toggleSubtask(this.projectId(), task.id, subtaskId),
       task.id,
     );
   }
 
   /** Öffnet den Bearbeitungsmodus einer Unteraufgabe. */
   startSubtaskEdit(subtaskId: string, title: string): void {
-    if (this.isReadOnly()) {
+    if (this.taskEditingDisabled()) {
       return;
     }
     this.editingSubtaskId.set(subtaskId);
@@ -609,17 +541,12 @@ export class BoardPageComponent {
     const task = this.selectedTask();
     const subtaskId = this.editingSubtaskId();
     const title = this.subtaskEditDraft().trim();
-    if (!task || !subtaskId || !title || this.isReadOnly()) {
+    if (!task || !subtaskId || !title || this.taskEditingDisabled()) {
       this.cancelSubtaskEdit();
       return;
     }
     this.applyTaskColumns(
-      this.workspaceService.updateSubtask(
-        this.projectId(),
-        task.id,
-        subtaskId,
-        title,
-      ),
+      this.workspaceService.updateSubtask(this.projectId(), task.id, subtaskId, title),
       task.id,
     );
     this.cancelSubtaskEdit();
@@ -634,39 +561,33 @@ export class BoardPageComponent {
   /** Entfernt eine Unteraufgabe. */
   deleteSubtask(subtaskId: string): void {
     const task = this.selectedTask();
-    if (!task || this.isReadOnly()) {
+    if (!task || this.taskEditingDisabled()) {
       return;
     }
     this.applyTaskColumns(
-      this.workspaceService.deleteSubtask(
-        this.projectId(),
-        task.id,
-        subtaskId,
-      ),
+      this.workspaceService.deleteSubtask(this.projectId(), task.id, subtaskId),
       task.id,
     );
   }
 
   /** Ergänzt eine ausgewählte Person als Erwähnung im Kommentar. */
   insertMention(member: WorkspaceMember): void {
+    if (this.taskEditingDisabled()) {
+      return;
+    }
+
     const firstName = member.fullName.trim().split(/\s+/)[0] ?? member.fullName;
-    this.commentDraft.update((draft) =>
-      draft.replace(/@[^\s@]*$/, `@${firstName} `),
-    );
+    this.commentDraft.update((draft) => draft.replace(/@[^\s@]*$/, `@${firstName} `));
   }
 
   /** Fügt einen Kommentar hinzu. */
   addComment(): void {
     const task = this.selectedTask();
-    if (!task || !this.commentDraft().trim() || this.isReadOnly()) {
+    if (!task || !this.commentDraft().trim() || this.taskEditingDisabled()) {
       return;
     }
     this.applyTaskColumns(
-      this.workspaceService.addComment(
-        this.projectId(),
-        task.id,
-        this.commentDraft(),
-      ),
+      this.workspaceService.addComment(this.projectId(), task.id, this.commentDraft()),
       task.id,
     );
     this.commentDraft.set('');
@@ -675,15 +596,11 @@ export class BoardPageComponent {
   /** Entfernt einen Kommentar. */
   deleteComment(commentId: string): void {
     const task = this.selectedTask();
-    if (!task || this.isReadOnly()) {
+    if (!task || this.taskEditingDisabled()) {
       return;
     }
     this.applyTaskColumns(
-      this.workspaceService.deleteComment(
-        this.projectId(),
-        task.id,
-        commentId,
-      ),
+      this.workspaceService.deleteComment(this.projectId(), task.id, commentId),
       task.id,
     );
   }
@@ -698,7 +615,7 @@ export class BoardPageComponent {
   /** Aktiviert den visuellen Drag-Zustand des Uploadfelds. */
   handleAttachmentDrag(event: DragEvent, active: boolean): void {
     event.preventDefault();
-    if (!this.isReadOnly()) {
+    if (!this.taskEditingDisabled()) {
       this.attachmentDragActive.set(active);
     }
   }
@@ -713,7 +630,7 @@ export class BoardPageComponent {
   /** Speichert eine Liste ausgewählter Dateien als lokale Anhänge. */
   private addAttachmentFiles(files: File[]): void {
     const task = this.selectedTask();
-    if (!task || files.length === 0 || this.isReadOnly()) {
+    if (!task || files.length === 0 || this.taskEditingDisabled()) {
       return;
     }
     this.applyTaskColumns(
@@ -725,15 +642,11 @@ export class BoardPageComponent {
   /** Entfernt einen Anhang. */
   deleteAttachment(attachmentId: string): void {
     const task = this.selectedTask();
-    if (!task || this.isReadOnly()) {
+    if (!task || this.taskEditingDisabled()) {
       return;
     }
     this.applyTaskColumns(
-      this.workspaceService.deleteAttachment(
-        this.projectId(),
-        task.id,
-        attachmentId,
-      ),
+      this.workspaceService.deleteAttachment(this.projectId(), task.id, attachmentId),
       task.id,
     );
   }
@@ -743,22 +656,18 @@ export class BoardPageComponent {
     const task = this.selectedTask();
     if (
       !task ||
-      this.isReadOnly() ||
+      this.taskEditingDisabled() ||
       !window.confirm(`Aufgabe „${task.title}“ wirklich löschen?`)
     ) {
       return;
     }
-    this.columns.set(
-      this.workspaceService.deleteTask(this.projectId(), task.id),
-    );
+    this.columns.set(this.workspaceService.deleteTask(this.projectId(), task.id));
     this.closeTask();
   }
 
   /** Öffnet oder schließt einen Board-Hilfsbereich. */
   toggleUtilityPanel(panel: 'rules' | 'recurrence'): void {
-    this.activeUtilityPanel.update((activePanel) =>
-      activePanel === panel ? null : panel,
-    );
+    this.activeUtilityPanel.update((activePanel) => (activePanel === panel ? null : panel));
   }
 
   /** Liefert den sichtbaren Projektstatus. */
@@ -867,11 +776,8 @@ export class BoardPageComponent {
   private getDefaultStartDate(dueDate: string | null): string {
     const now = new Date();
     const timezoneOffset = now.getTimezoneOffset() * 60_000;
-    const today = new Date(now.getTime() - timezoneOffset)
-      .toISOString()
-      .slice(0, 10);
+    const today = new Date(now.getTime() - timezoneOffset).toISOString().slice(0, 10);
 
     return dueDate && dueDate < today ? dueDate : today;
   }
-
 }
