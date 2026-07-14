@@ -1,0 +1,103 @@
+/* ==========================================================================
+   Datei: src/app/features/projects/pages/projects-page/projects-page.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Definiert die erste Projektübersicht.
+
+   Inhaltsverzeichnis:
+   1. Seite
+   2. Projektkarte
+   ========================================================================== */
+
+.projects-page {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.projects-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-4);
+}
+
+.projects-page__project {
+  display: grid;
+  min-height: 18rem;
+  padding: var(--space-6);
+  align-content: space-between;
+  gap: var(--space-6);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      color-mix(in srgb, var(--color-brand-soft) 48%, transparent),
+      transparent 9rem
+    ),
+    var(--color-surface-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.projects-page__project header,
+.projects-page__project dl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.projects-page__project header > .material-symbols-outlined {
+  color: var(--color-action-primary);
+  font-size: 2rem;
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 32;
+}
+
+.projects-page__status {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-round);
+  background: var(--color-success-surface);
+  color: var(--color-success);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+}
+
+.projects-page__project > div > span {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  letter-spacing: var(--letter-spacing-label);
+}
+
+.projects-page__project h2 {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-700);
+}
+
+.projects-page__project p {
+  margin-top: var(--space-2);
+}
+
+.projects-page__project dl {
+  margin: 0;
+}
+
+.projects-page__project dl div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.projects-page__project dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+}
+
+.projects-page__project dd {
+  color: var(--color-text-primary);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-600);
+  font-weight: var(--font-weight-highlight-bold);
+}

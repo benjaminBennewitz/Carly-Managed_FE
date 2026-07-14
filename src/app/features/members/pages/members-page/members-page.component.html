@@ -1,0 +1,29 @@
+<!-- src/app/features/members/pages/members-page/members-page.component.html -->
+
+<section class="members-page">
+  <cm-page-header
+    eyebrow="Zusammenarbeit"
+    title="Mitglieder"
+    description="Personen, Rollen und Präsenz in deinen gemeinsamen Arbeitsbereichen."
+  />
+
+  <div class="members-page__list">
+    <article class="members-page__member">
+      <span class="members-page__avatar" aria-hidden="true">
+        {{ sessionService.currentUser()?.displayName?.charAt(0) || 'C' }}
+      </span>
+
+      <div class="members-page__identity">
+        <strong>{{ sessionService.currentUser()?.displayName }}</strong>
+        <span>{{ sessionService.currentUser()?.email }}</span>
+      </div>
+
+      <span class="members-page__role">Owner</span>
+
+      <span class="members-page__presence">
+        <span class="material-symbols-outlined" aria-hidden="true">circle</span>
+        Online
+      </span>
+    </article>
+  </div>
+</section>

@@ -75,11 +75,27 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'projects',
+        title: 'Projekte | Carly Managed',
+        loadComponent: () =>
+          import('./features/projects/pages/projects-page/projects-page.component').then(
+            (module) => module.ProjectsPageComponent,
+          ),
+      },
+      {
         path: 'board',
         title: 'Board | Carly Managed',
         loadComponent: () =>
           import('./features/board/pages/board-page/board-page.component').then(
             (module) => module.BoardPageComponent,
+          ),
+      },
+      {
+        path: 'members',
+        title: 'Mitglieder | Carly Managed',
+        loadComponent: () =>
+          import('./features/members/pages/members-page/members-page.component').then(
+            (module) => module.MembersPageComponent,
           ),
       },
       {

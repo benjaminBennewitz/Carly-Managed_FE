@@ -1,0 +1,60 @@
+<!-- src/app/core/layout/topbar/topbar.component.html -->
+
+<header class="topbar">
+  <div class="topbar__left">
+    <button
+      class="topbar__control topbar__menu"
+      type="button"
+      aria-controls="primary-navigation"
+      [attr.aria-expanded]="sidebarOpen()"
+      [attr.aria-label]="sidebarOpen() ? 'Navigation schließen' : 'Navigation öffnen'"
+      (click)="toggleSidebar()"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">
+        {{ sidebarOpen() ? 'menu_open' : 'menu' }}
+      </span>
+    </button>
+
+    <a class="topbar__brand" routerLink="/dashboard" aria-label="Carly Managed Dashboard">
+      <img
+        src="/assets/img/carly-managed-logo.svg"
+        alt=""
+        width="720"
+        height="180"
+      />
+    </a>
+
+    <div class="topbar__date" aria-label="Aktuelles Datum">
+      <strong>{{ weekday() }}</strong>
+      <span>{{ date() }}</span>
+    </div>
+  </div>
+
+  <div class="topbar__actions">
+    <button
+      class="topbar__theme"
+      type="button"
+      [attr.aria-label]="'Darstellung wechseln. Aktuell ' + themeService.label()"
+      [attr.aria-pressed]="themeService.mode() === 'dark'"
+      (click)="themeService.toggleMode()"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">
+        {{ themeService.modeIcon() }}
+      </span>
+      <span>{{ themeService.label() }}</span>
+    </button>
+
+    <a
+      class="topbar__control topbar__notifications"
+      [class.topbar__notifications--sidebar-closed]="!sidebarOpen()"
+      routerLink="/inbox"
+      routerLinkActive="topbar__control--active"
+      aria-label="Inbox und Benachrichtigungen öffnen"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+      @if (!sidebarOpen()) {
+        <span class="topbar__notification-indicator" aria-hidden="true"></span>
+      }
+    </a>
+  </div>
+</header>

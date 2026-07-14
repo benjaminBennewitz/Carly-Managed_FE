@@ -62,12 +62,20 @@ Carly-Managed_FE/
 │   │   │   │   │   ├── legal-layout.component.html
 │   │   │   │   │   ├── legal-layout.component.scss
 │   │   │   │   │   └── legal-layout.component.ts
-│   │   │   │   └── primary-navigation/
-│   │   │   │       ├── primary-navigation.component.html
-│   │   │   │       ├── primary-navigation.component.scss
-│   │   │   │       └── primary-navigation.component.ts
-│   │   │   └── legal/
-│   │   │       └── legal.config.ts
+│   │   │   │   ├── primary-navigation/
+│   │   │   │   │   ├── primary-navigation.component.html
+│   │   │   │   │   ├── primary-navigation.component.scss
+│   │   │   │   │   └── primary-navigation.component.ts
+│   │   │   │   └── topbar/
+│   │   │   │       ├── topbar.component.html
+│   │   │   │       ├── topbar.component.scss
+│   │   │   │       └── topbar.component.ts
+│   │   │   ├── legal/
+│   │   │   │   └── legal.config.ts
+│   │   │   ├── system/
+│   │   │   │   └── connectivity.service.ts
+│   │   │   └── theme/
+│   │   │       └── theme.service.ts
 │   │   ├── features/
 │   │   │   ├── auth/
 │   │   │   │   └── pages/
@@ -113,12 +121,24 @@ Carly-Managed_FE/
 │   │   │   │           ├── privacy-page.component.html
 │   │   │   │           ├── privacy-page.component.scss
 │   │   │   │           └── privacy-page.component.ts
+│   │   │   ├── members/
+│   │   │   │   └── pages/
+│   │   │   │       └── members-page/
+│   │   │   │           ├── members-page.component.html
+│   │   │   │           ├── members-page.component.scss
+│   │   │   │           └── members-page.component.ts
 │   │   │   ├── pool/
 │   │   │   │   └── pages/
 │   │   │   │       └── pool-page/
 │   │   │   │           ├── pool-page.component.html
 │   │   │   │           ├── pool-page.component.scss
 │   │   │   │           └── pool-page.component.ts
+│   │   │   ├── projects/
+│   │   │   │   └── pages/
+│   │   │   │       └── projects-page/
+│   │   │   │           ├── projects-page.component.html
+│   │   │   │           ├── projects-page.component.scss
+│   │   │   │           └── projects-page.component.ts
 │   │   │   └── settings/
 │   │   │       └── pages/
 │   │   │           └── settings-page/

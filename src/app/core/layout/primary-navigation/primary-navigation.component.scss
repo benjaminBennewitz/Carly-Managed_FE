@@ -1,14 +1,14 @@
 /* ==========================================================================
    Datei: src/app/core/layout/primary-navigation/primary-navigation.component.scss
    Projekt: Carly Managed
-   Version: 1.0.0
-   Beschreibung: Definiert die primäre Desktop- und Mobilnavigation.
+   Version: 2.0.0
+   Beschreibung: Definiert die vollständig ein- und ausblendbare Sidebar.
 
    Inhaltsverzeichnis:
    1. Sidebar
    2. Navigation
-   3. Nutzerbereich
-   4. Mobile Navigation
+   3. Status und Nutzer
+   4. Responsive Darstellung
    ========================================================================== */
 
 :host {
@@ -17,7 +17,11 @@
 
 .primary-navigation__sidebar {
   position: fixed;
-  inset: 0 auto 0 0;
+  inset:
+    var(--layout-topbar-height)
+    auto
+    0
+    0;
   z-index: var(--z-index-sticky);
   display: flex;
   width: var(--layout-sidebar-width);
@@ -25,23 +29,26 @@
   flex-direction: column;
   border-right: var(--border-width-subtle) solid var(--color-border-subtle);
   background: var(--color-surface-primary);
+  box-shadow: var(--shadow-sm);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transform: translateX(-102%);
+  visibility: hidden;
+  transition:
+    transform var(--motion-duration-slow) var(--motion-easing-emphasized),
+    visibility 0s linear var(--motion-duration-slow);
 }
 
-.primary-navigation__brand {
-  display: block;
-  width: 12.5rem;
-  max-width: 100%;
-  border-radius: var(--radius-md);
-}
-
-.primary-navigation__brand img {
-  width: 100%;
-  height: auto;
+.primary-navigation__sidebar--open {
+  transform: translateX(0);
+  visibility: visible;
+  transition:
+    transform var(--motion-duration-slow) var(--motion-easing-emphasized),
+    visibility 0s;
 }
 
 .primary-navigation__links {
   display: grid;
-  margin-top: var(--space-8);
   gap: var(--space-2);
 }
 
@@ -56,11 +63,16 @@
   font-size: var(--font-size-300);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
+  transition:
+    background var(--motion-duration-fast) var(--motion-easing-standard),
+    color var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 .primary-navigation__link:hover {
   background: var(--color-surface-hover);
   color: var(--color-text-primary);
+  transform: translateX(0.125rem);
 }
 
 .primary-navigation__link--active {
@@ -68,47 +80,60 @@
   color: var(--color-action-primary);
 }
 
-.primary-navigation__icon {
-  display: grid;
-  width: 1.5rem;
-  height: 1.5rem;
-  place-items: center;
+.primary-navigation__link .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: var(--color-icon-muted);
 }
 
-.primary-navigation__icon::before {
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-200);
-  font-weight: var(--font-weight-bold);
-}
-
-.primary-navigation__icon[data-icon='dashboard']::before {
-  content: '01';
-}
-
-.primary-navigation__icon[data-icon='board']::before {
-  content: '02';
-}
-
-.primary-navigation__icon[data-icon='inbox']::before {
-  content: '03';
-}
-
-.primary-navigation__icon[data-icon='pool']::before {
-  content: '04';
-}
-
-.primary-navigation__icon[data-icon='carly']::before {
-  content: '05';
-}
-
-.primary-navigation__icon[data-icon='settings']::before {
-  content: '06';
+.primary-navigation__link--active .material-symbols-outlined {
+  color: currentColor;
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 24;
 }
 
 .primary-navigation__footer {
   display: grid;
   margin-top: auto;
   gap: var(--space-4);
+}
+
+.primary-navigation__connection {
+  display: grid;
+  min-height: var(--size-control-lg);
+  padding: var(--space-3);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  border: var(--border-width-subtle) solid
+    color-mix(in srgb, var(--color-warning) 32%, var(--color-border-subtle));
+  border-radius: var(--radius-md);
+  background: var(--color-warning-surface);
+  color: var(--color-warning);
+}
+
+.primary-navigation__connection--online {
+  border-color:
+    color-mix(in srgb, var(--color-success) 32%, var(--color-border-subtle));
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+
+.primary-navigation__connection > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+
+.primary-navigation__connection small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+}
+
+.primary-navigation__connection strong {
+  color: currentColor;
+  font-size: var(--font-size-300);
 }
 
 .primary-navigation__profile {
@@ -153,7 +178,12 @@
 }
 
 .primary-navigation__logout {
+  display: flex;
   min-height: var(--size-control-md);
+  padding: var(--space-2) var(--space-3);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   border: var(--border-width-subtle) solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   background: transparent;
@@ -166,45 +196,8 @@
   color: var(--color-text-primary);
 }
 
-.primary-navigation__mobile {
-  display: none;
-}
-
 @media (max-width: 56rem) {
   .primary-navigation__sidebar {
-    display: none;
-  }
-
-  .primary-navigation__mobile {
-    position: fixed;
-    right: var(--space-3);
-    bottom: var(--space-3);
-    left: var(--space-3);
-    z-index: var(--z-index-sticky);
-    display: grid;
-    min-height: 4.5rem;
-    padding: var(--space-2);
-    grid-template-columns: repeat(5, 1fr);
-    gap: var(--space-1);
-    border: var(--border-width-subtle) solid var(--color-border-subtle);
-    border-radius: var(--radius-xl);
-    background: var(--color-surface-elevated);
-    box-shadow: var(--shadow-md);
-  }
-
-  .primary-navigation__mobile-link {
-    display: grid;
-    padding: var(--space-2);
-    place-items: center;
-    gap: var(--space-1);
-    border-radius: var(--radius-md);
-    color: var(--color-text-muted);
-    font-size: 0.65rem;
-    text-decoration: none;
-  }
-
-  .primary-navigation__mobile-link--active {
-    background: var(--color-brand-subtle);
-    color: var(--color-action-primary);
+    width: min(84vw, 20rem);
   }
 }

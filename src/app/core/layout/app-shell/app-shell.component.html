@@ -2,8 +2,28 @@
 
 <a class="skip-link" href="#main-content">Zum Hauptinhalt springen</a>
 
-<div class="app-shell">
-  <cm-primary-navigation />
+<div
+  class="app-shell"
+  [class.app-shell--sidebar-open]="sidebarOpen()"
+>
+  <cm-topbar
+    [sidebarOpen]="sidebarOpen()"
+    (sidebarToggle)="toggleSidebar()"
+  />
+
+  <cm-primary-navigation
+    [open]="sidebarOpen()"
+    (closeRequested)="closeSidebar()"
+  />
+
+  @if (sidebarOpen()) {
+    <button
+      class="app-shell__backdrop"
+      type="button"
+      aria-label="Navigation schließen"
+      (click)="closeSidebar()"
+    ></button>
+  }
 
   <div class="app-shell__workspace">
     <main id="main-content" class="app-shell__main" tabindex="-1">
