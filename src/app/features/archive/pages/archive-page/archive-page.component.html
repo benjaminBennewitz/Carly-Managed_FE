@@ -1,0 +1,161 @@
+<!-- src/app/features/archive/pages/archive-page/archive-page.component.html -->
+
+<section class="archive-page">
+  <section class="archive-column" aria-label="Archivierte Projekte">
+    <header class="archive-column__head">
+      <div>
+        <h1>Archivierte Projekte</h1>
+      </div>
+
+      <div class="archive-view-toggle" role="group" aria-label="Projektansicht">
+        <button
+          type="button"
+          [class.is-active]="projectViewMode() === 'list'"
+          [attr.aria-pressed]="projectViewMode() === 'list'"
+          aria-label="Listenansicht"
+          (click)="setProjectViewMode('list')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">view_list</span>
+        </button>
+        <button
+          type="button"
+          [class.is-active]="projectViewMode() === 'cards'"
+          [attr.aria-pressed]="projectViewMode() === 'cards'"
+          aria-label="Kartenansicht"
+          (click)="setProjectViewMode('cards')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
+        </button>
+        <span>{{ sortedProjects().length }}</span>
+      </div>
+    </header>
+
+    <div class="archive-column__body">
+      @if (projectViewMode() === 'cards') {
+        <div class="archive-card-list">
+          @for (project of sortedProjects(); track project.id) {
+            <article class="archive-card">
+              <div class="archive-card__top">
+                <div class="archive-card__title-row">
+                  <span class="archive-card__dot" [style.background]="project.color"></span>
+                  <div>
+                    <h2>{{ project.name }}</h2>
+                    <small>{{ project.routeKey }}</small>
+                  </div>
+                </div>
+                <div class="archive-tags">
+                  <span>Projekt</span>
+                  <span>Abgeschlossen</span>
+                </div>
+              </div>
+
+              <p>{{ project.description }}</p>
+
+              <div class="archive-people-boxes">
+                <div>
+                  <span>Verantwortlich</span>
+                  <strong>{{ project.owner.fullName }}</strong>
+                </div>
+                <div>
+                  <span>Mitwirkende</span>
+                  <strong>{{ project.collaborators.length + project.managers.length }}</strong>
+                </div>
+              </div>
+
+              <div class="archive-card__grid">
+                <div><span>Abgeschlossen</span><strong>{{ formatDate(project.completedAt, true) }}</strong></div>
+                <div><span>Aufgaben</span><strong>{{ workspaceService.getTaskCount(project.id) }}</strong></div>
+                <div><span>Spalten</span><strong>{{ workspaceService.getColumnCount(project.id) }}</strong></div>
+              </div>
+
+              <footer>
+                <small>Zuletzt geöffnet {{ formatDate(project.lastOpenedAt, true) }}</small>
+                <button type="button" (click)="openProject(project)">Projekt anzeigen</button>
+              </footer>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="archive-list">
+          @for (project of sortedProjects(); track project.id) {
+            <article class="archive-list-row" role="button" tabindex="0" (click)="openProject(project)" (keydown.enter)="openProject(project)">
+              <span class="archive-card__dot" [style.background]="project.color"></span>
+              <div><h2>{{ project.name }}</h2><small>{{ project.description }}</small></div>
+              <span>Abgeschlossen</span>
+              <strong>{{ formatDate(project.completedAt) }}</strong>
+            </article>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="archive-column" aria-label="Aufgabenverlauf">
+    <header class="archive-column__head">
+      <div>
+        <h1>Aufgabenverlauf</h1>
+      </div>
+
+      <div class="archive-view-toggle" role="group" aria-label="Aufgabenansicht">
+        <button
+          type="button"
+          [class.is-active]="taskViewMode() === 'list'"
+          [attr.aria-pressed]="taskViewMode() === 'list'"
+          aria-label="Listenansicht"
+          (click)="setTaskViewMode('list')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">view_list</span>
+        </button>
+        <button
+          type="button"
+          [class.is-active]="taskViewMode() === 'cards'"
+          [attr.aria-pressed]="taskViewMode() === 'cards'"
+          aria-label="Kartenansicht"
+          (click)="setTaskViewMode('cards')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
+        </button>
+        <button class="archive-view-toggle__sort" type="button" (click)="toggleTaskSort()">
+          <span class="material-symbols-outlined" aria-hidden="true">
+            {{ newestFirst() ? 'arrow_downward' : 'arrow_upward' }}
+          </span>
+          Erledigt
+        </button>
+        <span>{{ sortedTasks().length }}</span>
+      </div>
+    </header>
+
+    <div class="archive-column__body">
+      @if (taskViewMode() === 'cards') {
+        <div class="archive-task-grid">
+          @for (entry of sortedTasks(); track entry.task.id) {
+            <article class="archive-task-card">
+              <div class="archive-task-card__top">
+                <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+                <span>{{ entry.task.priority }}</span>
+              </div>
+              <h2>{{ getTaskTitle(entry) }}</h2>
+              <p>{{ entry.sourceLabel }}</p>
+              <div>
+                <span>{{ entry.task.subtaskCount }} Unteraufgaben</span>
+                <span>{{ entry.task.commentCount }} Kommentare</span>
+              </div>
+              <footer>Abgeschlossen {{ formatDate(entry.archivedAt, true) }}</footer>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="archive-list">
+          @for (entry of sortedTasks(); track entry.task.id) {
+            <article class="archive-list-row archive-list-row--task">
+              <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+              <div><h2>{{ entry.task.title }}</h2><small>{{ entry.sourceLabel }}</small></div>
+              <span>{{ entry.task.priority }}</span>
+              <strong>{{ formatDate(entry.archivedAt) }}</strong>
+            </article>
+          }
+        </div>
+      }
+    </div>
+  </section>
+</section>

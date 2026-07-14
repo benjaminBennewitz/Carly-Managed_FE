@@ -36,6 +36,7 @@ export class PrimaryNavigationComponent {
     { label: 'Mitglieder', route: '/members', icon: 'group' },
     { label: 'Inbox', route: '/inbox', icon: 'inbox' },
     { label: 'Pool', route: '/pool', icon: 'inventory_2' },
+    { label: 'Archiv', route: '/archive', icon: 'archive' },
     { label: 'Carly', route: '/carly', icon: 'pets' },
     { label: 'Einstellungen', route: '/settings', icon: 'settings' },
   ];

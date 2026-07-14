@@ -74,9 +74,21 @@ Carly-Managed_FE/
 │   │   │   │   └── legal.config.ts
 │   │   │   ├── system/
 │   │   │   │   └── connectivity.service.ts
-│   │   │   └── theme/
-│   │   │       └── theme.service.ts
+│   │   │   ├── theme/
+│   │   │   │   └── theme.service.ts
+│   │   │   └── workspace/
+│   │   │       ├── task-rules.spec.ts
+│   │   │       ├── task-rules.ts
+│   │   │       ├── workspace.models.ts
+│   │   │       ├── workspace-preview.service.spec.ts
+│   │   │       └── workspace-preview.service.ts
 │   │   ├── features/
+│   │   │   ├── archive/
+│   │   │   │   └── pages/
+│   │   │   │       └── archive-page/
+│   │   │   │           ├── archive-page.component.html
+│   │   │   │           ├── archive-page.component.scss
+│   │   │   │           └── archive-page.component.ts
 │   │   │   ├── auth/
 │   │   │   │   └── pages/
 │   │   │   │       ├── login-page/
@@ -88,6 +100,11 @@ Carly-Managed_FE/
 │   │   │   │           ├── register-page.component.scss
 │   │   │   │           └── register-page.component.ts
 │   │   │   ├── board/
+│   │   │   │   ├── components/
+│   │   │   │   │   └── board-column/
+│   │   │   │   │       ├── board-column.component.html
+│   │   │   │   │       ├── board-column.component.scss
+│   │   │   │   │       └── board-column.component.ts
 │   │   │   │   └── pages/
 │   │   │   │       └── board-page/
 │   │   │   │           ├── board-page.component.html
@@ -156,10 +173,14 @@ Carly-Managed_FE/
 │   │   │   │   │       ├── text-field.component.html
 │   │   │   │   │       ├── text-field.component.scss
 │   │   │   │   │       └── text-field.component.ts
-│   │   │   │   └── page-header/
-│   │   │   │       ├── page-header.component.html
-│   │   │   │       ├── page-header.component.scss
-│   │   │   │       └── page-header.component.ts
+│   │   │   │   ├── page-header/
+│   │   │   │   │   ├── page-header.component.html
+│   │   │   │   │   ├── page-header.component.scss
+│   │   │   │   │   └── page-header.component.ts
+│   │   │   │   └── workspace-task-card/
+│   │   │   │       ├── workspace-task-card.component.html
+│   │   │   │       ├── workspace-task-card.component.scss
+│   │   │   │       └── workspace-task-card.component.ts
 │   │   │   └── validation/
 │   │   │       ├── auth.validators.spec.ts
 │   │   │       └── auth.validators.ts
@@ -181,7 +202,11 @@ Carly-Managed_FE/
 │   │   │   ├── _auth-legal.scss
 │   │   │   ├── _legal-imprint.scss
 │   │   │   ├── _legal-layout.scss
-│   │   │   └── _legal-privacy.scss
+│   │   │   ├── _legal-privacy.scss
+│   │   │   ├── _workspace-archive.scss
+│   │   │   ├── _workspace-board.scss
+│   │   │   ├── _workspace-projects.scss
+│   │   │   └── _workspace-task-card.scss
 │   │   ├── settings/
 │   │   │   ├── _design-tokens.scss
 │   │   │   └── _themes.scss

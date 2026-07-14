@@ -1,0 +1,14 @@
+/* ==========================================================================
+   Datei: src/app/features/archive/pages/archive-page/archive-page.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Verankert die globale Archivdarstellung.
+
+   Inhaltsverzeichnis:
+   1. Host
+   ========================================================================== */
+
+:host {
+  display: block;
+  min-width: 0;
+}
