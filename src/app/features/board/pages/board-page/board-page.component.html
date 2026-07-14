@@ -161,7 +161,6 @@
             [column]="column"
             [connectedDropListIds]="dropListIds()"
             [colorOptions]="columnColorOptions"
-            [sortOptions]="columnSortOptions"
             [showProjectContext]="!project()"
             [readOnly]="isReadOnly()"
             (taskDrop)="dropTask($event)"
@@ -385,16 +384,37 @@
             (valueChange)="changeTaskAssignee($event)"
           />
 
-          <label class="task-date-field">
+          <div class="task-date-field task-date-field--optional">
             <span>Startdatum</span>
-            <input
-              type="date"
-              [disabled]="isReadOnly()"
-              [value]="task.startDate || ''"
-              [attr.max]="task.dueDate || null"
-              (change)="changeTaskStartDate($any($event.target).value)"
-            />
-          </label>
+
+            <label class="task-date-toggle">
+              <input
+                type="checkbox"
+                [disabled]="isReadOnly()"
+                [checked]="!!task.startDate"
+                (change)="toggleTaskStartDate($any($event.target).checked)"
+              />
+              <span class="task-date-toggle__control" aria-hidden="true">
+                <span class="material-symbols-outlined">check</span>
+              </span>
+              <span>Startdatum verwenden</span>
+            </label>
+
+            @if (task.startDate) {
+              <input
+                type="date"
+                [disabled]="isReadOnly()"
+                [value]="task.startDate"
+                [attr.max]="task.dueDate || null"
+                (change)="changeTaskStartDate($any($event.target).value)"
+              />
+            } @else {
+              <div class="task-date-field__empty">
+                <span class="material-symbols-outlined" aria-hidden="true">event_busy</span>
+                Kein Startdatum
+              </div>
+            }
+          </div>
 
           <label class="task-date-field">
             <span>Enddatum</span>

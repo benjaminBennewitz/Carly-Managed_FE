@@ -8,8 +8,9 @@ import {
   ElementRef,
   input,
   output,
-  signal,
 } from '@angular/core';
+
+import { DropdownCoordinatorService } from '../dropdown/dropdown-coordinator.service';
 
 export interface SelectMenuOption {
   value: string;
@@ -18,6 +19,8 @@ export interface SelectMenuOption {
   color?: string;
   description?: string;
 }
+
+let selectMenuInstanceId = 0;
 
 @Component({
   selector: 'cm-select-menu',
@@ -35,23 +38,28 @@ export class SelectMenuComponent {
   readonly active = input(false);
   readonly valueChange = output<string>();
 
-  protected readonly open = signal(false);
+  private readonly menuId = `select-menu-${++selectMenuInstanceId}`;
+
+  protected readonly open = computed(
+    () => this.dropdownCoordinator.activeId() === this.menuId,
+  );
   protected readonly selectedOption = computed(() =>
     this.options().find((option) => option.value === this.value()) ?? null,
   );
 
   constructor(
     private readonly elementRef: ElementRef<HTMLElement>,
+    private readonly dropdownCoordinator: DropdownCoordinatorService,
     destroyRef: DestroyRef,
   ) {
     const handlePointerDown = (event: PointerEvent): void => {
       if (!this.elementRef.nativeElement.contains(event.target as Node)) {
-        this.open.set(false);
+        this.dropdownCoordinator.close(this.menuId);
       }
     };
     const handleKeydown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
-        this.open.set(false);
+        this.dropdownCoordinator.close(this.menuId);
       }
     };
 
@@ -59,6 +67,7 @@ export class SelectMenuComponent {
     document.addEventListener('keydown', handleKeydown);
 
     destroyRef.onDestroy(() => {
+      this.dropdownCoordinator.close(this.menuId);
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('keydown', handleKeydown);
     });
@@ -67,7 +76,7 @@ export class SelectMenuComponent {
   /** Öffnet oder schließt die Optionsliste. */
   toggle(): void {
     if (!this.disabled()) {
-      this.open.update((isOpen) => !isOpen);
+      this.dropdownCoordinator.toggle(this.menuId);
     }
   }
 
@@ -78,6 +87,6 @@ export class SelectMenuComponent {
     }
 
     this.valueChange.emit(option.value);
-    this.open.set(false);
+    this.dropdownCoordinator.close(this.menuId);
   }
 }

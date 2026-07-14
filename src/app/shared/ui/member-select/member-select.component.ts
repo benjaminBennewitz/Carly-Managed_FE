@@ -8,10 +8,12 @@ import {
   ElementRef,
   input,
   output,
-  signal,
 } from '@angular/core';
 
 import { WorkspaceMember } from '../../../core/workspace/workspace.models';
+import { DropdownCoordinatorService } from '../dropdown/dropdown-coordinator.service';
+
+let memberSelectInstanceId = 0;
 
 @Component({
   selector: 'cm-member-select',
@@ -28,23 +30,28 @@ export class MemberSelectComponent {
   readonly placeholder = input('Person auswählen');
   readonly valueChange = output<string>();
 
-  protected readonly open = signal(false);
+  private readonly menuId = `member-select-${++memberSelectInstanceId}`;
+
+  protected readonly open = computed(
+    () => this.dropdownCoordinator.activeId() === this.menuId,
+  );
   protected readonly selectedMember = computed(() =>
     this.members().find((member) => member.id === this.value()) ?? null,
   );
 
   constructor(
     private readonly elementRef: ElementRef<HTMLElement>,
+    private readonly dropdownCoordinator: DropdownCoordinatorService,
     destroyRef: DestroyRef,
   ) {
     const handlePointerDown = (event: PointerEvent): void => {
       if (!this.elementRef.nativeElement.contains(event.target as Node)) {
-        this.open.set(false);
+        this.dropdownCoordinator.close(this.menuId);
       }
     };
     const handleKeydown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
-        this.open.set(false);
+        this.dropdownCoordinator.close(this.menuId);
       }
     };
 
@@ -52,6 +59,7 @@ export class MemberSelectComponent {
     document.addEventListener('keydown', handleKeydown);
 
     destroyRef.onDestroy(() => {
+      this.dropdownCoordinator.close(this.menuId);
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('keydown', handleKeydown);
     });
@@ -60,7 +68,7 @@ export class MemberSelectComponent {
   /** Öffnet oder schließt die Personenliste. */
   toggle(): void {
     if (!this.disabled()) {
-      this.open.update((isOpen) => !isOpen);
+      this.dropdownCoordinator.toggle(this.menuId);
     }
   }
 
@@ -71,7 +79,7 @@ export class MemberSelectComponent {
     }
 
     this.valueChange.emit(memberId);
-    this.open.set(false);
+    this.dropdownCoordinator.close(this.menuId);
   }
 
   /** Liefert den persönlichen Kurznamen einer Person. */

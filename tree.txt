@@ -164,6 +164,9 @@ Carly-Managed_FE/
 │   │   │               └── settings-page.component.ts
 │   │   ├── shared/
 │   │   │   ├── ui/
+│   │   │   │   ├── dropdown/
+│   │   │   │   │   ├── dropdown-coordinator.service.spec.ts
+│   │   │   │   │   └── dropdown-coordinator.service.ts
 │   │   │   │   ├── forms/
 │   │   │   │   │   ├── checkbox-field/
 │   │   │   │   │   │   ├── checkbox-field.component.html

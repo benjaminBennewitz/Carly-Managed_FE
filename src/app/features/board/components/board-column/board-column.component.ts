@@ -11,6 +11,8 @@ import {
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  DestroyRef,
   ElementRef,
   input,
   output,
@@ -23,10 +25,8 @@ import {
   WorkspaceColumnSortMode,
   WorkspaceTask,
 } from '../../../../core/workspace/workspace.models';
-import {
-  SelectMenuComponent,
-  SelectMenuOption,
-} from '../../../../shared/ui/select-menu/select-menu.component';
+import { DropdownCoordinatorService } from '../../../../shared/ui/dropdown/dropdown-coordinator.service';
+import { SelectMenuOption } from '../../../../shared/ui/select-menu/select-menu.component';
 import { WorkspaceTaskCardComponent } from '../../../../shared/ui/workspace-task-card/workspace-task-card.component';
 
 @Component({
@@ -37,7 +37,6 @@ import { WorkspaceTaskCardComponent } from '../../../../shared/ui/workspace-task
     CdkDragPlaceholder,
     CdkDragPreview,
     CdkDropList,
-    SelectMenuComponent,
     WorkspaceTaskCardComponent,
   ],
   templateUrl: './board-column.component.html',
@@ -48,7 +47,6 @@ export class BoardColumnComponent {
   readonly column = input.required<WorkspaceColumn>();
   readonly connectedDropListIds = input.required<string[]>();
   readonly colorOptions = input.required<readonly SelectMenuOption[]>();
-  readonly sortOptions = input.required<readonly SelectMenuOption[]>();
   readonly showProjectContext = input(false);
   readonly readOnly = input(false);
 
@@ -69,12 +67,56 @@ export class BoardColumnComponent {
 
   protected readonly isEditingTitle = signal(false);
   protected readonly draftTitle = signal('');
-  protected readonly actionMenuOpen = signal(false);
   protected readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
+  protected readonly toolbarMenuId = computed(
+    () => `column-toolbar-${this.column().id}`,
+  );
+  protected readonly colorMenuId = computed(
+    () => `column-color-${this.column().id}`,
+  );
+  protected readonly toolbarPinned = computed(() => {
+    const activeId = this.dropdownCoordinator.activeId();
+    return activeId === this.toolbarMenuId() || activeId === this.colorMenuId();
+  });
+  protected readonly colorPickerOpen = computed(
+    () => this.dropdownCoordinator.activeId() === this.colorMenuId(),
+  );
+
+  constructor(
+    private readonly elementRef: ElementRef<HTMLElement>,
+    private readonly dropdownCoordinator: DropdownCoordinatorService,
+    destroyRef: DestroyRef,
+  ) {
+    const handlePointerDown = (event: PointerEvent): void => {
+      if (
+        !this.elementRef.nativeElement.contains(event.target as Node) &&
+        this.isOwnMenuActive()
+      ) {
+        this.dropdownCoordinator.closeAll();
+      }
+    };
+    const handleKeydown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape' && this.isOwnMenuActive()) {
+        this.dropdownCoordinator.closeAll();
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeydown);
+
+    destroyRef.onDestroy(() => {
+      if (this.isOwnMenuActive()) {
+        this.dropdownCoordinator.closeAll();
+      }
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeydown);
+    });
+  }
 
   /** Öffnet die Inline-Bearbeitung des Spaltentitels. */
   startTitleEdit(event: MouseEvent): void {
     event.stopPropagation();
+    this.dropdownCoordinator.closeAll();
     this.draftTitle.set(this.column().title);
     this.isEditingTitle.set(true);
 
@@ -107,10 +149,28 @@ export class BoardColumnComponent {
     }
   }
 
-  /** Öffnet oder schließt das Aktionsmenü. */
+  /** Fixiert oder schließt die ausfahrbare Spaltenwerkzeugleiste. */
   toggleActions(event: MouseEvent): void {
     event.stopPropagation();
-    this.actionMenuOpen.update((open) => !open);
+
+    if (this.toolbarPinned()) {
+      this.dropdownCoordinator.closeAll();
+      return;
+    }
+
+    this.dropdownCoordinator.open(this.toolbarMenuId());
+  }
+
+  /** Öffnet oder schließt die eigene Farbauswahl. */
+  toggleColorPicker(event: MouseEvent): void {
+    event.stopPropagation();
+
+    if (this.colorPickerOpen()) {
+      this.dropdownCoordinator.closeAll();
+      return;
+    }
+
+    this.dropdownCoordinator.open(this.colorMenuId());
   }
 
   /** Leitet einen Task-Drop an die Boardseite weiter. */
@@ -118,18 +178,34 @@ export class BoardColumnComponent {
     this.taskDrop.emit(event);
   }
 
-  /** Übernimmt die ausgewählte Spaltenfarbe. */
-  changeColor(color: string): void {
+  /** Übernimmt eine ausgewählte Spaltenfarbe. */
+  selectColor(event: MouseEvent, color: string): void {
+    event.stopPropagation();
     this.colorChangeRequested.emit({
       columnId: this.column().id,
       color,
     });
+    this.dropdownCoordinator.closeAll();
   }
 
-  /** Übernimmt die ausgewählte Sortierung. */
-  changeSort(value: string): void {
-    const mode: WorkspaceColumnSortMode =
-      value === 'title' || value === 'date' ? value : null;
-    this.sortRequested.emit({ columnId: this.column().id, mode });
+  /** Aktiviert eine Sortierung oder setzt sie bei erneutem Klick zurück. */
+  toggleSort(event: MouseEvent, mode: Exclude<WorkspaceColumnSortMode, null>): void {
+    event.stopPropagation();
+    const nextMode = this.column().sortMode === mode ? null : mode;
+    this.sortRequested.emit({ columnId: this.column().id, mode: nextMode });
+    this.dropdownCoordinator.open(this.toolbarMenuId());
+  }
+
+  /** Fordert das Löschen der aktuellen Spalte an. */
+  requestDelete(event: MouseEvent): void {
+    event.stopPropagation();
+    this.dropdownCoordinator.closeAll();
+    this.deleteRequested.emit(this.column().id);
+  }
+
+  /** Prüft, ob ein Menü der aktuellen Spalte aktiv ist. */
+  private isOwnMenuActive(): boolean {
+    const activeId = this.dropdownCoordinator.activeId();
+    return activeId === this.toolbarMenuId() || activeId === this.colorMenuId();
   }
 }

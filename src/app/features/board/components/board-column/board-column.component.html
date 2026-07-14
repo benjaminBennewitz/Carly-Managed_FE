@@ -37,16 +37,6 @@
         }
         <h3 [attr.title]="column().title">{{ column().title }}</h3>
         <span class="board-column-ui__count">{{ column().tasks.length }}</span>
-        @if (column().sortMode) {
-          <span
-            class="board-column-ui__sort-indicator"
-            [attr.title]="column().sortMode === 'title' ? 'Nach Titel sortiert' : 'Nach Fälligkeit sortiert'"
-          >
-            <span class="material-symbols-outlined" aria-hidden="true">
-              {{ column().sortMode === 'title' ? 'sort_by_alpha' : 'event' }}
-            </span>
-          </span>
-        }
       </div>
     } @else {
       <div class="board-column-ui__title-edit">
@@ -66,58 +56,131 @@
     }
 
     @if (!readOnly()) {
-      <div class="board-column-ui__actions">
-        <button
-          class="board-column-ui__icon-button"
-          type="button"
-          aria-label="Spaltenaktionen öffnen"
-          [attr.aria-expanded]="actionMenuOpen()"
-          (click)="toggleActions($event)"
+      <div class="board-column-ui__actions" role="group" aria-label="Spaltenaktionen">
+        <div
+          class="board-column-ui__action-rail"
+          [class.is-open]="toolbarPinned()"
+          [class.has-active-sort]="!!column().sortMode"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
-        </button>
+          <button
+            class="board-column-ui__tool board-column-ui__tool--more"
+            type="button"
+            aria-label="Spaltenaktionen anzeigen"
+            title="Spaltenaktionen"
+            [attr.aria-expanded]="toolbarPinned()"
+            (click)="toggleActions($event)"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
+          </button>
 
-        @if (actionMenuOpen()) {
-          <div class="board-column-ui__action-menu">
-            <cm-select-menu
-              label="Sortierung"
-              [compact]="true"
-              [active]="!!column().sortMode"
-              [value]="column().sortMode || 'manual'"
-              [options]="sortOptions()"
-              (valueChange)="changeSort($event)"
-            />
-
-            <cm-select-menu
-              label="Spaltenfarbe"
-              [compact]="true"
-              [value]="column().color"
-              [options]="colorOptions()"
-              (valueChange)="changeColor($event)"
-            />
+          <div class="board-column-ui__action-items">
+            <button
+              class="board-column-ui__tool"
+              [class.is-active]="column().sortMode === 'title'"
+              type="button"
+              [attr.aria-pressed]="column().sortMode === 'title'"
+              [attr.aria-label]="column().sortMode === 'title' ? 'Manuelle Sortierung wiederherstellen' : 'Nach Titel sortieren'"
+              [attr.title]="column().sortMode === 'title' ? 'Titelsortierung aktiv · erneut klicken für manuell' : 'Nach Titel sortieren'"
+              (click)="toggleSort($event, 'title')"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">sort_by_alpha</span>
+            </button>
 
             <button
-              class="board-column-ui__menu-action"
+              class="board-column-ui__tool"
+              [class.is-active]="column().sortMode === 'date'"
               type="button"
-              (click)="startTitleEdit($event); actionMenuOpen.set(false)"
+              [attr.aria-pressed]="column().sortMode === 'date'"
+              [attr.aria-label]="column().sortMode === 'date' ? 'Manuelle Sortierung wiederherstellen' : 'Nach Fälligkeit sortieren'"
+              [attr.title]="column().sortMode === 'date' ? 'Datumssortierung aktiv · erneut klicken für manuell' : 'Nach Fälligkeit sortieren'"
+              (click)="toggleSort($event, 'date')"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">event</span>
+            </button>
+
+            <button
+              class="board-column-ui__tool board-column-ui__tool--color"
+              [class.is-active]="colorPickerOpen()"
+              type="button"
+              aria-label="Spaltenfarbe auswählen"
+              title="Spaltenfarbe"
+              [attr.aria-expanded]="colorPickerOpen()"
+              [attr.aria-controls]="colorMenuId()"
+              (click)="toggleColorPicker($event)"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">palette</span>
+            </button>
+
+            <button
+              class="board-column-ui__tool"
+              type="button"
+              aria-label="Spalte umbenennen"
+              title="Spalte umbenennen"
+              (click)="startTitleEdit($event)"
             >
               <span class="material-symbols-outlined" aria-hidden="true">edit</span>
-              Spalte umbenennen
             </button>
 
             @if (!column().isFixedPosition) {
               <button
-                class="board-column-ui__menu-action board-column-ui__menu-action--danger"
+                class="board-column-ui__tool board-column-ui__tool--danger"
                 type="button"
-                (click)="deleteRequested.emit(column().id); actionMenuOpen.set(false)"
+                aria-label="Spalte löschen"
+                title="Spalte löschen"
+                (click)="requestDelete($event)"
               >
                 <span class="material-symbols-outlined" aria-hidden="true">delete</span>
-                Spalte löschen
               </button>
             }
           </div>
-        }
+        </div>
       </div>
+
+      @if (colorPickerOpen()) {
+        <div
+          class="board-column-color-menu"
+          [id]="colorMenuId()"
+          role="listbox"
+          aria-label="Spaltenfarbe auswählen"
+          (click)="$event.stopPropagation()"
+        >
+          <header class="board-column-color-menu__head">
+            <div>
+              <span>Darstellung</span>
+              <strong>Spaltenfarbe</strong>
+            </div>
+            <span
+              class="board-column-color-menu__current"
+              [style.--column-color-current]="column().color"
+              aria-hidden="true"
+            ></span>
+          </header>
+
+          <div class="board-column-color-menu__options">
+            @for (option of colorOptions(); track option.value) {
+              <button
+                class="board-column-color-menu__option"
+                [class.is-selected]="option.value === column().color"
+                [style.--column-color-option]="option.color || option.value"
+                type="button"
+                role="option"
+                [attr.aria-selected]="option.value === column().color"
+                (click)="selectColor($event, option.value)"
+              >
+                <span
+                  class="board-column-color-menu__swatch"
+                  [style.--column-color-option]="option.color || option.value"
+                  aria-hidden="true"
+                ></span>
+                <span>{{ option.label }}</span>
+                @if (option.value === column().color) {
+                  <span class="material-symbols-outlined" aria-hidden="true">check</span>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      }
     }
   </header>
 

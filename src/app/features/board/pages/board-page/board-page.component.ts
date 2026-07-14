@@ -45,12 +45,6 @@ const COLUMN_COLOR_OPTIONS: readonly SelectMenuOption[] = [
   { value: '#8A8093', label: 'Graphit', color: '#8A8093' },
 ];
 
-const COLUMN_SORT_OPTIONS: readonly SelectMenuOption[] = [
-  { value: 'manual', label: 'Manuell', icon: 'drag_indicator' },
-  { value: 'title', label: 'Nach Titel', icon: 'sort_by_alpha' },
-  { value: 'date', label: 'Nach Fälligkeit', icon: 'event' },
-];
-
 const PRIORITY_OPTIONS: readonly SelectMenuOption[] = [
   { value: 'hoch', label: 'Hoch', icon: 'priority_high' },
   { value: 'mittel', label: 'Mittel', icon: 'drag_handle' },
@@ -83,7 +77,6 @@ type TaskDrawerTab =
 export class BoardPageComponent {
   protected readonly workspaceService: WorkspacePreviewService;
   protected readonly columnColorOptions = COLUMN_COLOR_OPTIONS;
-  protected readonly columnSortOptions = COLUMN_SORT_OPTIONS;
   protected readonly priorityOptions = PRIORITY_OPTIONS;
 
   protected readonly projectId = signal('personal');
@@ -454,6 +447,28 @@ export class BoardPageComponent {
         { assignee: member },
         member ? `${member.fullName} zugewiesen` : 'Zuweisung entfernt',
         'assignment_ind',
+      ),
+      task.id,
+    );
+  }
+
+  /** Aktiviert oder entfernt das optionale Startdatum. */
+  toggleTaskStartDate(enabled: boolean): void {
+    const task = this.selectedTask();
+    if (!task || this.isReadOnly()) {
+      return;
+    }
+
+    const nextStartDate = enabled
+      ? task.startDate ?? this.getDefaultStartDate(task.dueDate)
+      : null;
+    this.applyTaskColumns(
+      this.workspaceService.updateTask(
+        this.projectId(),
+        task.id,
+        { startDate: nextStartDate },
+        enabled ? 'Startdatum aktiviert' : 'Startdatum entfernt',
+        enabled ? 'date_range' : 'event_busy',
       ),
       task.id,
     );
@@ -848,4 +863,15 @@ export class BoardPageComponent {
     this.collaboratorSelection.set(null);
     this.attachmentDragActive.set(false);
   }
+  /** Ermittelt ein gültiges Standarddatum für einen neu aktivierten Zeitraum. */
+  private getDefaultStartDate(dueDate: string | null): string {
+    const now = new Date();
+    const timezoneOffset = now.getTimezoneOffset() * 60_000;
+    const today = new Date(now.getTime() - timezoneOffset)
+      .toISOString()
+      .slice(0, 10);
+
+    return dueDate && dueDate < today ? dueDate : today;
+  }
+
 }
