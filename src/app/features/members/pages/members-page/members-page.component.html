@@ -8,22 +8,34 @@
   />
 
   <div class="members-page__list">
-    <article class="members-page__member">
-      <span class="members-page__avatar" aria-hidden="true">
-        {{ sessionService.currentUser()?.displayName?.charAt(0) || 'C' }}
-      </span>
+    @for (member of workspaceService.members(); track member.id) {
+      <article
+        class="members-page__member"
+        [class.members-page__member--highlighted]="selectedMemberId() === member.id"
+      >
+        <span
+          class="members-page__avatar"
+          [style.background]="member.avatarColor"
+          [style.color]="member.avatarTextColor"
+          aria-hidden="true"
+          >{{ member.initials }}</span
+        >
 
-      <div class="members-page__identity">
-        <strong>{{ sessionService.currentUser()?.displayName }}</strong>
-        <span>{{ sessionService.currentUser()?.email }}</span>
-      </div>
+        <div class="members-page__identity">
+          <strong>{{ member.fullName }}</strong>
+          <span>{{ member.email }}</span>
+        </div>
 
-      <span class="members-page__role">Owner</span>
+        <span class="members-page__role">{{ getRoleLabel(member) }}</span>
 
-      <span class="members-page__presence">
-        <span class="material-symbols-outlined" aria-hidden="true">circle</span>
-        Online
-      </span>
-    </article>
+        <span
+          class="members-page__presence"
+          [class.members-page__presence--offline]="!member.isOnline"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">circle</span>
+          {{ member.isOnline ? 'Online' : 'Offline' }}
+        </span>
+      </article>
+    }
   </div>
 </section>

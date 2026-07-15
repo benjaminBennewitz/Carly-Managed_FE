@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/app/features/members/pages/members-page/members-page.component.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert die erste Mitgliederübersicht.
 
    Inhaltsverzeichnis:
@@ -34,6 +34,19 @@
     auto;
   align-items: center;
   gap: var(--space-4);
+  border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
+  transition:
+    background var(--motion-duration-normal) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-normal) var(--motion-easing-standard);
+}
+
+.members-page__member:last-child {
+  border-bottom: 0;
+}
+
+.members-page__member--highlighted {
+  background: var(--color-brand-subtle);
+  box-shadow: inset 0.2rem 0 0 var(--color-action-primary);
 }
 
 .members-page__avatar {
@@ -91,6 +104,11 @@
 .members-page__presence {
   background: var(--color-success-surface);
   color: var(--color-success);
+}
+
+.members-page__presence--offline {
+  background: var(--color-surface-secondary);
+  color: var(--color-text-muted);
 }
 
 .members-page__presence .material-symbols-outlined {

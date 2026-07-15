@@ -1,0 +1,111 @@
+<!-- src/app/core/layout/topbar/global-search/global-search.component.html -->
+
+<div class="global-search" [class.global-search--open]="open()">
+  <span class="global-search__icon material-symbols-outlined" aria-hidden="true">search</span>
+  <input
+    #searchInput
+    class="global-search__input"
+    type="search"
+    maxlength="80"
+    autocomplete="off"
+    autocapitalize="off"
+    spellcheck="false"
+    enterkeyhint="search"
+    placeholder="Tasks, Projekte, Personen durchsuchen"
+    aria-label="Globale Suche"
+    aria-autocomplete="list"
+    aria-controls="global-search-results"
+    [attr.aria-expanded]="open()"
+    [attr.aria-activedescendant]="
+      flatResults().length ? getResultDomId(flatResults()[activeResultIndex()]) : null
+    "
+    [value]="query()"
+    (focus)="openSearch()"
+    (input)="updateQuery($event)"
+    (keydown)="handleInputKeydown($event)"
+  />
+
+  @if (query()) {
+    <button
+      class="global-search__clear ui-close-button"
+      type="button"
+      aria-label="Suche leeren"
+      (click)="clearQuery()"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">close</span>
+    </button>
+  } @else {
+    <kbd class="global-search__shortcut" aria-hidden="true">Ctrl K</kbd>
+  }
+
+  @if (open()) {
+    <section
+      id="global-search-results"
+      class="global-search__panel"
+      role="listbox"
+      aria-label="Suchergebnisse nach Route"
+    >
+      @if (sanitizedQuery().length < 2) {
+        <div class="global-search__empty">
+          <span class="material-symbols-outlined" aria-hidden="true">manage_search</span>
+          <div>
+            <strong>Globale Suche</strong>
+            <p>Mindestens zwei Zeichen eingeben. Ergebnisse werden nach Zielroute gruppiert.</p>
+          </div>
+        </div>
+      } @else if (resultCount() === 0) {
+        <div class="global-search__empty">
+          <span class="material-symbols-outlined" aria-hidden="true">search_off</span>
+          <div>
+            <strong>Keine Treffer</strong>
+            <p>Für „{{ sanitizedQuery() }}“ wurden keine lokalen Inhalte gefunden.</p>
+          </div>
+        </div>
+      } @else {
+        <header class="global-search__summary">
+          <span>{{ resultCount() }} Treffer</span>
+          <small>↑ ↓ auswählen · Enter öffnen</small>
+        </header>
+
+        <div class="global-search__groups">
+          @for (group of groups(); track group.id) {
+            <section class="global-search__group" [attr.aria-label]="group.label">
+              <header>
+                <span class="material-symbols-outlined" aria-hidden="true">{{ group.icon }}</span>
+                <strong>{{ group.label }}</strong>
+                <span>{{ group.results.length }}</span>
+              </header>
+
+              <div>
+                @for (result of group.results; track result.id) {
+                  <button
+                    [id]="getResultDomId(result)"
+                    class="global-search__result"
+                    [class.global-search__result--active]="isActiveResult(result)"
+                    type="button"
+                    role="option"
+                    [attr.aria-selected]="isActiveResult(result)"
+                    (mouseenter)="activeResultIndex.set(flatResults().indexOf(result))"
+                    (click)="selectResult(result)"
+                  >
+                    <span
+                      class="global-search__result-icon material-symbols-outlined"
+                      aria-hidden="true"
+                    >
+                      {{ result.icon }}
+                    </span>
+                    <span class="global-search__result-copy">
+                      <strong>{{ result.title }}</strong>
+                      <small>{{ result.subtitle }}</small>
+                    </span>
+                    <span class="material-symbols-outlined" aria-hidden="true">north_east</span>
+                  </button>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

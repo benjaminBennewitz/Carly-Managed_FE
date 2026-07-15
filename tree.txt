@@ -67,11 +67,25 @@ Carly-Managed_FE/
 │   │   │   │   │   ├── primary-navigation.component.scss
 │   │   │   │   │   └── primary-navigation.component.ts
 │   │   │   │   └── topbar/
+│   │   │   │       ├── global-search/
+│   │   │   │       │   ├── global-search.component.html
+│   │   │   │       │   ├── global-search.component.scss
+│   │   │   │       │   └── global-search.component.ts
+│   │   │   │       ├── quick-actions/
+│   │   │   │       │   ├── quick-actions.component.html
+│   │   │   │       │   ├── quick-actions.component.scss
+│   │   │   │       │   └── quick-actions.component.ts
 │   │   │   │       ├── topbar.component.html
 │   │   │   │       ├── topbar.component.scss
 │   │   │   │       └── topbar.component.ts
 │   │   │   ├── legal/
 │   │   │   │   └── legal.config.ts
+│   │   │   ├── search/
+│   │   │   │   ├── global-search.models.ts
+│   │   │   │   ├── global-search.service.spec.ts
+│   │   │   │   └── global-search.service.ts
+│   │   │   ├── security/
+│   │   │   │   └── frontend-input.utils.ts
 │   │   │   ├── system/
 │   │   │   │   └── connectivity.service.ts
 │   │   │   ├── theme/
@@ -227,6 +241,7 @@ Carly-Managed_FE/
 │   │   │   ├── _legal-layout.scss
 │   │   │   ├── _legal-privacy.scss
 │   │   │   ├── _shell-navigation.scss
+│   │   │   ├── _shell-search-actions.scss
 │   │   │   ├── _workspace-archive.scss
 │   │   │   ├── _workspace-board.scss
 │   │   │   ├── _workspace-controls.scss

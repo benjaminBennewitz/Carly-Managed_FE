@@ -192,6 +192,32 @@ export interface WorkspaceProject {
   dueSummary: string;
 }
 
+export interface WorkspaceProjectCreatePayload {
+  name: string;
+  description: string;
+  dueAt: string;
+}
+
+export interface WorkspaceMemberInvitePayload {
+  fullName: string;
+  email: string;
+  projectId: string | null;
+}
+
+export interface WorkspaceMessage {
+  id: string;
+  recipient: WorkspaceMember;
+  subject: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface WorkspaceMessageCreatePayload {
+  recipientId: string;
+  subject: string;
+  body: string;
+}
+
 export interface ArchivedTaskEntry {
   task: WorkspaceTask;
   sourceLabel: string;

@@ -1,0 +1,15 @@
+/* ========================================================================== 
+   Datei: src/app/core/layout/topbar/global-search/global-search.component.scss
+   Projekt: Carly Managed
+   Version: 1.0.0
+   Beschreibung: Verankert die globale Suche in der Topbar.
+
+   Inhaltsverzeichnis:
+   1. Host
+   ========================================================================== */
+
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}

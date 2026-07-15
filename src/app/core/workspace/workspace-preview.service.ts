@@ -2,6 +2,10 @@
 
 import { computed, Injectable, signal } from '@angular/core';
 
+import {
+  normalizeMultilineInput,
+  normalizeSingleLineInput,
+} from '../security/frontend-input.utils';
 import { releaseTaskToPool } from './task-rules';
 import { WorkspaceAutomationService } from './workspace-automation.service';
 import {
@@ -14,7 +18,11 @@ import {
   WorkspaceComment,
   WorkspaceHistoryEntry,
   WorkspaceMember,
+  WorkspaceMemberInvitePayload,
+  WorkspaceMessage,
+  WorkspaceMessageCreatePayload,
   WorkspaceProject,
+  WorkspaceProjectCreatePayload,
   WorkspaceRecurrenceScheduleType,
   WorkspaceRecurrenceWeekday,
   WorkspaceSubtask,
@@ -26,6 +34,8 @@ import {
 const day = 86_400_000;
 const WORKSPACE_PROJECTS_STORAGE_KEY = 'carly-managed-preview-projects-v2';
 const WORKSPACE_BOARDS_STORAGE_KEY = 'carly-managed-preview-boards-v2';
+const WORKSPACE_MEMBERS_STORAGE_KEY = 'carly-managed-preview-members-v1';
+const WORKSPACE_MESSAGES_STORAGE_KEY = 'carly-managed-preview-messages-v1';
 const MAX_TASK_TITLE_LENGTH = 160;
 const MAX_TASK_DESCRIPTION_LENGTH = 5_000;
 const MAX_COMMENT_LENGTH = 2_000;
@@ -901,10 +911,39 @@ function loadStoredBoards(): Record<string, WorkspaceColumn[]> {
   }
 }
 
+function loadStoredMembers(): WorkspaceMember[] {
+  try {
+    const storedMembers = window.localStorage.getItem(WORKSPACE_MEMBERS_STORAGE_KEY);
+    if (!storedMembers) {
+      return MEMBERS.map((member) => ({ ...member }));
+    }
+
+    const parsedMembers = JSON.parse(storedMembers) as WorkspaceMember[];
+    const uniqueMembers = new Map<string, WorkspaceMember>();
+    [...MEMBERS, ...parsedMembers].forEach((member) => {
+      uniqueMembers.set(member.email.toLocaleLowerCase('de'), { ...member });
+    });
+    return [...uniqueMembers.values()];
+  } catch {
+    return MEMBERS.map((member) => ({ ...member }));
+  }
+}
+
+function loadStoredMessages(): WorkspaceMessage[] {
+  try {
+    const storedMessages = window.localStorage.getItem(WORKSPACE_MESSAGES_STORAGE_KEY);
+    return storedMessages ? (JSON.parse(storedMessages) as WorkspaceMessage[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class WorkspacePreviewService {
   private readonly projectsState = signal<WorkspaceProject[]>(loadStoredProjects());
   private readonly boardsState = signal<Record<string, WorkspaceColumn[]>>(loadStoredBoards());
+  private readonly membersState = signal<WorkspaceMember[]>(loadStoredMembers());
+  private readonly messagesState = signal<WorkspaceMessage[]>(loadStoredMessages());
 
   readonly projects = computed(() =>
     this.projectsState()
@@ -930,7 +969,8 @@ export class WorkspacePreviewService {
             new Date(left.lastOpenedAt ?? 0).getTime(),
         )[0] ?? null,
   );
-  readonly members = signal(MEMBERS.map((member) => ({ ...member }))).asReadonly();
+  readonly members = this.membersState.asReadonly();
+  readonly sentMessages = this.messagesState.asReadonly();
   readonly poolTasks = computed(() =>
     cloneColumns(this.boardsState()[POOL_BOARD_ID] ?? [])
       .flatMap((column) => column.tasks)
@@ -1063,15 +1103,22 @@ export class WorkspacePreviewService {
   /**
    * Erstellt ein neues lokales Projekt inklusive Startboard.
    */
-  createProject(): WorkspaceProject {
+  createProject(payload?: Partial<WorkspaceProjectCreatePayload>): WorkspaceProject {
     const index = this.projectsState().length + 1;
     const id = `project-${Date.now()}`;
+    const name = normalizeSingleLineInput(payload?.name ?? '', 80) || `Neues Projekt ${index}`;
+    const description =
+      normalizeMultilineInput(payload?.description ?? '', 320) ||
+      'Ein neuer gemeinsamer Arbeitsbereich für Aufgaben, Mitglieder und Termine.';
+    const dueAt = /^\d{4}-\d{2}-\d{2}$/.test(payload?.dueAt ?? '')
+      ? (payload?.dueAt ?? isoDate(30))
+      : isoDate(30);
     const createdProject: WorkspaceProject = {
       id,
       routeKey: id,
       slugLabel: `PROJEKT ${String(index).padStart(2, '0')}`,
-      name: `Neues Projekt ${index}`,
-      description: 'Ein neuer gemeinsamer Arbeitsbereich für Aufgaben, Mitglieder und Termine.',
+      name,
+      description,
       color: '#7752B3',
       icon: 'folder_open',
       status: 'active',
@@ -1079,7 +1126,7 @@ export class WorkspacePreviewService {
       managers: [BEN],
       collaborators: [],
       startedAt: isoDate(0),
-      dueAt: isoDate(30),
+      dueAt,
       updatedAt: new Date().toISOString(),
       completedAt: null,
       lastOpenedAt: null,
@@ -1118,6 +1165,76 @@ export class WorkspacePreviewService {
     this.persistBoards();
 
     return createdProject;
+  }
+
+  /**
+   * Legt eine lokale Einladung an und ergänzt die Person optional in einem Projekt.
+   */
+  inviteMember(payload: WorkspaceMemberInvitePayload): WorkspaceMember {
+    const fullName = normalizeSingleLineInput(payload.fullName, 80);
+    const email = normalizeSingleLineInput(payload.email, 254).toLocaleLowerCase('de');
+    const existingMember = this.membersState().find(
+      (member) => member.email.toLocaleLowerCase('de') === email,
+    );
+
+    if (existingMember) {
+      this.addMemberToProject(existingMember, payload.projectId);
+      return { ...existingMember };
+    }
+
+    const palette = [
+      ['#7752B3', '#FFFFFF'],
+      ['#D5A646', '#241B2E'],
+      ['#4E82A8', '#FFFFFF'],
+      ['#4F9572', '#FFFFFF'],
+      ['#B9546A', '#FFFFFF'],
+    ] as const;
+    const colorPair = palette[this.membersState().length % palette.length] ?? palette[0];
+    const initials = fullName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toLocaleUpperCase('de'))
+      .join('');
+    const member: WorkspaceMember = {
+      id: `member-${Date.now()}`,
+      fullName: fullName || email.split('@')[0] || 'Neue Person',
+      email,
+      initials: initials || 'NP',
+      avatarColor: colorPair[0],
+      avatarTextColor: colorPair[1],
+      role: 'member',
+      isOnline: false,
+    };
+
+    this.membersState.update((members) => [...members, member]);
+    this.persistMembers();
+    this.addMemberToProject(member, payload.projectId);
+    return { ...member };
+  }
+
+  /**
+   * Speichert eine lokal versendete Nachricht für die spätere Inbox-Anbindung.
+   */
+  sendMessage(payload: WorkspaceMessageCreatePayload): WorkspaceMessage | null {
+    const recipient = this.membersState().find((member) => member.id === payload.recipientId);
+    const subject = normalizeSingleLineInput(payload.subject, 120);
+    const body = normalizeMultilineInput(payload.body, 2_000);
+
+    if (!recipient || !subject || !body) {
+      return null;
+    }
+
+    const message: WorkspaceMessage = {
+      id: `message-${Date.now()}`,
+      recipient: { ...recipient },
+      subject,
+      body,
+      createdAt: new Date().toISOString(),
+    };
+    this.messagesState.update((messages) => [message, ...messages]);
+    this.persistMessages();
+    return structuredClone(message);
   }
 
   /**
@@ -2094,6 +2211,55 @@ export class WorkspacePreviewService {
       createdAt: new Date().toISOString(),
     };
     return { ...task, history: [entry, ...task.history] };
+  }
+
+  /** Ergänzt eine eingeladene Person ohne Duplikate in einem Projekt. */
+  private addMemberToProject(member: WorkspaceMember, projectId: string | null): void {
+    if (!projectId) {
+      return;
+    }
+
+    this.projectsState.update((projects) =>
+      projects.map((project) => {
+        if (
+          project.id !== projectId ||
+          [...project.managers, ...project.collaborators].some((item) => item.id === member.id)
+        ) {
+          return project;
+        }
+
+        return {
+          ...project,
+          collaborators: [...project.collaborators, { ...member }],
+          updatedAt: new Date().toISOString(),
+        };
+      }),
+    );
+    this.persistProjects();
+  }
+
+  /** Speichert lokal eingeladene Personen im Browser-Speicher. */
+  private persistMembers(): void {
+    try {
+      window.localStorage.setItem(
+        WORKSPACE_MEMBERS_STORAGE_KEY,
+        JSON.stringify(this.membersState()),
+      );
+    } catch {
+      // Die Vorschau bleibt ohne Browser-Speicher funktionsfähig.
+    }
+  }
+
+  /** Speichert lokal versendete Nachrichten im Browser-Speicher. */
+  private persistMessages(): void {
+    try {
+      window.localStorage.setItem(
+        WORKSPACE_MESSAGES_STORAGE_KEY,
+        JSON.stringify(this.messagesState()),
+      );
+    } catch {
+      // Die Vorschau bleibt ohne Browser-Speicher funktionsfähig.
+    }
   }
 
   /** Speichert Projektzustände im lokalen Browser-Speicher. */

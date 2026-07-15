@@ -3,7 +3,7 @@
 import { CdkDragDrop, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { canReleaseTaskToPool, isOnDemandReadyTask } from '../../../../core/workspace/task-rules';
 import { WorkspaceAutomationService } from '../../../../core/workspace/workspace-automation.service';
@@ -180,9 +180,11 @@ export class BoardPageComponent {
   });
 
   private closeTimerId: number | null = null;
+  private requestedTaskId: string | null = null;
 
   constructor(
-    route: ActivatedRoute,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
     workspaceService: WorkspacePreviewService,
     displayPreferences: WorkspaceDisplayPreferencesService,
     automationService: WorkspaceAutomationService,
@@ -192,16 +194,22 @@ export class BoardPageComponent {
     this.displayPreferences = displayPreferences;
     this.automationService = automationService;
 
-    route.paramMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const projectId = params.get('projectId') ?? 'personal';
       this.projectId.set(projectId);
       this.columns.set(this.workspaceService.getBoard(projectId));
       this.resetDrawerImmediately();
       this.closeWorkspaceModals();
+      this.openRequestedTask();
 
       if (projectId !== 'personal') {
         this.workspaceService.markProjectOpened(projectId);
       }
+    });
+
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      this.requestedTaskId = params.get('task');
+      this.openRequestedTask();
     });
 
     destroyRef.onDestroy(() => {
@@ -275,6 +283,14 @@ export class BoardPageComponent {
     this.drawerClosing.set(true);
     this.closeTimerId = window.setTimeout(() => {
       this.resetDrawerImmediately();
+      if (this.requestedTaskId) {
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { task: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      }
     }, TASK_DRAWER_CLOSE_MS);
   }
 
@@ -892,6 +908,20 @@ export class BoardPageComponent {
     this.selectedTask.set(this.cloneTask(task));
     this.taskTitleDraft.set(task.title);
     this.taskDescriptionDraft.set(task.description);
+  }
+
+  /** Öffnet einen über die globale Suche angeforderten Task. */
+  private openRequestedTask(): void {
+    if (!this.requestedTaskId) {
+      return;
+    }
+
+    const task = this.columns()
+      .flatMap((column) => column.tasks)
+      .find((item) => item.id === this.requestedTaskId);
+    if (task && this.selectedTask()?.id !== task.id) {
+      this.openTask(task);
+    }
   }
 
   /** Erstellt eine tiefe Task-Kopie für den Drawer. */

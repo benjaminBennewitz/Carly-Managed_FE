@@ -248,4 +248,36 @@ describe('WorkspacePreviewService', () => {
         ?.tasks.some((task) => task.id === createdTask.id),
     ).toBe(true);
   });
+  it('erstellt Projekte mit sicheren Schnellaktionsdaten', () => {
+    const project = service.createProject({
+      name: '  <Launch>  ',
+      description: '  Gemeinsamer   Relaunch  ',
+      dueAt: '2026-09-30',
+    });
+
+    expect(project.name).toBe('Launch');
+    expect(project.description).toBe('Gemeinsamer Relaunch');
+    expect(project.dueAt).toBe('2026-09-30');
+    expect(service.getBoard(project.id).length).toBe(3);
+  });
+
+  it('speichert Einladungen und Nachrichten lokal', () => {
+    const member = service.inviteMember({
+      fullName: 'Nina Beispiel',
+      email: 'nina@example.test',
+      projectId: 'carly-managed',
+    });
+    const message = service.sendMessage({
+      recipientId: member.id,
+      subject: 'Willkommen',
+      body: 'Schön, dass du dabei bist.',
+    });
+
+    expect(service.members().some((item) => item.id === member.id)).toBe(true);
+    expect(
+      service.getProject('carly-managed')?.collaborators.some((item) => item.id === member.id),
+    ).toBe(true);
+    expect(message?.recipient.id).toBe(member.id);
+    expect(service.sentMessages()[0]?.subject).toBe('Willkommen');
+  });
 });

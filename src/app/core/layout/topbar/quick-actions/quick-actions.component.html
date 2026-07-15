@@ -1,0 +1,292 @@
+<!-- src/app/core/layout/topbar/quick-actions/quick-actions.component.html -->
+
+<div class="quick-actions" [class.quick-actions--open]="open()">
+  <button
+    class="topbar__control quick-actions__trigger"
+    type="button"
+    aria-haspopup="menu"
+    [attr.aria-expanded]="open()"
+    aria-label="Schnellaktionen öffnen"
+    (click)="toggleMenu()"
+  >
+    <span class="material-symbols-outlined" aria-hidden="true">add</span>
+  </button>
+
+  @if (open()) {
+    <div class="quick-actions__menu" role="menu" aria-label="Schnellaktionen">
+      <header>
+        <span>Schnellaktionen</span>
+        <small>Erstellen und kommunizieren</small>
+      </header>
+
+      @for (action of quickActions; track action.id) {
+        <button
+          class="quick-actions__item"
+          type="button"
+          role="menuitem"
+          (click)="openAction(action.id)"
+        >
+          <span class="quick-actions__item-icon material-symbols-outlined" aria-hidden="true">
+            {{ action.icon }}
+          </span>
+          <span>
+            <strong>{{ action.label }}</strong>
+            <small>{{ action.description }}</small>
+          </span>
+          <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+        </button>
+      }
+    </div>
+  }
+
+  @if (feedback(); as message) {
+    <div class="quick-actions__feedback" role="status" aria-live="polite">
+      <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+      <span>{{ message }}</span>
+    </div>
+  }
+</div>
+
+@if (activeAction()) {
+  <div
+    class="workspace-modal-backdrop quick-action-backdrop"
+    role="presentation"
+    (click)="closeFromBackdrop($event)"
+  >
+    <section
+      class="quick-action-modal"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="'quick-action-title'"
+    >
+      <header class="workspace-modal-head">
+        <div>
+          <p>Schnellaktion</p>
+          <h2 id="quick-action-title">{{ getModalTitle() }}</h2>
+        </div>
+        <button
+          class="ui-close-button"
+          type="button"
+          aria-label="Dialog schließen"
+          (click)="closeModal()"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      @switch (activeAction()) {
+        @case ('task') {
+          <form class="quick-action-form" [formGroup]="taskForm" (ngSubmit)="createTask()">
+            <label class="quick-action-field">
+              <span>Aufgabentitel</span>
+              <input
+                type="text"
+                formControlName="title"
+                maxlength="120"
+                autocomplete="off"
+                placeholder="Was soll erledigt werden?"
+              />
+              @if (hasError(taskForm.controls.title)) {
+                <small class="quick-action-field__error"
+                  >Bitte einen gültigen Titel eingeben.</small
+                >
+              }
+            </label>
+
+            <cm-select-menu
+              label="Kontext"
+              [value]="taskForm.controls.boardId.value"
+              [options]="boardOptions()"
+              (valueChange)="setControlValue(taskForm.controls.boardId, $event)"
+            />
+
+            <cm-member-select
+              label="Verantwortlich"
+              [value]="taskForm.controls.assigneeId.value || null"
+              [members]="workspaceService.members()"
+              placeholder="Ohne Zuweisung in den Pool"
+              (valueChange)="setControlValue(taskForm.controls.assigneeId, $event)"
+            />
+
+            <p class="quick-action-form__hint">
+              Ohne Zuweisung landet die Aufgabe mit Review-Hinweis im Pool.
+            </p>
+
+            <footer class="quick-action-form__actions">
+              <button
+                class="workspace-button workspace-button--secondary"
+                type="button"
+                (click)="closeModal()"
+              >
+                Abbrechen
+              </button>
+              <button class="workspace-button workspace-button--primary" type="submit">
+                <span class="material-symbols-outlined" aria-hidden="true">add_task</span>
+                Aufgabe erstellen
+              </button>
+            </footer>
+          </form>
+        }
+
+        @case ('project') {
+          <form class="quick-action-form" [formGroup]="projectForm" (ngSubmit)="createProject()">
+            <label class="quick-action-field">
+              <span>Projektname</span>
+              <input
+                type="text"
+                formControlName="name"
+                maxlength="80"
+                autocomplete="off"
+                placeholder="Name des Arbeitsbereichs"
+              />
+              @if (hasError(projectForm.controls.name)) {
+                <small class="quick-action-field__error">Bitte einen Projektnamen eingeben.</small>
+              }
+            </label>
+
+            <label class="quick-action-field">
+              <span>Beschreibung</span>
+              <textarea
+                formControlName="description"
+                maxlength="320"
+                rows="4"
+                placeholder="Ziel und Umfang des Projekts"
+              ></textarea>
+            </label>
+
+            <label class="quick-action-field">
+              <span>Geplantes Ende</span>
+              <input type="date" formControlName="dueAt" />
+            </label>
+
+            <footer class="quick-action-form__actions">
+              <button
+                class="workspace-button workspace-button--secondary"
+                type="button"
+                (click)="closeModal()"
+              >
+                Abbrechen
+              </button>
+              <button class="workspace-button workspace-button--primary" type="submit">
+                <span class="material-symbols-outlined" aria-hidden="true">create_new_folder</span>
+                Projekt erstellen
+              </button>
+            </footer>
+          </form>
+        }
+
+        @case ('invite') {
+          <form class="quick-action-form" [formGroup]="inviteForm" (ngSubmit)="inviteMember()">
+            <label class="quick-action-field">
+              <span>Name</span>
+              <input
+                type="text"
+                formControlName="fullName"
+                maxlength="80"
+                autocomplete="name"
+                placeholder="Vor- und Nachname"
+              />
+              @if (hasError(inviteForm.controls.fullName)) {
+                <small class="quick-action-field__error">Bitte einen Namen eingeben.</small>
+              }
+            </label>
+
+            <label class="quick-action-field">
+              <span>E-Mail-Adresse</span>
+              <input
+                type="email"
+                formControlName="email"
+                maxlength="254"
+                autocomplete="email"
+                placeholder="name@beispiel.de"
+              />
+              @if (hasError(inviteForm.controls.email)) {
+                <small class="quick-action-field__error"
+                  >Bitte eine gültige E-Mail-Adresse eingeben.</small
+                >
+              }
+            </label>
+
+            <cm-select-menu
+              label="Projektzugriff"
+              [value]="inviteForm.controls.projectId.value"
+              [options]="projectOptions()"
+              (valueChange)="setControlValue(inviteForm.controls.projectId, $event)"
+            />
+
+            <footer class="quick-action-form__actions">
+              <button
+                class="workspace-button workspace-button--secondary"
+                type="button"
+                (click)="closeModal()"
+              >
+                Abbrechen
+              </button>
+              <button class="workspace-button workspace-button--primary" type="submit">
+                <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
+                Einladung anlegen
+              </button>
+            </footer>
+          </form>
+        }
+
+        @case ('message') {
+          <form class="quick-action-form" [formGroup]="messageForm" (ngSubmit)="sendMessage()">
+            <cm-member-select
+              label="Empfänger"
+              [value]="messageForm.controls.recipientId.value || null"
+              [members]="workspaceService.members()"
+              [allowEmpty]="false"
+              placeholder="Person auswählen"
+              (valueChange)="setControlValue(messageForm.controls.recipientId, $event)"
+            />
+            @if (hasError(messageForm.controls.recipientId)) {
+              <small class="quick-action-field__error">Bitte eine Person auswählen.</small>
+            }
+
+            <label class="quick-action-field">
+              <span>Betreff</span>
+              <input
+                type="text"
+                formControlName="subject"
+                maxlength="120"
+                autocomplete="off"
+                placeholder="Worum geht es?"
+              />
+              @if (hasError(messageForm.controls.subject)) {
+                <small class="quick-action-field__error">Bitte einen Betreff eingeben.</small>
+              }
+            </label>
+
+            <label class="quick-action-field">
+              <span>Nachricht</span>
+              <textarea
+                formControlName="body"
+                maxlength="2000"
+                rows="6"
+                placeholder="Nachricht schreiben"
+              ></textarea>
+              @if (hasError(messageForm.controls.body)) {
+                <small class="quick-action-field__error">Bitte eine Nachricht eingeben.</small>
+              }
+            </label>
+
+            <footer class="quick-action-form__actions">
+              <button
+                class="workspace-button workspace-button--secondary"
+                type="button"
+                (click)="closeModal()"
+              >
+                Abbrechen
+              </button>
+              <button class="workspace-button workspace-button--primary" type="submit">
+                <span class="material-symbols-outlined" aria-hidden="true">send</span>
+                Nachricht senden
+              </button>
+            </footer>
+          </form>
+        }
+      }
+    </section>
+  </div>
+}
