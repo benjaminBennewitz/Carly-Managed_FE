@@ -71,8 +71,9 @@
             <button
               class="workspace-switch"
               type="button"
+              role="switch"
               [class.workspace-switch--active]="draft.isActive"
-              [attr.aria-pressed]="draft.isActive"
+              [attr.aria-checked]="draft.isActive"
               [attr.aria-label]="
                 draft.isActive ? 'Wiederholung pausieren' : 'Wiederholung aktivieren'
               "
@@ -273,8 +274,9 @@
                 <button
                   class="workspace-switch"
                   type="button"
+                  role="switch"
                   [class.workspace-switch--active]="rule.isActive"
-                  [attr.aria-pressed]="rule.isActive"
+                  [attr.aria-checked]="rule.isActive"
                   [attr.aria-label]="
                     rule.isActive ? 'Wiederholung pausieren' : 'Wiederholung aktivieren'
                   "

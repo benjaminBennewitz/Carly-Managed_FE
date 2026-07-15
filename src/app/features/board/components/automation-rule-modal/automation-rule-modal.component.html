@@ -144,43 +144,45 @@
               <div class="automation-rule__content">
                 <div class="automation-rule__title-row">
                   <strong>{{ rule.name }}</strong>
+
+                  <div class="automation-rule__actions">
+                    <button
+                      class="workspace-switch workspace-switch--compact"
+                      type="button"
+                      role="switch"
+                      [class.workspace-switch--active]="rule.isActive"
+                      [attr.aria-label]="rule.isActive ? 'Regel pausieren' : 'Regel aktivieren'"
+                      [attr.aria-checked]="rule.isActive"
+                      [disabled]="isSubmitting"
+                      (click)="toggle(rule)"
+                    >
+                      <span aria-hidden="true"></span>
+                    </button>
+
+                    <button
+                      class="automation-rule__edit"
+                      type="button"
+                      aria-label="Regel bearbeiten"
+                      [disabled]="isSubmitting"
+                      (click)="loadRule(rule)"
+                    >
+                      <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                    </button>
+
+                    <button
+                      class="automation-rule__delete"
+                      type="button"
+                      aria-label="Regel löschen"
+                      [disabled]="isSubmitting"
+                      (click)="remove(rule)"
+                    >
+                      <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                    </button>
+                  </div>
                 </div>
+
                 <p>{{ getRuleSummary(rule) }}</p>
                 <small>{{ getRuleParameters(rule) }}</small>
-              </div>
-
-              <div class="automation-rule__actions">
-                <button
-                  class="workspace-switch workspace-switch--compact"
-                  type="button"
-                  [class.workspace-switch--active]="rule.isActive"
-                  [attr.aria-label]="rule.isActive ? 'Regel pausieren' : 'Regel aktivieren'"
-                  [attr.aria-pressed]="rule.isActive"
-                  [disabled]="isSubmitting"
-                  (click)="toggle(rule)"
-                >
-                  <span aria-hidden="true"></span>
-                </button>
-
-                <button
-                  class="automation-rule__edit"
-                  type="button"
-                  aria-label="Regel bearbeiten"
-                  [disabled]="isSubmitting"
-                  (click)="loadRule(rule)"
-                >
-                  <span class="material-symbols-outlined" aria-hidden="true">edit</span>
-                </button>
-
-                <button
-                  class="automation-rule__delete"
-                  type="button"
-                  aria-label="Regel löschen"
-                  [disabled]="isSubmitting"
-                  (click)="remove(rule)"
-                >
-                  <span class="material-symbols-outlined" aria-hidden="true">delete</span>
-                </button>
               </div>
             </article>
           } @empty {
