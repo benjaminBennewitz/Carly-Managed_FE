@@ -2,34 +2,11 @@
 
 import { computed, Injectable, signal } from '@angular/core';
 
-import {
-  normalizeMultilineInput,
-  normalizeSingleLineInput,
-} from '../security/frontend-input.utils';
+import { normalizeMultilineInput, normalizeSingleLineInput } from '../security/frontend-input.utils';
 import { releaseTaskToPool } from './task-rules';
 import { WorkspaceAutomationService } from './workspace-automation.service';
-import {
-  ArchivedTaskEntry,
-  TaskPriority,
-  WorkspaceAttachment,
-  WorkspaceAutomationTrigger,
-  WorkspaceColumn,
-  WorkspaceColumnSortMode,
-  WorkspaceComment,
-  WorkspaceHistoryEntry,
-  WorkspaceMember,
-  WorkspaceMemberInvitePayload,
-  WorkspaceMessage,
-  WorkspaceMessageCreatePayload,
-  WorkspaceProject,
-  WorkspaceProjectCreatePayload,
-  WorkspaceRecurrenceScheduleType,
-  WorkspaceRecurrenceWeekday,
-  WorkspaceSubtask,
-  WorkspaceTask,
-  WorkspaceTaskRecurrenceRule,
-  WorkspaceTaskRecurrenceSavePayload,
-} from './workspace.models';
+import { isWorkspaceProjectColor, isWorkspaceProjectIcon } from './workspace-project-options';
+import { ArchivedTaskEntry, TaskPriority, WorkspaceAttachment, WorkspaceAutomationTrigger, WorkspaceColumn, WorkspaceColumnSortMode, WorkspaceComment, WorkspaceHistoryEntry, WorkspaceMember, WorkspaceMemberInvitePayload, WorkspaceMessage, WorkspaceMessageCreatePayload, WorkspaceProject, WorkspaceProjectCreatePayload, WorkspaceProjectUpdatePayload, WorkspaceRecurrenceScheduleType, WorkspaceRecurrenceWeekday, WorkspaceSubtask, WorkspaceTask, WorkspaceTaskRecurrenceRule, WorkspaceTaskRecurrenceSavePayload } from './workspace.models';
 
 const day = 86_400_000;
 const WORKSPACE_PROJECTS_STORAGE_KEY = 'carly-managed-preview-projects-v2';
@@ -379,7 +356,6 @@ const CARLY_BOARD: WorkspaceColumn[] = [
     id: 'backlog',
     title: 'Backlog',
     color: '#8A8093',
-    isFixedPosition: true,
     tasks: [
       task('task-101', 'Board-Einladungen konzipieren', {
         assignee: MIRA,
@@ -513,7 +489,6 @@ const PORTFOLIO_BOARD: WorkspaceColumn[] = [
     id: 'portfolio-ideas',
     title: 'Ideen',
     color: '#8A8093',
-    isFixedPosition: true,
     tasks: [
       task('task-201', 'Case Study Storyline festlegen', {
         projectId: 'portfolio-relaunch',
@@ -572,7 +547,6 @@ const STUDIO_BOARD: WorkspaceColumn[] = [
     id: 'studio-ready',
     title: 'Bereit zur Vergabe',
     color: '#D5A646',
-    isFixedPosition: true,
     tasks: [
       task('task-301', 'Social-Media-Vorlagen exportieren', {
         projectId: 'studio-operations',
@@ -757,7 +731,6 @@ const INITIAL_BOARDS: Record<string, WorkspaceColumn[]> = {
       id: 'personal-today',
       title: 'Heute',
       color: '#7752B3',
-      isFixedPosition: true,
       tasks: [
         task('task-personal-1', 'Board-Ansicht prüfen', {
           projectId: null,
@@ -853,6 +826,7 @@ function cloneTask(source: WorkspaceTask): WorkspaceTask {
 function cloneColumns(columns: WorkspaceColumn[]): WorkspaceColumn[] {
   return columns.map((column) => ({
     ...column,
+    isFixedPosition: column.systemRole ? true : undefined,
     tasks: column.tasks.map(cloneTask),
   }));
 }
@@ -1101,6 +1075,91 @@ export class WorkspacePreviewService {
   }
 
   /**
+   * Aktualisiert die vollständigen Projektdaten und synchronisiert abhängige Tasks.
+   */
+  updateProject(
+    projectId: string,
+    payload: WorkspaceProjectUpdatePayload,
+  ): WorkspaceProject | null {
+    const currentProject = this.getProject(projectId);
+    const name = normalizeSingleLineInput(payload.name, 80);
+    const slugLabel = normalizeSingleLineInput(payload.slugLabel, 32).toLocaleUpperCase('de');
+    const description = normalizeMultilineInput(payload.description, 500);
+    const startedAt = /^\d{4}-\d{2}-\d{2}$/.test(payload.startedAt) ? payload.startedAt : '';
+    const dueAt = /^\d{4}-\d{2}-\d{2}$/.test(payload.dueAt) ? payload.dueAt : '';
+    const owner = this.members().find((member) => member.id === payload.ownerId) ?? null;
+
+    if (
+      !currentProject ||
+      !name ||
+      !slugLabel ||
+      !startedAt ||
+      !dueAt ||
+      !owner ||
+      startedAt > dueAt
+    ) {
+      return null;
+    }
+
+    const managerIds = new Set([owner.id, ...payload.managerIds]);
+    const managers = this.members().filter((member) => managerIds.has(member.id));
+    const managerIdSet = new Set(managers.map((member) => member.id));
+    const collaboratorIds = new Set(payload.collaboratorIds);
+    const collaborators = this.members().filter(
+      (member) => collaboratorIds.has(member.id) && !managerIdSet.has(member.id),
+    );
+    const color = isWorkspaceProjectColor(payload.color) ? payload.color : currentProject.color;
+    const icon = isWorkspaceProjectIcon(payload.icon) ? payload.icon : currentProject.icon;
+    const duePresentation = this.getProjectDuePresentation(dueAt);
+    const updatedProject: WorkspaceProject = {
+      ...currentProject,
+      name,
+      slugLabel,
+      description,
+      owner: { ...owner },
+      managers: managers.map((member) => ({ ...member })),
+      collaborators: collaborators.map((member) => ({ ...member })),
+      startedAt,
+      dueAt,
+      color,
+      icon,
+      isPinned: payload.isPinned,
+      allowsOnDemandTasks: payload.allowsOnDemandTasks,
+      dueState: duePresentation.dueState,
+      dueSummary: duePresentation.dueSummary,
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.projectsState.update((projects) =>
+      projects.map((project) => (project.id === projectId ? updatedProject : project)),
+    );
+    this.boardsState.update((boards) =>
+      Object.fromEntries(
+        Object.entries(boards).map(([boardId, columns]) => [
+          boardId,
+          columns.map((column) => ({
+            ...column,
+            tasks: column.tasks.map((currentTask) =>
+              currentTask.projectId === projectId
+                ? {
+                    ...currentTask,
+                    projectTitle: name,
+                    projectAllowsOnDemandTasks: payload.allowsOnDemandTasks,
+                    updatedAt: new Date().toISOString(),
+                  }
+                : currentTask,
+            ),
+          })),
+        ]),
+      ),
+    );
+    this.persistProjects();
+    this.persistBoards();
+
+    return cloneProjects([updatedProject])[0] ?? null;
+  }
+
+  /**
    * Erstellt ein neues lokales Projekt inklusive Startboard.
    */
   createProject(payload?: Partial<WorkspaceProjectCreatePayload>): WorkspaceProject {
@@ -1144,7 +1203,6 @@ export class WorkspacePreviewService {
           id: `${id}-backlog`,
           title: 'Backlog',
           color: '#8A8093',
-          isFixedPosition: true,
           tasks: [],
         },
         {
@@ -1466,24 +1524,37 @@ export class WorkspacePreviewService {
   }
 
   /**
-   * Entfernt eine freie Spalte und verschiebt ihre Aufgaben in die erste Spalte.
+   * Entfernt eine benutzerverwaltete Spalte und erhält enthaltene Aufgaben.
    */
   deleteColumn(projectId: string, columnId: string): WorkspaceColumn[] {
     const columns = this.getBoard(projectId);
     const deletedColumn = columns.find((column) => column.id === columnId);
-    const fallbackColumn = columns.find((column) => column.id !== columnId);
 
-    if (!deletedColumn || deletedColumn.isFixedPosition || !fallbackColumn) {
+    if (!deletedColumn || deletedColumn.systemRole) {
       return columns;
     }
 
-    const nextColumns = columns
-      .filter((column) => column.id !== columnId)
-      .map((column) =>
+    const remainingColumns = columns.filter((column) => column.id !== columnId);
+    const fallbackColumn = remainingColumns[0] ?? null;
+    let nextColumns = remainingColumns;
+
+    if (fallbackColumn && deletedColumn.tasks.length > 0) {
+      nextColumns = remainingColumns.map((column) =>
         column.id === fallbackColumn.id
           ? { ...column, sortMode: null, tasks: [...column.tasks, ...deletedColumn.tasks] }
           : column,
       );
+    } else if (!fallbackColumn && deletedColumn.tasks.length > 0) {
+      nextColumns = [
+        {
+          id: `column-unsorted-${Date.now()}`,
+          title: 'Unsortiert',
+          color: '#8A8093',
+          tasks: deletedColumn.tasks,
+        },
+      ];
+    }
+
     this.saveBoard(projectId, nextColumns);
     return nextColumns;
   }
@@ -2194,11 +2265,41 @@ export class WorkspacePreviewService {
 
   /** Entfernt leere dynamische Spalten aus normalen Boardansichten. */
   private normalizeDynamicColumns(boardId: string, columns: WorkspaceColumn[]): WorkspaceColumn[] {
+    const normalizedColumns = columns.map((column) => ({
+      ...column,
+      isFixedPosition: column.systemRole ? true : undefined,
+    }));
+
     if (boardId === POOL_BOARD_ID) {
-      return columns.length ? columns : [this.createPoolReviewColumn()];
+      return normalizedColumns.length ? normalizedColumns : [this.createPoolReviewColumn()];
     }
 
-    return columns.filter((column) => !column.isDynamic || column.tasks.length > 0);
+    return normalizedColumns.filter((column) => !column.isDynamic || column.tasks.length > 0);
+  }
+
+  /** Ermittelt Terminstatus und Kurztext für bearbeitete Projekte. */
+  private getProjectDuePresentation(dueAt: string): {
+    dueState: WorkspaceProject['dueState'];
+    dueSummary: string;
+  } {
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    const dueDate = new Date(`${dueAt}T12:00:00`);
+    const remainingDays = Math.ceil((dueDate.getTime() - today.getTime()) / day);
+
+    if (remainingDays < 0) {
+      return { dueState: 'ueberfaellig', dueSummary: 'Projekttermin überschritten' };
+    }
+
+    if (remainingDays <= 7) {
+      return { dueState: 'kritisch', dueSummary: 'Projekttermin ist kurzfristig' };
+    }
+
+    if (remainingDays <= 14) {
+      return { dueState: 'bald-faellig', dueSummary: 'Termin rückt näher' };
+    }
+
+    return { dueState: 'im-plan', dueSummary: 'Projektzeitraum liegt im Plan' };
   }
 
   /** Ergänzt einen Verlaufseintrag. */

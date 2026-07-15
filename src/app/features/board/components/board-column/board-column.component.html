@@ -5,7 +5,7 @@
   cdkDrag
   [cdkDragData]="column()"
   cdkDragLockAxis="x"
-  [cdkDragDisabled]="!!column().isFixedPosition || readOnly()"
+  [cdkDragDisabled]="!!column().systemRole || readOnly()"
   [style.--board-accent]="column().color"
 >
   <ng-template cdkDragPreview [matchSize]="true">
@@ -34,7 +34,7 @@
       <div class="board-column-ui__title" cdkDragHandle>
         @if (column().systemRole === 'new-assigned') {
           <span class="material-symbols-outlined" aria-hidden="true">new_releases</span>
-        } @else if (!column().isFixedPosition) {
+        } @else if (!column().systemRole) {
           <span class="material-symbols-outlined" aria-hidden="true">drag_indicator</span>
         }
         <h3 [attr.title]="column().title">{{ column().title }}</h3>
@@ -141,7 +141,7 @@
               </button>
             }
 
-            @if (!column().isFixedPosition) {
+            @if (!column().systemRole) {
               <button
                 class="board-column-ui__tool board-column-ui__tool--danger"
                 type="button"

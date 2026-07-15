@@ -99,7 +99,8 @@ Carly-Managed_FE/
 │   │   │       ├── workspace-display-preferences.service.spec.ts
 │   │   │       ├── workspace-display-preferences.service.ts
 │   │   │       ├── workspace-preview.service.spec.ts
-│   │   │       └── workspace-preview.service.ts
+│   │   │       ├── workspace-preview.service.ts
+│   │   │       └── workspace-project-options.ts
 │   │   ├── features/
 │   │   │   ├── archive/
 │   │   │   │   └── pages/
@@ -178,6 +179,10 @@ Carly-Managed_FE/
 │   │   │   │           └── pool-page.component.ts
 │   │   │   ├── projects/
 │   │   │   │   └── pages/
+│   │   │   │       ├── project-settings-page/
+│   │   │   │       │   ├── project-settings-page.component.html
+│   │   │   │       │   ├── project-settings-page.component.scss
+│   │   │   │       │   └── project-settings-page.component.ts
 │   │   │   │       └── projects-page/
 │   │   │   │           ├── projects-page.component.html
 │   │   │   │           ├── projects-page.component.scss
@@ -247,6 +252,7 @@ Carly-Managed_FE/
 │   │   │   ├── _workspace-controls.scss
 │   │   │   ├── _workspace-modals.scss
 │   │   │   ├── _workspace-projects.scss
+│   │   │   ├── _workspace-project-settings.scss
 │   │   │   └── _workspace-task-card.scss
 │   │   ├── settings/
 │   │   │   ├── _design-tokens.scss

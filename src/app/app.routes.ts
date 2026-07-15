@@ -91,6 +91,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'projects/:projectId/settings',
+        title: 'Projekteinstellungen | Carly Managed',
+        loadComponent: () =>
+          import('./features/projects/pages/project-settings-page/project-settings-page.component').then(
+            (module) => module.ProjectSettingsPageComponent,
+          ),
+      },
+      {
         path: 'board',
         title: 'Board | Carly Managed',
         loadComponent: () =>

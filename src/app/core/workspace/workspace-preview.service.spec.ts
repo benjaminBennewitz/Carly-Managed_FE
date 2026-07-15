@@ -39,16 +39,17 @@ describe('WorkspacePreviewService', () => {
     expect(updatedTask?.completedAt).not.toBeNull();
   });
 
-  it('verschiebt Aufgaben einer gelöschten Spalte in eine Fallbackspalte', () => {
+  it('löscht jede benutzerverwaltete Projektspalte und erhält deren Aufgaben', () => {
     const before = service.getTaskCount('portfolio-relaunch');
     const columns = service.getBoard('portfolio-relaunch');
-    const deletableColumn = columns.find((column) => !column.isFixedPosition);
+    const ideasColumn = columns.find((column) => column.id === 'portfolio-ideas');
 
-    expect(deletableColumn).toBeDefined();
+    expect(ideasColumn).toBeDefined();
+    expect(ideasColumn?.systemRole).toBeUndefined();
 
-    const result = service.deleteColumn('portfolio-relaunch', deletableColumn?.id ?? '');
+    const result = service.deleteColumn('portfolio-relaunch', 'portfolio-ideas');
 
-    expect(result.some((column) => column.id === deletableColumn?.id)).toBe(false);
+    expect(result.some((column) => column.id === 'portfolio-ideas')).toBe(false);
     expect(service.getTaskCount('portfolio-relaunch')).toBe(before);
   });
   it('persistiert Spaltenreihenfolge und Farben im Browser-Speicher', () => {
@@ -248,6 +249,41 @@ describe('WorkspacePreviewService', () => {
         ?.tasks.some((task) => task.id === createdTask.id),
     ).toBe(true);
   });
+
+  it('speichert Projektdaten, Rollen und Darstellung zentral', () => {
+    const updatedProject = service.updateProject('portfolio-relaunch', {
+      name: 'Portfolio 2027',
+      slugLabel: 'Portfolio Next',
+      description: 'Neue Case Studies und ein überarbeitetes Designsystem.',
+      ownerId: 'member-mira',
+      managerIds: ['member-mira', 'member-ben'],
+      collaboratorIds: ['member-lea'],
+      startedAt: '2026-08-01',
+      dueAt: '2026-12-15',
+      color: '#4E82A8',
+      icon: 'rocket_launch',
+      isPinned: true,
+      allowsOnDemandTasks: true,
+    });
+
+    expect(updatedProject?.name).toBe('Portfolio 2027');
+    expect(updatedProject?.slugLabel).toBe('PORTFOLIO NEXT');
+    expect(updatedProject?.owner.id).toBe('member-mira');
+    expect(updatedProject?.managers.map((member) => member.id)).toContain('member-ben');
+    expect(updatedProject?.collaborators.map((member) => member.id)).toEqual(['member-lea']);
+    expect(updatedProject?.icon).toBe('rocket_launch');
+    expect(updatedProject?.color).toBe('#4E82A8');
+    expect(updatedProject?.isPinned).toBe(true);
+
+    const projectTask = service
+      .getBoard('portfolio-relaunch')
+      .flatMap((column) => column.tasks)
+      .find((task) => task.id === 'task-201');
+
+    expect(projectTask?.projectTitle).toBe('Portfolio 2027');
+    expect(projectTask?.projectAllowsOnDemandTasks).toBe(true);
+  });
+
   it('erstellt Projekte mit sicheren Schnellaktionsdaten', () => {
     const project = service.createProject({
       name: '  <Launch>  ',

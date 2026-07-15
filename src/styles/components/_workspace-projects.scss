@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_workspace-projects.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert KPI-Leiste und Projektkarten der Projektübersicht.
 
    Inhaltsverzeichnis:
@@ -146,6 +146,7 @@
 
 .project-card__top,
 .project-card__slug-row,
+.project-card__actions,
 .project-card__chips,
 .project-card__due-hint,
 .project-card__foot,
@@ -194,7 +195,13 @@
   font-size: var(--font-size-500);
 }
 
-.project-card__pin {
+.project-card__actions {
+  flex: 0 0 auto;
+  gap: var(--space-1);
+}
+
+.project-card__pin,
+.project-card__settings {
   display: grid;
   width: var(--size-control-sm);
   min-width: var(--size-control-sm);
@@ -206,12 +213,22 @@
   border-radius: var(--radius-round);
   background: transparent;
   color: var(--color-icon-muted);
+  text-decoration: none;
 }
 
 .project-card__pin:hover,
-.project-card__pin--active {
+.project-card__pin--active,
+.project-card__settings:hover {
   background: var(--color-brand-subtle);
   color: var(--color-action-primary);
+}
+
+.project-card__settings:hover .material-symbols-outlined {
+  transform: rotate(45deg);
+}
+
+.project-card__settings .material-symbols-outlined {
+  transition: transform var(--motion-duration-normal) var(--motion-easing-emphasized);
 }
 
 .project-card__description {

@@ -42,9 +42,7 @@
   <section class="projects-content" aria-label="Projektkarten">
     <div class="projects-grid">
       @for (project of projects(); track project.id) {
-        <article
-          class="project-card {{ getDueStateClass(project.dueState) }}"
-        >
+        <article class="project-card {{ getDueStateClass(project.dueState) }}">
           <div class="project-card__top">
             <div class="project-card__title-wrap">
               <div class="project-card__slug-row">
@@ -52,31 +50,47 @@
                   class="project-card__icon material-symbols-outlined"
                   [style.color]="project.color"
                   aria-hidden="true"
-                >{{ project.icon }}</span>
+                  >{{ project.icon }}</span
+                >
                 <span class="project-card__slug">{{ project.slugLabel }}</span>
               </div>
               <h2>{{ project.name }}</h2>
             </div>
 
-            <button
-              class="project-card__pin"
-              [class.project-card__pin--active]="project.isPinned"
-              type="button"
-              [attr.aria-label]="project.isPinned ? 'Projekt entpinnen' : 'Projekt pinnen'"
-              (click)="togglePinned($event, project)"
-            >
-              <span class="material-symbols-outlined" aria-hidden="true">
-                {{ project.isPinned ? 'keep' : 'keep_off' }}
-              </span>
-            </button>
+            <div class="project-card__actions">
+              <a
+                class="project-card__settings"
+                [routerLink]="['/projects', project.id, 'settings']"
+                aria-label="Projekteinstellungen öffnen"
+                title="Projekteinstellungen"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">settings</span>
+              </a>
+
+              <button
+                class="project-card__pin"
+                [class.project-card__pin--active]="project.isPinned"
+                type="button"
+                [attr.aria-label]="project.isPinned ? 'Projekt entpinnen' : 'Projekt pinnen'"
+                (click)="togglePinned($event, project)"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">
+                  {{ project.isPinned ? 'keep' : 'keep_off' }}
+                </span>
+              </button>
+            </div>
           </div>
 
           <p class="project-card__description">{{ project.description }}</p>
 
           <div class="project-card__chips">
             <span class="project-chip project-chip--due">{{ project.dueSummary }}</span>
-            <span class="project-chip">{{ workspaceService.getColumnCount(project.id) }} Spalten</span>
-            <span class="project-chip">{{ workspaceService.getOpenTaskCount(project.id) }} offen</span>
+            <span class="project-chip"
+              >{{ workspaceService.getColumnCount(project.id) }} Spalten</span
+            >
+            <span class="project-chip"
+              >{{ workspaceService.getOpenTaskCount(project.id) }} offen</span
+            >
             <span class="project-chip project-chip--accent">Mitwirkung</span>
           </div>
 
@@ -124,7 +138,8 @@
                     [style.background]="member.avatarColor"
                     [style.color]="member.avatarTextColor"
                     [attr.title]="member.fullName"
-                  >{{ member.initials }}</span>
+                    >{{ member.initials }}</span
+                  >
                 }
               </div>
             </div>
@@ -138,7 +153,8 @@
                     [style.background]="member.avatarColor"
                     [style.color]="member.avatarTextColor"
                     [attr.title]="member.fullName"
-                  >{{ member.initials }}</span>
+                    >{{ member.initials }}</span
+                  >
                 }
                 @if (project.collaborators.length > 4) {
                   <span class="project-member-avatar project-member-avatar--more">
@@ -151,9 +167,7 @@
 
           <footer class="project-card__foot">
             <small>Aktualisiert {{ formatDate(project.updatedAt, true) }}</small>
-            <button type="button" (click)="openProject(project)">
-              Projekt anzeigen
-            </button>
+            <button type="button" (click)="openProject(project)">Projekt anzeigen</button>
           </footer>
         </article>
       }

@@ -38,6 +38,10 @@
                   <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
                   Projektübersicht
                 </a>
+                <a [routerLink]="['/projects', activeProject.id, 'settings']">
+                  <span class="material-symbols-outlined" aria-hidden="true">settings</span>
+                  Projekteinstellungen
+                </a>
                 <button
                   type="button"
                   (click)="

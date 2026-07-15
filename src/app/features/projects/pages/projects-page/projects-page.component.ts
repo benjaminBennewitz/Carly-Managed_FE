@@ -1,16 +1,14 @@
 // src/app/features/projects/pages/projects-page/projects-page.component.ts
 
 import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
-import {
-  ProjectDueState,
-  WorkspaceProject,
-} from '../../../../core/workspace/workspace.models';
+import { ProjectDueState, WorkspaceProject } from '../../../../core/workspace/workspace.models';
 import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
 
 @Component({
   selector: 'cm-projects-page',
+  imports: [RouterLink],
   templateUrl: './projects-page.component.html',
   styleUrl: './projects-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,9 +19,9 @@ export class ProjectsPageComponent {
   protected readonly collaborativeProjects;
   protected readonly lastOpenedProject;
   protected readonly myOpenProjects = computed(() =>
-    this.workspaceService.projects().filter(
-      (project) => this.workspaceService.getOpenTaskCount(project.id) > 0,
-    ),
+    this.workspaceService
+      .projects()
+      .filter((project) => this.workspaceService.getOpenTaskCount(project.id) > 0),
   );
 
   constructor(
@@ -100,10 +98,6 @@ export class ProjectsPageComponent {
    * Liefert die Anzahl aller Mitglieder ohne Duplikate.
    */
   getMemberCount(project: WorkspaceProject): number {
-    return new Set(
-      [...project.managers, ...project.collaborators].map(
-        (member) => member.id,
-      ),
-    ).size;
+    return new Set([...project.managers, ...project.collaborators].map((member) => member.id)).size;
   }
 }

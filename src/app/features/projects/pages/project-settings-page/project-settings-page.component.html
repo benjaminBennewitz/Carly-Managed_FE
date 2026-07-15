@@ -1,0 +1,434 @@
+<!-- src/app/features/projects/pages/project-settings-page/project-settings-page.component.html -->
+
+@if (project(); as activeProject) {
+  <section class="project-settings-page">
+    <header class="project-settings-head">
+      <div class="project-settings-head__identity">
+        <a
+          class="project-settings-head__back"
+          [routerLink]="['/projects', activeProject.id, 'board']"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+          Board
+        </a>
+
+        <span
+          class="project-settings-head__icon material-symbols-outlined"
+          [style.--project-settings-accent]="selectedColor()"
+          aria-hidden="true"
+          >{{ selectedIcon() }}</span
+        >
+
+        <div>
+          <span>Projekteinstellungen</span>
+          <h1>{{ activeProject.name }}</h1>
+          <p>Stammdaten, Personen und Darstellung zentral verwalten.</p>
+        </div>
+      </div>
+
+      <div class="project-settings-head__actions">
+        @if (saved()) {
+          <span class="project-settings-saved" role="status">
+            <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+            Gespeichert
+          </span>
+        }
+        <button
+          class="project-settings-button project-settings-button--secondary"
+          type="button"
+          (click)="openProjectBoard()"
+        >
+          Abbrechen
+        </button>
+        <button
+          class="project-settings-button project-settings-button--primary"
+          type="button"
+          (click)="saveProject()"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">save</span>
+          Projekt speichern
+        </button>
+      </div>
+    </header>
+
+    <div class="project-settings-layout">
+      <nav class="project-settings-tabs" aria-label="Projekteinstellungen">
+        <button
+          type="button"
+          [class.is-active]="activeTab() === 'general'"
+          [attr.aria-pressed]="activeTab() === 'general'"
+          (click)="setActiveTab('general')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">description</span>
+          <span><strong>Stammdaten</strong><small>Name, Zeitraum und Arbeitsweise</small></span>
+        </button>
+        <button
+          type="button"
+          [class.is-active]="activeTab() === 'members'"
+          [attr.aria-pressed]="activeTab() === 'members'"
+          (click)="setActiveTab('members')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">groups</span>
+          <span><strong>Personen</strong><small>Owner, Admins und Mitwirkende</small></span>
+        </button>
+        <button
+          type="button"
+          [class.is-active]="activeTab() === 'interface'"
+          [attr.aria-pressed]="activeTab() === 'interface'"
+          (click)="setActiveTab('interface')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">palette</span>
+          <span><strong>Darstellung</strong><small>Icon und Projektfarbe</small></span>
+        </button>
+      </nav>
+
+      <form class="project-settings-content" [formGroup]="form" (ngSubmit)="saveProject()">
+        @if (activeTab() === 'general') {
+          <section
+            class="project-settings-section"
+            aria-labelledby="project-settings-general-title"
+          >
+            <header class="project-settings-section__head">
+              <span class="material-symbols-outlined" aria-hidden="true">description</span>
+              <div>
+                <h2 id="project-settings-general-title">Stammdaten</h2>
+                <p>Die Angaben erscheinen auf Projektkarten, Boards und in der globalen Suche.</p>
+              </div>
+            </header>
+
+            <div class="project-settings-field-grid">
+              <label
+                class="project-settings-field project-settings-field--wide"
+                [class.is-invalid]="isFieldInvalid('name')"
+              >
+                <span>Projektname <small>erforderlich</small></span>
+                <input formControlName="name" type="text" maxlength="80" autocomplete="off" />
+                @if (isFieldInvalid('name')) {
+                  <small class="project-settings-field__error"
+                    >Bitte gib einen Projektnamen ein.</small
+                  >
+                }
+              </label>
+
+              <label
+                class="project-settings-field"
+                [class.is-invalid]="isFieldInvalid('slugLabel')"
+              >
+                <span>Kurzlabel <small>erforderlich</small></span>
+                <input formControlName="slugLabel" type="text" maxlength="32" autocomplete="off" />
+                @if (isFieldInvalid('slugLabel')) {
+                  <small class="project-settings-field__error"
+                    >Bitte gib ein kurzes Projektlabel ein.</small
+                  >
+                }
+              </label>
+
+              <label class="project-settings-field project-settings-field--wide">
+                <span>Beschreibung</span>
+                <textarea formControlName="description" maxlength="500" rows="5"></textarea>
+                <small>{{ form.controls.description.value.length }}/500 Zeichen</small>
+              </label>
+
+              <div class="project-settings-field project-settings-field--wide">
+                <cm-member-select
+                  label="Projektverantwortlich"
+                  [value]="form.controls.ownerId.value"
+                  [members]="workspaceService.members()"
+                  [allowEmpty]="false"
+                  placeholder="Owner auswählen"
+                  (valueChange)="changeOwner($event)"
+                />
+              </div>
+
+              <label
+                class="project-settings-field"
+                [class.is-invalid]="isFieldInvalid('startedAt') || hasInvalidDateRange()"
+              >
+                <span>Startdatum <small>erforderlich</small></span>
+                <input formControlName="startedAt" type="date" />
+              </label>
+
+              <label
+                class="project-settings-field"
+                [class.is-invalid]="isFieldInvalid('dueAt') || hasInvalidDateRange()"
+              >
+                <span>Enddatum <small>erforderlich</small></span>
+                <input formControlName="dueAt" type="date" [min]="form.controls.startedAt.value" />
+              </label>
+
+              @if (hasInvalidDateRange()) {
+                <p class="project-settings-range-error" role="alert">
+                  <span class="material-symbols-outlined" aria-hidden="true">error</span>
+                  Das Enddatum darf nicht vor dem Startdatum liegen.
+                </p>
+              }
+            </div>
+
+            <div class="project-settings-options">
+              <button
+                class="project-settings-option"
+                type="button"
+                role="switch"
+                [class.is-active]="form.controls.allowsOnDemandTasks.value"
+                [attr.aria-checked]="form.controls.allowsOnDemandTasks.value"
+                (click)="toggleOption('allowsOnDemandTasks')"
+              >
+                <span
+                  class="project-settings-option__icon material-symbols-outlined"
+                  aria-hidden="true"
+                  >inventory_2</span
+                >
+                <span
+                  ><strong>Abruf-Aufgaben erlauben</strong
+                  ><small
+                    >Unzugewiesene Aufgaben dürfen kontrolliert im Pool vorbereitet werden.</small
+                  ></span
+                >
+                <span class="project-settings-switch" aria-hidden="true"><span></span></span>
+              </button>
+
+              <button
+                class="project-settings-option"
+                type="button"
+                role="switch"
+                [class.is-active]="form.controls.isPinned.value"
+                [attr.aria-checked]="form.controls.isPinned.value"
+                (click)="toggleOption('isPinned')"
+              >
+                <span
+                  class="project-settings-option__icon material-symbols-outlined"
+                  aria-hidden="true"
+                  >keep</span
+                >
+                <span
+                  ><strong>Projekt anpinnen</strong
+                  ><small
+                    >Das Projekt erscheint dauerhaft im Projektbereich der Sidebar.</small
+                  ></span
+                >
+                <span class="project-settings-switch" aria-hidden="true"><span></span></span>
+              </button>
+            </div>
+          </section>
+        }
+
+        @if (activeTab() === 'members') {
+          <section
+            class="project-settings-section"
+            aria-labelledby="project-settings-members-title"
+          >
+            <header class="project-settings-section__head">
+              <span class="material-symbols-outlined" aria-hidden="true">groups</span>
+              <div>
+                <h2 id="project-settings-members-title">Personen und Rollen</h2>
+                <p>Verantwortung und Zusammenarbeit innerhalb dieses Projekts festlegen.</p>
+              </div>
+            </header>
+
+            <article class="project-settings-member-block">
+              <div class="project-settings-member-block__head">
+                <div>
+                  <h3>Projektadmins</h3>
+                  <p>Admins verwalten Projektstruktur, Aufgaben und Mitglieder.</p>
+                </div>
+                @if (availableManagerCandidates().length > 0) {
+                  <cm-member-select
+                    label="Admin ergänzen"
+                    [value]="null"
+                    [members]="availableManagerCandidates()"
+                    [allowEmpty]="false"
+                    placeholder="Person hinzufügen"
+                    (valueChange)="addManager($event)"
+                  />
+                }
+              </div>
+
+              <div class="project-settings-member-list">
+                @for (member of selectedManagers(); track member.id) {
+                  <article class="project-settings-member-card">
+                    <span
+                      class="project-settings-member-card__avatar"
+                      [style.--project-member-color]="member.avatarColor"
+                      [style.--project-member-text]="member.avatarTextColor"
+                      >{{ member.initials }}</span
+                    >
+                    <span
+                      ><strong>{{ getFirstName(member) }}</strong
+                      ><small>{{ member.email }}</small></span
+                    >
+                    <span class="project-settings-member-card__role">{{
+                      isOwner(member.id) ? 'Owner' : 'Admin'
+                    }}</span>
+                    @if (!isOwner(member.id)) {
+                      <button
+                        class="project-settings-member-card__remove"
+                        type="button"
+                        [attr.aria-label]="member.fullName + ' als Admin entfernen'"
+                        (click)="removeManager(member.id)"
+                      >
+                        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                      </button>
+                    }
+                  </article>
+                }
+              </div>
+            </article>
+
+            <article class="project-settings-member-block">
+              <div class="project-settings-member-block__head">
+                <div>
+                  <h3>Mitwirkende</h3>
+                  <p>Mitglieder bearbeiten Aufgaben und arbeiten live im Projektboard.</p>
+                </div>
+                @if (availableCollaboratorCandidates().length > 0) {
+                  <cm-member-select
+                    label="Mitglied ergänzen"
+                    [value]="null"
+                    [members]="availableCollaboratorCandidates()"
+                    [allowEmpty]="false"
+                    placeholder="Person hinzufügen"
+                    (valueChange)="addCollaborator($event)"
+                  />
+                }
+              </div>
+
+              <div class="project-settings-member-list">
+                @for (member of selectedCollaborators(); track member.id) {
+                  <article class="project-settings-member-card">
+                    <span
+                      class="project-settings-member-card__avatar"
+                      [style.--project-member-color]="member.avatarColor"
+                      [style.--project-member-text]="member.avatarTextColor"
+                      >{{ member.initials }}</span
+                    >
+                    <span
+                      ><strong>{{ getFirstName(member) }}</strong
+                      ><small>{{ member.email }}</small></span
+                    >
+                    <span class="project-settings-member-card__role">Mitglied</span>
+                    <button
+                      class="project-settings-member-card__remove"
+                      type="button"
+                      [attr.aria-label]="member.fullName + ' entfernen'"
+                      (click)="removeCollaborator(member.id)"
+                    >
+                      <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                    </button>
+                  </article>
+                } @empty {
+                  <div class="project-settings-empty">
+                    <span class="material-symbols-outlined" aria-hidden="true">group_add</span>
+                    <span>Noch keine Mitwirkenden hinzugefügt.</span>
+                  </div>
+                }
+              </div>
+            </article>
+          </section>
+        }
+
+        @if (activeTab() === 'interface') {
+          <section
+            class="project-settings-section"
+            aria-labelledby="project-settings-interface-title"
+          >
+            <header class="project-settings-section__head">
+              <span class="material-symbols-outlined" aria-hidden="true">palette</span>
+              <div>
+                <h2 id="project-settings-interface-title">Darstellung</h2>
+                <p>Das Projekt bleibt in Sidebar, Suche und Projektkarten sofort erkennbar.</p>
+              </div>
+            </header>
+
+            <article
+              class="project-settings-preview"
+              [style.--project-settings-accent]="selectedColor()"
+            >
+              <span
+                class="project-settings-preview__icon material-symbols-outlined"
+                aria-hidden="true"
+                >{{ selectedIcon() }}</span
+              >
+              <div>
+                <span>{{ form.controls.slugLabel.value || activeProject.slugLabel }}</span
+                ><strong>{{ form.controls.name.value || activeProject.name }}</strong
+                ><small>{{ selectedIconLabel() }} · {{ selectedColorLabel() }}</small>
+              </div>
+              <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+            </article>
+
+            <div class="project-settings-interface-block">
+              <div class="project-settings-interface-block__head">
+                <h3>Projekt-Icon</h3>
+                <p>Ausgewähltes Material Symbol für Navigation und Projektkarten.</p>
+              </div>
+              <div
+                class="project-settings-icon-grid"
+                role="listbox"
+                aria-label="Projekt-Icon auswählen"
+              >
+                @for (option of iconOptions; track option.value) {
+                  <button
+                    type="button"
+                    role="option"
+                    [class.is-active]="selectedIcon() === option.value"
+                    [attr.aria-selected]="selectedIcon() === option.value"
+                    [attr.title]="option.label"
+                    (click)="selectIcon(option.value)"
+                  >
+                    <span class="material-symbols-outlined" aria-hidden="true">{{
+                      option.value
+                    }}</span>
+                    <span>{{ option.label }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="project-settings-interface-block">
+              <div class="project-settings-interface-block__head">
+                <h3>Projektfarbe</h3>
+                <p>Semantischer Akzent für Karten, Navigation und Projektkopf.</p>
+              </div>
+              <div
+                class="project-settings-color-grid"
+                role="listbox"
+                aria-label="Projektfarbe auswählen"
+              >
+                @for (option of colorOptions; track option.value) {
+                  <button
+                    type="button"
+                    role="option"
+                    [class.is-active]="selectedColor() === option.value"
+                    [style.--project-color-option]="option.value"
+                    [attr.aria-selected]="selectedColor() === option.value"
+                    (click)="selectColor(option.value)"
+                  >
+                    <span aria-hidden="true"></span>
+                    <strong>{{ option.label }}</strong>
+                    @if (selectedColor() === option.value) {
+                      <span class="material-symbols-outlined" aria-hidden="true">check</span>
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          </section>
+        }
+
+        @if (saveError()) {
+          <p class="project-settings-error" role="alert">
+            <span class="material-symbols-outlined" aria-hidden="true">error</span>
+            {{ saveError() }}
+          </p>
+        }
+      </form>
+    </div>
+  </section>
+} @else {
+  <section class="project-settings-not-found">
+    <span class="material-symbols-outlined" aria-hidden="true">folder_off</span>
+    <h1>Projekt nicht gefunden</h1>
+    <p>Das Projekt ist nicht verfügbar oder wurde bereits entfernt.</p>
+    <a routerLink="/projects">Zur Projektübersicht</a>
+  </section>
+}

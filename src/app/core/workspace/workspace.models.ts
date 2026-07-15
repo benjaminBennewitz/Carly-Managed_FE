@@ -198,6 +198,21 @@ export interface WorkspaceProjectCreatePayload {
   dueAt: string;
 }
 
+export interface WorkspaceProjectUpdatePayload {
+  name: string;
+  slugLabel: string;
+  description: string;
+  ownerId: string;
+  managerIds: string[];
+  collaboratorIds: string[];
+  startedAt: string;
+  dueAt: string;
+  color: string;
+  icon: string;
+  isPinned: boolean;
+  allowsOnDemandTasks: boolean;
+}
+
 export interface WorkspaceMemberInvitePayload {
   fullName: string;
   email: string;

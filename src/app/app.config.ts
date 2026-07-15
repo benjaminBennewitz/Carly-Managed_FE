@@ -1,11 +1,7 @@
 // src/app/app.config.ts
 
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import {
-  ActivatedRouteSnapshot,
-  provideRouter,
-  withViewTransitions,
-} from '@angular/router';
+import { ActivatedRouteSnapshot, provideRouter, withViewTransitions } from '@angular/router';
 
 import { routes } from './app.routes';
 
@@ -19,6 +15,7 @@ const APP_ROUTE_ORDER = [
   'archive',
   'projects',
   'projects/:projectId/board',
+  'projects/:projectId/settings',
   'carly',
   'settings',
 ];
@@ -66,11 +63,7 @@ export const appConfig: ApplicationConfig = {
           const fromAuthIndex = AUTH_ROUTE_ORDER.indexOf(fromPath);
           const toAuthIndex = AUTH_ROUTE_ORDER.indexOf(toPath);
 
-          if (
-            fromAuthIndex >= 0 &&
-            toAuthIndex >= 0 &&
-            fromAuthIndex !== toAuthIndex
-          ) {
+          if (fromAuthIndex >= 0 && toAuthIndex >= 0 && fromAuthIndex !== toAuthIndex) {
             setTransitionDirection(
               'authTransitionDirection',
               toAuthIndex > fromAuthIndex ? 'forward' : 'backward',
@@ -82,11 +75,7 @@ export const appConfig: ApplicationConfig = {
           const fromAppIndex = APP_ROUTE_ORDER.indexOf(fromPath);
           const toAppIndex = APP_ROUTE_ORDER.indexOf(toPath);
 
-          if (
-            fromAppIndex >= 0 &&
-            toAppIndex >= 0 &&
-            fromAppIndex !== toAppIndex
-          ) {
+          if (fromAppIndex >= 0 && toAppIndex >= 0 && fromAppIndex !== toAppIndex) {
             setTransitionDirection(
               'appTransitionDirection',
               toAppIndex > fromAppIndex ? 'forward' : 'backward',

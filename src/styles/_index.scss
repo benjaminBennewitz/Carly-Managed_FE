@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/_index.scss
    Projekt: Carly Managed
-   Version: 1.9.0
+   Version: 2.0.0
    Beschreibung: Bündelt die globalen Designsystem-Dateien.
 
    Inhaltsverzeichnis:
@@ -34,6 +34,7 @@
 @use 'components/workspace-controls';
 @use 'components/workspace-task-card';
 @use 'components/workspace-projects';
+@use 'components/workspace-project-settings';
 @use 'components/workspace-board';
 @use 'components/workspace-modals';
 @use 'components/workspace-archive';
