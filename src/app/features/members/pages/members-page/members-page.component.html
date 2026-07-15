@@ -1,41 +1,522 @@
 <!-- src/app/features/members/pages/members-page/members-page.component.html -->
 
 <section class="members-page">
-  <cm-page-header
-    eyebrow="Zusammenarbeit"
-    title="Mitglieder"
-    description="Personen, Rollen und Präsenz in deinen gemeinsamen Arbeitsbereichen."
-  />
+  <div class="members-page__header">
+    <cm-page-header
+      eyebrow="Zusammenarbeit"
+      title="Mitglieder"
+      description="Personen, Rollen, Zugänge und Freigaben für deinen gemeinsamen Workspace."
+    />
 
-  <div class="members-page__list">
-    @for (member of workspaceService.members(); track member.id) {
-      <article
-        class="members-page__member"
-        [class.members-page__member--highlighted]="selectedMemberId() === member.id"
-      >
-        <span
-          class="members-page__avatar"
-          [style.background]="member.avatarColor"
-          [style.color]="member.avatarTextColor"
-          aria-hidden="true"
-          >{{ member.initials }}</span
-        >
+    <button class="members-page__add-button" type="button" (click)="toggleCreateForm()">
+      <span class="material-symbols-outlined" aria-hidden="true">
+        {{ showCreateForm() ? 'close' : 'person_add' }}
+      </span>
+      {{ showCreateForm() ? 'Abbrechen' : 'Mitglied hinzufügen' }}
+    </button>
+  </div>
 
-        <div class="members-page__identity">
-          <strong>{{ member.fullName }}</strong>
-          <span>{{ member.email }}</span>
+  @if (feedback()) {
+    <p class="members-page__feedback" role="status">
+      <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+      {{ feedback() }}
+    </p>
+  }
+
+  @if (showCreateForm()) {
+    <section class="members-page__create-panel" aria-labelledby="members-create-title">
+      <div class="members-page__section-heading">
+        <div>
+          <span>Direkt hinzufügen</span>
+          <h2 id="members-create-title">Neues Mitglied</h2>
+        </div>
+        <p>Die Person wird sofort als lokales Teammitglied angelegt.</p>
+      </div>
+
+      <form class="members-page__form" [formGroup]="createForm" (ngSubmit)="createMember()">
+        <div class="members-page__avatar-editor">
+          <span
+            class="members-page__avatar members-page__avatar--large"
+            [style.background]="createForm.controls.avatarColor.value"
+            [style.color]="getAvatarTextColor(createForm.controls.avatarColor.value)"
+            aria-hidden="true"
+          >
+            {{ getInitials(createForm.controls.fullName.value) }}
+          </span>
+          <div>
+            <strong>Avatar-Vorschau</strong>
+            <span>Die Initialenfarbe wird automatisch nach Kontrast berechnet.</span>
+          </div>
         </div>
 
-        <span class="members-page__role">{{ getRoleLabel(member) }}</span>
+        <div class="members-page__form-grid">
+          <label class="members-page__field">
+            <span>Name</span>
+            <input
+              type="text"
+              formControlName="fullName"
+              autocomplete="name"
+              maxlength="80"
+              [attr.aria-invalid]="
+                createSubmitted() && createForm.controls.fullName.invalid ? 'true' : null
+              "
+            />
+            @if (createSubmitted() && createForm.controls.fullName.invalid) {
+              <small>Bitte einen Namen mit maximal 80 Zeichen eingeben.</small>
+            }
+          </label>
 
-        <span
-          class="members-page__presence"
-          [class.members-page__presence--offline]="!member.isOnline"
+          <label class="members-page__field">
+            <span>E-Mail</span>
+            <input
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              maxlength="254"
+              [attr.aria-invalid]="
+                createSubmitted() && createForm.controls.email.invalid ? 'true' : null
+              "
+            />
+            @if (createSubmitted() && createForm.controls.email.invalid) {
+              <small>Bitte eine gültige E-Mail-Adresse eingeben.</small>
+            }
+          </label>
+
+          <label class="members-page__field">
+            <span>Rolle</span>
+            <select formControlName="role">
+              <option value="owner">Owner</option>
+              <option value="manager">Manager</option>
+              <option value="member">Mitglied</option>
+            </select>
+          </label>
+
+          <label class="members-page__field members-page__field--color">
+            <span>Iconfarbe</span>
+            <span class="members-page__color-control">
+              <input type="color" formControlName="avatarColor" aria-label="Iconfarbe auswählen" />
+              <code>{{ createForm.controls.avatarColor.value }}</code>
+            </span>
+          </label>
+        </div>
+
+        @if (createError()) {
+          <p class="members-page__error" role="alert">
+            <span class="material-symbols-outlined" aria-hidden="true">error</span>
+            {{ createError() }}
+          </p>
+        }
+
+        <footer class="members-page__form-actions">
+          <button type="button" class="members-page__button" (click)="closeCreateForm()">
+            Abbrechen
+          </button>
+          <button type="submit" class="members-page__button members-page__button--primary">
+            <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
+            Mitglied hinzufügen
+          </button>
+        </footer>
+      </form>
+    </section>
+  }
+
+  <section class="members-page__section" aria-labelledby="members-list-title">
+    <div class="members-page__section-heading">
+      <div>
+        <span>Aktives Team</span>
+        <h2 id="members-list-title">Mitglieder verwalten</h2>
+      </div>
+      <p>{{ workspaceService.members().length }} Personen im Workspace</p>
+    </div>
+
+    <div class="members-page__list">
+      @for (member of workspaceService.members(); track member.id) {
+        <article
+          class="members-page__member"
+          [class.members-page__member--highlighted]="selectedMemberId() === member.id"
+          [class.members-page__member--expanded]="expandedMemberId() === member.id"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">circle</span>
-          {{ member.isOnline ? 'Online' : 'Offline' }}
-        </span>
-      </article>
+          <button
+            class="members-page__member-summary"
+            type="button"
+            [attr.aria-expanded]="expandedMemberId() === member.id"
+            [attr.aria-controls]="'member-editor-' + member.id"
+            (click)="toggleMember(member)"
+          >
+            <span
+              class="members-page__avatar"
+              [style.background]="member.avatarColor"
+              [style.color]="member.avatarTextColor"
+              aria-hidden="true"
+            >
+              {{ member.initials }}
+            </span>
+
+            <span class="members-page__identity">
+              <strong>{{ member.fullName }}</strong>
+              <span>{{ member.email }}</span>
+            </span>
+
+            <span class="members-page__role">{{ getRoleLabel(member) }}</span>
+
+            <span
+              class="members-page__presence"
+              [class.members-page__presence--offline]="!member.isOnline"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">circle</span>
+              {{ member.isOnline ? 'Online' : 'Offline' }}
+            </span>
+
+            <span class="members-page__expand-icon material-symbols-outlined" aria-hidden="true">
+              {{ expandedMemberId() === member.id ? 'expand_less' : 'expand_more' }}
+            </span>
+          </button>
+
+          @if (expandedMemberId() === member.id) {
+            <div class="members-page__member-editor" [id]="'member-editor-' + member.id">
+              <form class="members-page__form" [formGroup]="editForm" (ngSubmit)="saveMember()">
+                <div class="members-page__editor-layout">
+                  <div class="members-page__editor-main">
+                    <div class="members-page__avatar-editor">
+                      <span
+                        class="members-page__avatar members-page__avatar--large"
+                        [style.background]="editForm.controls.avatarColor.value"
+                        [style.color]="getAvatarTextColor(editForm.controls.avatarColor.value)"
+                        aria-hidden="true"
+                      >
+                        {{ getInitials(editForm.controls.fullName.value) }}
+                      </span>
+                      <div>
+                        <strong>Profil bearbeiten</strong>
+                        <span>Initialen und Textkontrast werden automatisch aktualisiert.</span>
+                      </div>
+                    </div>
+
+                    <div class="members-page__form-grid">
+                      <label class="members-page__field">
+                        <span>Name</span>
+                        <input
+                          type="text"
+                          formControlName="fullName"
+                          autocomplete="name"
+                          maxlength="80"
+                          [attr.aria-invalid]="
+                            editSubmitted() && editForm.controls.fullName.invalid ? 'true' : null
+                          "
+                        />
+                        @if (editSubmitted() && editForm.controls.fullName.invalid) {
+                          <small>Bitte einen Namen mit maximal 80 Zeichen eingeben.</small>
+                        }
+                      </label>
+
+                      <label class="members-page__field">
+                        <span>E-Mail</span>
+                        <input
+                          type="email"
+                          formControlName="email"
+                          autocomplete="email"
+                          maxlength="254"
+                          [attr.aria-invalid]="
+                            editSubmitted() && editForm.controls.email.invalid ? 'true' : null
+                          "
+                        />
+                        @if (editSubmitted() && editForm.controls.email.invalid) {
+                          <small>Bitte eine gültige E-Mail-Adresse eingeben.</small>
+                        }
+                      </label>
+
+                      <label class="members-page__field">
+                        <span>Rolle</span>
+                        <select formControlName="role">
+                          <option value="owner">Owner</option>
+                          <option value="manager">Manager</option>
+                          <option value="member">Mitglied</option>
+                        </select>
+                      </label>
+
+                      <label class="members-page__field members-page__field--color">
+                        <span>Iconfarbe</span>
+                        <span class="members-page__color-control">
+                          <input
+                            type="color"
+                            formControlName="avatarColor"
+                            aria-label="Iconfarbe auswählen"
+                          />
+                          <code>{{ editForm.controls.avatarColor.value }}</code>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <aside class="members-page__security-card">
+                    <header>
+                      <span class="material-symbols-outlined" aria-hidden="true">shield_lock</span>
+                      <div>
+                        <span>Kontosicherheit</span>
+                        <strong>{{ getSecurityPresentation(member).label }}</strong>
+                      </div>
+                    </header>
+
+                    <div
+                      class="members-page__security-bars"
+                      [attr.aria-label]="
+                        'Sicherheitsstatus ' + getSecurityPresentation(member).label
+                      "
+                      role="img"
+                    >
+                      @for (bar of securityBars; track bar) {
+                        <span
+                          class="members-page__security-bar"
+                          [class.members-page__security-bar--active]="
+                            bar <= getSecurityPresentation(member).score
+                          "
+                          [attr.data-tone]="getSecurityPresentation(member).tone"
+                        ></span>
+                      }
+                    </div>
+
+                    <p>{{ getSecurityPresentation(member).description }}</p>
+
+                    <button
+                      type="button"
+                      class="members-page__button members-page__button--full"
+                      (click)="openPasswordResetDialog(member)"
+                    >
+                      <span class="material-symbols-outlined" aria-hidden="true">key</span>
+                      Passwort resetten
+                    </button>
+                  </aside>
+                </div>
+
+                @if (editError()) {
+                  <p class="members-page__error" role="alert">
+                    <span class="material-symbols-outlined" aria-hidden="true">error</span>
+                    {{ editError() }}
+                  </p>
+                }
+
+                <footer class="members-page__form-actions members-page__form-actions--split">
+                  <button
+                    type="button"
+                    class="members-page__button members-page__button--danger"
+                    [disabled]="!canDeleteMember(member)"
+                    [attr.title]="
+                      canDeleteMember(member)
+                        ? 'Mitglied entfernen'
+                        : 'Das eigene Owner-Konto kann nicht entfernt werden.'
+                    "
+                    (click)="openDeleteDialog(member)"
+                  >
+                    <span class="material-symbols-outlined" aria-hidden="true">person_remove</span>
+                    Mitglied entfernen
+                  </button>
+
+                  <button type="submit" class="members-page__button members-page__button--primary">
+                    <span class="material-symbols-outlined" aria-hidden="true">save</span>
+                    Änderungen speichern
+                  </button>
+                </footer>
+              </form>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="members-page__section" aria-labelledby="join-requests-title">
+    <div class="members-page__section-heading">
+      <div>
+        <span>Freigabe erforderlich</span>
+        <h2 id="join-requests-title">Eingeladene Mitglieder</h2>
+      </div>
+      <p>{{ workspaceService.joinRequests().length }} offene Beitrittsanfragen</p>
+    </div>
+
+    @if (workspaceService.joinRequests().length > 0) {
+      <div class="members-page__requests">
+        @for (request of workspaceService.joinRequests(); track request.id) {
+          <article class="members-page__request">
+            <span
+              class="members-page__avatar"
+              [style.background]="request.avatarColor"
+              [style.color]="getAvatarTextColor(request.avatarColor)"
+              aria-hidden="true"
+            >
+              {{ getInitials(request.fullName) }}
+            </span>
+
+            <div class="members-page__request-copy">
+              <strong>{{ request.fullName }} möchte deinem Team beitreten.</strong>
+              <span>{{ request.email }} · {{ formatRequestDate(request.requestedAt) }}</span>
+              <p>Zulassen und als reguläres Mitglied im Workspace freigeben?</p>
+            </div>
+
+            <div class="members-page__request-actions">
+              <button
+                type="button"
+                class="members-page__button"
+                (click)="rejectJoinRequest(request)"
+              >
+                Ablehnen
+              </button>
+              <button
+                type="button"
+                class="members-page__button members-page__button--primary"
+                (click)="approveJoinRequest(request)"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">how_to_reg</span>
+                Zulassen
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="members-page__empty">
+        <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
+        <div>
+          <strong>Keine offenen Freigaben</strong>
+          <span>Alle Beitrittsanfragen wurden bearbeitet.</span>
+        </div>
+      </div>
     }
-  </div>
+  </section>
+
+  @if (dialogState(); as activeDialog) {
+    @if (dialogMember(); as member) {
+      <div class="members-page__backdrop" role="presentation" (click)="closeDialog()">
+        <section
+          class="members-page__dialog"
+          [class.members-page__dialog--danger]="activeDialog === 'delete-confirm'"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="members-dialog-title"
+          aria-describedby="members-dialog-description"
+          (click)="$event.stopPropagation()"
+        >
+          <header class="members-page__dialog-header">
+            <span class="members-page__dialog-icon material-symbols-outlined" aria-hidden="true">
+              @if (activeDialog === 'password-sent') {
+                mark_email_read
+              } @else if (activeDialog === 'delete-confirm') {
+                person_remove
+              } @else {
+                key
+              }
+            </span>
+            <div>
+              <span>Mitgliederverwaltung</span>
+              <h2 id="members-dialog-title">
+                @if (activeDialog === 'password-sent') {
+                  Reset-E-Mail gesendet
+                } @else if (activeDialog === 'delete-confirm') {
+                  Mitglied entfernen
+                } @else {
+                  Passwort zurücksetzen
+                }
+              </h2>
+            </div>
+            <button
+              class="members-page__dialog-close"
+              type="button"
+              aria-label="Dialog schließen"
+              (click)="closeDialog()"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+          </header>
+
+          <div class="members-page__dialog-body">
+            @if (activeDialog === 'password-confirm') {
+              <p id="members-dialog-description">
+                Möchtest du für <strong>{{ member.fullName }}</strong> eine E-Mail zum Zurücksetzen
+                des Passworts an <strong>{{ member.email }}</strong> senden?
+              </p>
+
+              <div class="members-page__dialog-security">
+                <div>
+                  <span>Aktueller Sicherheitsstatus</span>
+                  <strong>{{ getSecurityPresentation(member).label }}</strong>
+                </div>
+                <div class="members-page__security-bars" aria-hidden="true">
+                  @for (bar of securityBars; track bar) {
+                    <span
+                      class="members-page__security-bar"
+                      [class.members-page__security-bar--active]="
+                        bar <= getSecurityPresentation(member).score
+                      "
+                      [attr.data-tone]="getSecurityPresentation(member).tone"
+                    ></span>
+                  }
+                </div>
+              </div>
+
+              <p class="members-page__dialog-note">
+                Dies ist eine lokale Vorschau. Es wird keine echte E-Mail versendet.
+              </p>
+            }
+
+            @if (activeDialog === 'password-sent') {
+              <p id="members-dialog-description">
+                Eine E-Mail zum Passwort-Reset wurde an <strong>{{ member.email }}</strong>
+                gesendet.
+              </p>
+              <div class="members-page__dialog-success">
+                <span class="material-symbols-outlined" aria-hidden="true">outgoing_mail</span>
+                <span>{{ member.fullName }} kann über den Link ein neues Passwort festlegen.</span>
+              </div>
+            }
+
+            @if (activeDialog === 'delete-confirm') {
+              <p id="members-dialog-description">
+                Möchtest du <strong>{{ member.fullName }}</strong> wirklich aus dem Team entfernen?
+              </p>
+              <div class="members-page__dialog-warning">
+                <span class="material-symbols-outlined" aria-hidden="true">warning</span>
+                <span>
+                  Projektverantwortungen werden auf den aktuellen Owner übertragen. Offene
+                  Zuweisungen und das persönliche Board der Person werden entfernt.
+                </span>
+              </div>
+            }
+          </div>
+
+          <footer class="members-page__dialog-actions">
+            @if (activeDialog === 'password-confirm') {
+              <button type="button" class="members-page__button" (click)="closeDialog()">
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                class="members-page__button members-page__button--primary"
+                (click)="confirmPasswordReset()"
+              >
+                Reset-E-Mail senden
+              </button>
+            } @else if (activeDialog === 'delete-confirm') {
+              <button type="button" class="members-page__button" (click)="closeDialog()">
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                class="members-page__button members-page__button--danger-solid"
+                (click)="confirmDeleteMember()"
+              >
+                Mitglied entfernen
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="members-page__button members-page__button--primary"
+                (click)="closeDialog()"
+              >
+                Verstanden
+              </button>
+            }
+          </footer>
+        </section>
+      </div>
+    }
+  }
 </section>

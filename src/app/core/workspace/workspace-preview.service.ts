@@ -2,6 +2,7 @@
 
 import { computed, Injectable, signal } from '@angular/core';
 
+import { WorkspaceInboxService } from '../inbox/workspace-inbox.service';
 import {
   normalizeMultilineInput,
   normalizeSingleLineInput,
@@ -18,8 +19,11 @@ import {
   WorkspaceColumnSortMode,
   WorkspaceComment,
   WorkspaceHistoryEntry,
+  WorkspaceJoinRequest,
   WorkspaceMember,
   WorkspaceMemberInvitePayload,
+  WorkspaceMemberRole,
+  WorkspaceMemberSavePayload,
   WorkspaceMessage,
   WorkspaceMessageCreatePayload,
   WorkspaceProject,
@@ -37,6 +41,7 @@ const day = 86_400_000;
 const WORKSPACE_PROJECTS_STORAGE_KEY = 'carly-managed-preview-projects-v2';
 const WORKSPACE_BOARDS_STORAGE_KEY = 'carly-managed-preview-boards-v2';
 const WORKSPACE_MEMBERS_STORAGE_KEY = 'carly-managed-preview-members-v1';
+const WORKSPACE_JOIN_REQUESTS_STORAGE_KEY = 'carly-managed-preview-join-requests-v1';
 const WORKSPACE_MESSAGES_STORAGE_KEY = 'carly-managed-preview-messages-v1';
 const MAX_TASK_TITLE_LENGTH = 160;
 const MAX_TASK_DESCRIPTION_LENGTH = 5_000;
@@ -289,6 +294,58 @@ const LEA: WorkspaceMember = {
 };
 
 const MEMBERS = [BEN, MIRA, NOAH, LEA];
+
+const JOIN_REQUESTS: WorkspaceJoinRequest[] = [
+  {
+    id: 'join-request-jona',
+    fullName: 'Jona Weber',
+    email: 'jona@carly.local',
+    avatarColor: '#B9546A',
+    requestedAt: isoDateTime(-1, 16),
+  },
+  {
+    id: 'join-request-emilia',
+    fullName: 'Emilia Roth',
+    email: 'emilia@carly.local',
+    avatarColor: '#5B6FB8',
+    requestedAt: isoDateTime(-3, 11),
+  },
+];
+
+function createMemberInitials(fullName: string): string {
+  const initials = fullName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toLocaleUpperCase('de'))
+    .join('');
+  return initials || 'NP';
+}
+
+function normalizeAvatarColor(value: string, fallback = '#7752B3'): string {
+  const normalized = normalizeSingleLineInput(value, 7).toLocaleUpperCase('de');
+  return /^#[0-9A-F]{6}$/.test(normalized) ? normalized : fallback;
+}
+
+function getAvatarTextColor(backgroundColor: string): string {
+  const hex = normalizeAvatarColor(backgroundColor).slice(1);
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16));
+  const luminance = channels
+    .map((channel) => {
+      const normalized = channel / 255;
+      return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+    })
+    .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index]!, 0);
+  return luminance > 0.42 ? '#241B2E' : '#FFFFFF';
+}
+
+function isWorkspaceMemberRole(value: string): value is WorkspaceMemberRole {
+  return value === 'owner' || value === 'manager' || value === 'member';
+}
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 function task(id: string, title: string, overrides: Partial<WorkspaceTask> = {}): WorkspaceTask {
   const createdTask: WorkspaceTask = {
@@ -936,18 +993,24 @@ function loadStoredBoards(): Record<string, WorkspaceColumn[]> {
 function loadStoredMembers(): WorkspaceMember[] {
   try {
     const storedMembers = window.localStorage.getItem(WORKSPACE_MEMBERS_STORAGE_KEY);
-    if (!storedMembers) {
+    if (storedMembers === null) {
       return MEMBERS.map((member) => ({ ...member }));
     }
 
-    const parsedMembers = JSON.parse(storedMembers) as WorkspaceMember[];
-    const uniqueMembers = new Map<string, WorkspaceMember>();
-    [...MEMBERS, ...parsedMembers].forEach((member) => {
-      uniqueMembers.set(member.email.toLocaleLowerCase('de'), { ...member });
-    });
-    return [...uniqueMembers.values()];
+    return (JSON.parse(storedMembers) as WorkspaceMember[]).map((member) => ({ ...member }));
   } catch {
     return MEMBERS.map((member) => ({ ...member }));
+  }
+}
+
+function loadStoredJoinRequests(): WorkspaceJoinRequest[] {
+  try {
+    const storedRequests = window.localStorage.getItem(WORKSPACE_JOIN_REQUESTS_STORAGE_KEY);
+    return storedRequests === null
+      ? JOIN_REQUESTS.map((request) => ({ ...request }))
+      : (JSON.parse(storedRequests) as WorkspaceJoinRequest[]).map((request) => ({ ...request }));
+  } catch {
+    return JOIN_REQUESTS.map((request) => ({ ...request }));
   }
 }
 
@@ -965,6 +1028,7 @@ export class WorkspacePreviewService {
   private readonly projectsState = signal<WorkspaceProject[]>(loadStoredProjects());
   private readonly boardsState = signal<Record<string, WorkspaceColumn[]>>(loadStoredBoards());
   private readonly membersState = signal<WorkspaceMember[]>(loadStoredMembers());
+  private readonly joinRequestsState = signal<WorkspaceJoinRequest[]>(loadStoredJoinRequests());
   private readonly messagesState = signal<WorkspaceMessage[]>(loadStoredMessages());
 
   readonly projects = computed(() =>
@@ -992,6 +1056,7 @@ export class WorkspacePreviewService {
         )[0] ?? null,
   );
   readonly members = this.membersState.asReadonly();
+  readonly joinRequests = this.joinRequestsState.asReadonly();
   readonly sentMessages = this.messagesState.asReadonly();
   readonly poolTasks = computed(() =>
     cloneColumns(this.boardsState()[POOL_BOARD_ID] ?? [])
@@ -1028,7 +1093,11 @@ export class WorkspacePreviewService {
       );
   });
 
-  constructor(private readonly automationService: WorkspaceAutomationService) {
+  constructor(
+    private readonly automationService: WorkspaceAutomationService,
+    private readonly inboxService: WorkspaceInboxService,
+  ) {
+    this.inboxService.initialize(this.membersState());
     this.reconcileWorkspaceIntake();
     this.persistBoards();
   }
@@ -1203,6 +1272,12 @@ export class WorkspacePreviewService {
     );
     this.persistProjects();
     this.persistBoards();
+    this.recordProjectActivity(
+      updatedProject,
+      'Projekt geändert',
+      `Name, Laufzeit, Rollen oder Darstellung von „${updatedProject.name}“ wurden aktualisiert.`,
+      'edit_note',
+    );
 
     return cloneProjects([updatedProject])[0] ?? null;
   }
@@ -1231,6 +1306,13 @@ export class WorkspacePreviewService {
       projects.map((project) => (project.id === projectId ? completedProject : project)),
     );
     this.persistProjects();
+    this.recordProjectActivity(
+      completedProject,
+      'Projekt abgeschlossen',
+      `„${completedProject.name}“ wurde abgeschlossen und in den Archivbereich verschoben.`,
+      'task_alt',
+      '/archive',
+    );
 
     return cloneProjects([completedProject])[0] ?? null;
   }
@@ -1262,6 +1344,13 @@ export class WorkspacePreviewService {
       projects.map((project) => (project.id === projectId ? archivedProject : project)),
     );
     this.persistProjects();
+    this.recordProjectActivity(
+      archivedProject,
+      'Projekt archiviert',
+      `„${archivedProject.name}“ wurde archiviert. Aufgaben und Board bleiben im Archiv erhalten.`,
+      'archive',
+      '/archive',
+    );
 
     return cloneProjects([archivedProject])[0] ?? null;
   }
@@ -1270,7 +1359,8 @@ export class WorkspacePreviewService {
    * Löscht ein Projekt einschließlich Board, Task-Spiegelungen und Automationsregeln.
    */
   deleteProject(projectId: string): boolean {
-    if (!this.getProject(projectId)) {
+    const currentProject = this.getProject(projectId);
+    if (!currentProject) {
       return false;
     }
 
@@ -1295,6 +1385,13 @@ export class WorkspacePreviewService {
     this.automationService.deleteBoardRules(projectId);
     this.persistProjects();
     this.persistBoards();
+    this.recordProjectActivity(
+      currentProject,
+      'Projekt gelöscht',
+      `„${currentProject.name}“ wurde dauerhaft mit Board, Aufgaben und Regeln gelöscht.`,
+      'delete_forever',
+      null,
+    );
 
     return true;
   }
@@ -1362,8 +1459,261 @@ export class WorkspacePreviewService {
     }));
     this.persistProjects();
     this.persistBoards();
+    this.recordProjectActivity(
+      createdProject,
+      'Projekt erstellt',
+      `„${createdProject.name}“ wurde mit einem neuen Startboard angelegt.`,
+      'create_new_folder',
+    );
 
     return createdProject;
+  }
+
+  /**
+   * Erstellt ein Mitglied und speichert es im lokalen Workspace.
+   */
+  createMember(payload: WorkspaceMemberSavePayload): WorkspaceMember | null {
+    const fullName = normalizeSingleLineInput(payload.fullName, 80);
+    const email = normalizeSingleLineInput(payload.email, 254).toLocaleLowerCase('de');
+    const role = isWorkspaceMemberRole(payload.role) ? payload.role : 'member';
+
+    if (
+      !fullName ||
+      !isValidEmail(email) ||
+      this.membersState().some((member) => member.email.toLocaleLowerCase('de') === email)
+    ) {
+      return null;
+    }
+
+    const avatarColor = normalizeAvatarColor(payload.avatarColor);
+    const member: WorkspaceMember = {
+      id: `member-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      fullName,
+      email,
+      initials: createMemberInitials(fullName),
+      avatarColor,
+      avatarTextColor: getAvatarTextColor(avatarColor),
+      role,
+      isOnline: false,
+    };
+
+    this.membersState.update((members) => [...members, member]);
+    this.persistMembers();
+    this.inboxService.createSystemNotification({
+      kind: 'member',
+      title: 'Mitglied hinzugefügt',
+      body: `${member.fullName} wurde als ${member.role === 'manager' ? 'Manager' : 'Mitglied'} zum Workspace hinzugefügt.`,
+      icon: 'person_add',
+      actor: BEN,
+      route: '/members',
+      queryParams: { member: member.id },
+    });
+    return { ...member };
+  }
+
+  /**
+   * Aktualisiert Mitgliedsdaten und gleicht eingebettete Referenzen im Workspace ab.
+   */
+  updateMember(memberId: string, payload: WorkspaceMemberSavePayload): WorkspaceMember | null {
+    const currentMember = this.membersState().find((member) => member.id === memberId);
+    const fullName = normalizeSingleLineInput(payload.fullName, 80);
+    const email = normalizeSingleLineInput(payload.email, 254).toLocaleLowerCase('de');
+    const role = isWorkspaceMemberRole(payload.role) ? payload.role : 'member';
+
+    if (
+      !currentMember ||
+      !fullName ||
+      !isValidEmail(email) ||
+      this.membersState().some(
+        (member) => member.id !== memberId && member.email.toLocaleLowerCase('de') === email,
+      )
+    ) {
+      return null;
+    }
+
+    const avatarColor = normalizeAvatarColor(payload.avatarColor, currentMember.avatarColor);
+    const updatedMember: WorkspaceMember = {
+      ...currentMember,
+      fullName,
+      email,
+      initials: createMemberInitials(fullName),
+      avatarColor,
+      avatarTextColor: getAvatarTextColor(avatarColor),
+      role,
+    };
+
+    this.membersState.update((members) =>
+      members.map((member) => (member.id === memberId ? updatedMember : member)),
+    );
+    this.replaceMemberReferences(updatedMember);
+    this.persistMembers();
+    this.persistProjects();
+    this.persistBoards();
+    this.persistMessages();
+    this.inboxService.syncMember(updatedMember);
+    this.inboxService.createSystemNotification({
+      kind: 'member',
+      title: 'Mitgliedsdaten geändert',
+      body: `Name, E-Mail, Rolle oder Iconfarbe von ${updatedMember.fullName} wurden aktualisiert.`,
+      icon: 'manage_accounts',
+      actor: BEN,
+      route: '/members',
+      queryParams: { member: updatedMember.id },
+    });
+    return { ...updatedMember };
+  }
+
+  /**
+   * Entfernt ein Mitglied, überträgt Verantwortungen und bereinigt aktive Zuweisungen.
+   */
+  deleteMember(memberId: string): boolean {
+    const member = this.membersState().find((item) => item.id === memberId);
+    const fallbackOwner = this.membersState().find((item) => item.id === BEN.id) ?? BEN;
+
+    if (!member || member.id === BEN.id) {
+      return false;
+    }
+
+    this.membersState.update((members) => members.filter((item) => item.id !== memberId));
+    this.projectsState.update((projects) =>
+      projects.map((project) => {
+        const owner = project.owner.id === memberId ? fallbackOwner : project.owner;
+        const managers = [owner, ...project.managers.filter((item) => item.id !== memberId)].filter(
+          (item, index, items) =>
+            items.findIndex((candidate) => candidate.id === item.id) === index,
+        );
+
+        return {
+          ...project,
+          owner: cloneMember(owner),
+          managers: managers.map(cloneMember),
+          collaborators: project.collaborators
+            .filter((item) => item.id !== memberId)
+            .map(cloneMember),
+          updatedAt: new Date().toISOString(),
+        };
+      }),
+    );
+    this.boardsState.update((boards) =>
+      Object.fromEntries(
+        Object.entries(boards)
+          .filter(([boardId]) => boardId !== this.getPersonalBoardId(memberId))
+          .map(([boardId, columns]) => [
+            boardId,
+            columns.map((column) => ({
+              ...column,
+              tasks: column.tasks.map((taskItem) => ({
+                ...taskItem,
+                owner:
+                  taskItem.owner.id === memberId
+                    ? cloneMember(fallbackOwner)
+                    : cloneMember(taskItem.owner),
+                assignee:
+                  taskItem.assignee?.id === memberId
+                    ? null
+                    : taskItem.assignee
+                      ? cloneMember(taskItem.assignee)
+                      : null,
+                collaborators: taskItem.collaborators
+                  .filter((item) => item.id !== memberId)
+                  .map(cloneMember),
+                subtasks: taskItem.subtasks.map((subtask) => ({
+                  ...subtask,
+                  assignee:
+                    subtask.assignee?.id === memberId
+                      ? null
+                      : subtask.assignee
+                        ? cloneMember(subtask.assignee)
+                        : null,
+                })),
+                updatedAt: new Date().toISOString(),
+              })),
+            })),
+          ]),
+      ),
+    );
+    this.messagesState.update((messages) =>
+      messages.filter((message) => message.recipient.id !== memberId),
+    );
+    this.reconcileWorkspaceIntake();
+    this.persistMembers();
+    this.persistProjects();
+    this.persistBoards();
+    this.persistMessages();
+    this.inboxService.removeMember(memberId);
+    this.inboxService.createSystemNotification({
+      kind: 'member',
+      title: 'Mitglied entfernt',
+      body: `${member.fullName} wurde aus dem Workspace entfernt. Aktive Zuweisungen wurden bereinigt.`,
+      icon: 'person_remove',
+      actor: BEN,
+      route: '/members',
+    });
+    return true;
+  }
+
+  /**
+   * Gibt eine offene Beitrittsanfrage frei und legt die Person als Mitglied an.
+   */
+  approveJoinRequest(requestId: string): WorkspaceMember | null {
+    const request = this.joinRequestsState().find((item) => item.id === requestId);
+    if (!request) {
+      return null;
+    }
+
+    const existingMember = this.membersState().find(
+      (member) => member.email.toLocaleLowerCase('de') === request.email.toLocaleLowerCase('de'),
+    );
+    const member =
+      existingMember ??
+      this.createMember({
+        fullName: request.fullName,
+        email: request.email,
+        role: 'member',
+        avatarColor: request.avatarColor,
+      });
+
+    if (!member) {
+      return null;
+    }
+
+    this.joinRequestsState.update((requests) => requests.filter((item) => item.id !== requestId));
+    this.persistJoinRequests();
+    this.inboxService.createSystemNotification({
+      kind: 'member',
+      title: 'Beitritt freigegeben',
+      body: `${member.fullName} wurde für den Workspace zugelassen.`,
+      icon: 'how_to_reg',
+      actor: BEN,
+      route: '/members',
+      queryParams: { member: member.id },
+    });
+    return { ...member };
+  }
+
+  /**
+   * Lehnt eine offene Beitrittsanfrage ab.
+   */
+  rejectJoinRequest(requestId: string): boolean {
+    const exists = this.joinRequestsState().some((item) => item.id === requestId);
+    if (!exists) {
+      return false;
+    }
+
+    const rejectedRequest = this.joinRequestsState().find((item) => item.id === requestId) ?? null;
+    this.joinRequestsState.update((requests) => requests.filter((item) => item.id !== requestId));
+    this.persistJoinRequests();
+    if (rejectedRequest) {
+      this.inboxService.createSystemNotification({
+        kind: 'member',
+        title: 'Beitrittsanfrage abgelehnt',
+        body: `Die Anfrage von ${rejectedRequest.fullName} wurde abgelehnt.`,
+        icon: 'person_cancel',
+        actor: BEN,
+        route: '/members',
+      });
+    }
+    return true;
   }
 
   /**
@@ -1378,30 +1728,28 @@ export class WorkspacePreviewService {
 
     if (existingMember) {
       this.addMemberToProject(existingMember, payload.projectId);
+      this.inboxService.createSystemNotification({
+        kind: 'member',
+        title: 'Projektzugriff ergänzt',
+        body: `${existingMember.fullName} wurde einem weiteren Projekt zugeordnet.`,
+        icon: 'group_add',
+        actor: BEN,
+        route: '/members',
+        queryParams: { member: existingMember.id },
+      });
       return { ...existingMember };
     }
 
-    const palette = [
-      ['#7752B3', '#FFFFFF'],
-      ['#D5A646', '#241B2E'],
-      ['#4E82A8', '#FFFFFF'],
-      ['#4F9572', '#FFFFFF'],
-      ['#B9546A', '#FFFFFF'],
-    ] as const;
-    const colorPair = palette[this.membersState().length % palette.length] ?? palette[0];
-    const initials = fullName
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toLocaleUpperCase('de'))
-      .join('');
+    const palette = ['#7752B3', '#D5A646', '#4E82A8', '#4F9572', '#B9546A'] as const;
+    const avatarColor = palette[this.membersState().length % palette.length] ?? palette[0];
+    const normalizedName = fullName || email.split('@')[0] || 'Neue Person';
     const member: WorkspaceMember = {
       id: `member-${Date.now()}`,
-      fullName: fullName || email.split('@')[0] || 'Neue Person',
+      fullName: normalizedName,
       email,
-      initials: initials || 'NP',
-      avatarColor: colorPair[0],
-      avatarTextColor: colorPair[1],
+      initials: createMemberInitials(normalizedName),
+      avatarColor,
+      avatarTextColor: getAvatarTextColor(avatarColor),
       role: 'member',
       isOnline: false,
     };
@@ -1409,6 +1757,15 @@ export class WorkspacePreviewService {
     this.membersState.update((members) => [...members, member]);
     this.persistMembers();
     this.addMemberToProject(member, payload.projectId);
+    this.inboxService.createSystemNotification({
+      kind: 'member',
+      title: 'Einladung angelegt',
+      body: `${member.fullName} wurde zum Workspace eingeladen.`,
+      icon: 'forward_to_inbox',
+      actor: BEN,
+      route: '/members',
+      queryParams: { member: member.id },
+    });
     return { ...member };
   }
 
@@ -1433,6 +1790,14 @@ export class WorkspacePreviewService {
     };
     this.messagesState.update((messages) => [message, ...messages]);
     this.persistMessages();
+    this.inboxService.createConversation(
+      {
+        participantIds: [recipient.id],
+        subject,
+        body,
+      },
+      this.membersState(),
+    );
     return structuredClone(message);
   }
 
@@ -1610,6 +1975,7 @@ export class WorkspacePreviewService {
     this.applyAutomationMove(projectId, 'task.created', newTask.id, columnId);
     this.reconcileWorkspaceIntake();
     this.persistBoards();
+    this.recordTaskActivity(newTask, 'Aufgabe erstellt', 'add_task');
     return this.getBoard(projectId);
   }
 
@@ -1650,6 +2016,13 @@ export class WorkspacePreviewService {
 
     this.reconcileWorkspaceIntake();
     this.persistBoards();
+    this.recordTaskActivity(
+      createdTask,
+      assignee
+        ? `An ${this.getMemberFirstName(assignee)} zugewiesen`
+        : 'Ohne Zuweisung im Pool erstellt',
+      assignee ? 'assignment_ind' : 'inventory_2',
+    );
     return cloneTask(createdTask);
   }
 
@@ -1894,10 +2267,23 @@ export class WorkspacePreviewService {
    * Entfernt eine Aufgabe vollständig aus ihrem Board.
    */
   deleteTask(projectId: string, taskId: string): WorkspaceColumn[] {
+    const currentTask = this.findTask(taskId);
     this.removeTaskEverywhere(taskId);
     this.reconcileWorkspaceIntake();
     this.persistBoards();
     this.touchProject(projectId);
+    if (currentTask) {
+      this.inboxService.createSystemNotification({
+        kind: 'task',
+        title: 'Aufgabe gelöscht',
+        body: `„${currentTask.title}“ wurde dauerhaft gelöscht${
+          currentTask.projectTitle ? ` · ${currentTask.projectTitle}` : ''
+        }.`,
+        icon: 'delete',
+        actor: BEN,
+        route: currentTask.projectId ? `/projects/${currentTask.projectId}/board` : '/board',
+      });
+    }
     return this.getBoard(projectId);
   }
 
@@ -2645,7 +3031,58 @@ export class WorkspacePreviewService {
     return { dueState: 'im-plan', dueSummary: 'Projektzeitraum liegt im Plan' };
   }
 
-  /** Ergänzt einen Verlaufseintrag. */
+  /** Ermittelt einen verständlichen Titel für eine Task-Systemnachricht. */
+  private getTaskActivityTitle(action: string): string {
+    const normalizedAction = action.toLocaleLowerCase('de');
+
+    if (normalizedAction.includes('wieder geöffnet')) return 'Aufgabe wieder geöffnet';
+    if (normalizedAction.includes('abgeschlossen')) return 'Aufgabe abgeschlossen';
+    if (normalizedAction.includes('zugewiesen')) return 'Zuweisung geändert';
+    if (normalizedAction.includes('zuweisung') && normalizedAction.includes('entfernt')) {
+      return 'Zuweisung entfernt';
+    }
+    if (normalizedAction.includes('gelöscht') || normalizedAction.includes('entfernt')) {
+      return 'Aufgabe aktualisiert';
+    }
+    if (normalizedAction.includes('verschoben')) return 'Aufgabe verschoben';
+    if (normalizedAction.includes('kommentar')) return 'Kommentar aktualisiert';
+    if (normalizedAction.includes('anhang')) return 'Anhänge aktualisiert';
+    return 'Aufgabendetails geändert';
+  }
+
+  /** Schreibt eine Task-Aktivität zusätzlich als Systemnachricht in die Inbox. */
+  private recordTaskActivity(task: WorkspaceTask, action: string, icon: string): void {
+    const projectSuffix = task.projectTitle ? ` · ${task.projectTitle}` : '';
+    this.inboxService.createSystemNotification({
+      kind: 'task',
+      title: this.getTaskActivityTitle(action),
+      body: `„${task.title}“: ${action}${projectSuffix}`,
+      icon,
+      actor: BEN,
+      route: task.projectId ? `/projects/${task.projectId}/board` : '/board',
+      queryParams: { task: task.id },
+    });
+  }
+
+  /** Schreibt eine Projektaktivität als Systemnachricht in die Inbox. */
+  private recordProjectActivity(
+    project: WorkspaceProject,
+    title: string,
+    body: string,
+    icon: string,
+    route: string | null = `/projects/${project.id}/board`,
+  ): void {
+    this.inboxService.createSystemNotification({
+      kind: 'project',
+      title,
+      body,
+      icon,
+      actor: BEN,
+      route,
+    });
+  }
+
+  /** Ergänzt einen Verlaufseintrag und synchronisiert die Aktivität mit der Inbox. */
   private addHistory(task: WorkspaceTask, action: string, icon: string): WorkspaceTask {
     const entry: WorkspaceHistoryEntry = {
       id: `history-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -2654,7 +3091,61 @@ export class WorkspacePreviewService {
       icon,
       createdAt: new Date().toISOString(),
     };
+    this.recordTaskActivity(task, action, icon);
     return { ...task, history: [entry, ...task.history] };
+  }
+
+  /** Synchronisiert bearbeitete Mitgliedsdaten in allen lokalen Workspace-Referenzen. */
+  private replaceMemberReferences(updatedMember: WorkspaceMember): void {
+    const replaceMember = (member: WorkspaceMember): WorkspaceMember =>
+      member.id === updatedMember.id ? cloneMember(updatedMember) : cloneMember(member);
+
+    this.projectsState.update((projects) =>
+      projects.map((project) => ({
+        ...project,
+        owner: replaceMember(project.owner),
+        managers: project.managers.map(replaceMember),
+        collaborators: project.collaborators.map(replaceMember),
+      })),
+    );
+    this.boardsState.update((boards) =>
+      Object.fromEntries(
+        Object.entries(boards).map(([boardId, columns]) => [
+          boardId,
+          columns.map((column) => ({
+            ...column,
+            tasks: column.tasks.map((taskItem) => ({
+              ...taskItem,
+              owner: replaceMember(taskItem.owner),
+              assignee: taskItem.assignee ? replaceMember(taskItem.assignee) : null,
+              collaborators: taskItem.collaborators.map(replaceMember),
+              subtasks: taskItem.subtasks.map((subtask) => ({
+                ...subtask,
+                assignee: subtask.assignee ? replaceMember(subtask.assignee) : null,
+              })),
+              comments: taskItem.comments.map((comment) => ({
+                ...comment,
+                author: replaceMember(comment.author),
+              })),
+              attachments: taskItem.attachments.map((attachment) => ({
+                ...attachment,
+                uploadedBy: replaceMember(attachment.uploadedBy),
+              })),
+              history: taskItem.history.map((entry) => ({
+                ...entry,
+                actor: replaceMember(entry.actor),
+              })),
+            })),
+          })),
+        ]),
+      ),
+    );
+    this.messagesState.update((messages) =>
+      messages.map((message) => ({
+        ...message,
+        recipient: replaceMember(message.recipient),
+      })),
+    );
   }
 
   /** Ergänzt eine eingeladene Person ohne Duplikate in einem Projekt. */
@@ -2688,6 +3179,18 @@ export class WorkspacePreviewService {
       window.localStorage.setItem(
         WORKSPACE_MEMBERS_STORAGE_KEY,
         JSON.stringify(this.membersState()),
+      );
+    } catch {
+      // Die Vorschau bleibt ohne Browser-Speicher funktionsfähig.
+    }
+  }
+
+  /** Speichert offene Beitrittsanfragen im Browser-Speicher. */
+  private persistJoinRequests(): void {
+    try {
+      window.localStorage.setItem(
+        WORKSPACE_JOIN_REQUESTS_STORAGE_KEY,
+        JSON.stringify(this.joinRequestsState()),
       );
     } catch {
       // Die Vorschau bleibt ohne Browser-Speicher funktionsfähig.

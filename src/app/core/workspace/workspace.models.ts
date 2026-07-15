@@ -14,6 +14,7 @@ export type WorkspaceAutomationDueDateMode =
 export type WorkspaceAutomationActionType = 'move_task_tree';
 export type WorkspaceRecurrenceScheduleType = 'weekly_days' | 'interval_days' | 'monthly_day';
 export type WorkspaceRecurrenceWeekday = 'MO' | 'TU' | 'WE' | 'TH' | 'FR' | 'SA' | 'SU';
+export type WorkspaceMemberRole = 'owner' | 'manager' | 'member';
 
 export interface WorkspaceMember {
   id: string;
@@ -22,8 +23,23 @@ export interface WorkspaceMember {
   initials: string;
   avatarColor: string;
   avatarTextColor: string;
-  role: 'owner' | 'manager' | 'member';
+  role: WorkspaceMemberRole;
   isOnline: boolean;
+}
+
+export interface WorkspaceMemberSavePayload {
+  fullName: string;
+  email: string;
+  role: WorkspaceMemberRole;
+  avatarColor: string;
+}
+
+export interface WorkspaceJoinRequest {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarColor: string;
+  requestedAt: string;
 }
 
 export interface WorkspaceSubtask {

@@ -49,6 +49,10 @@ Carly-Managed_FE/
 │   │   │   │   └── services/
 │   │   │   │       ├── auth-preview.service.ts
 │   │   │   │       └── session.service.ts
+│   │   │   ├── inbox/
+│   │   │   │   ├── workspace-inbox.models.ts
+│   │   │   │   ├── workspace-inbox.service.spec.ts
+│   │   │   │   └── workspace-inbox.service.ts
 │   │   │   ├── layout/
 │   │   │   │   ├── app-shell/
 │   │   │   │   │   ├── app-shell.component.html
@@ -250,6 +254,8 @@ Carly-Managed_FE/
 │   │   │   ├── _workspace-archive.scss
 │   │   │   ├── _workspace-board.scss
 │   │   │   ├── _workspace-controls.scss
+│   │   │   ├── _workspace-inbox.scss
+│   │   │   ├── _workspace-members.scss
 │   │   │   ├── _workspace-modals.scss
 │   │   │   ├── _workspace-projects.scss
 │   │   │   ├── _workspace-project-settings.scss

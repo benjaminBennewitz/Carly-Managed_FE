@@ -1,9 +1,568 @@
 <!-- src/app/features/inbox/pages/inbox-page/inbox-page.component.html -->
 
-<section class="feature-page">
+<section class="inbox-page">
   <cm-page-header
-    eyebrow="Nichts Wichtiges verpassen"
+    eyebrow="Kommunikation und Aktivitäten"
     title="Inbox"
-    description="Einladungen, Erwähnungen und Board-Aktivitäten an einem Ort."
+    description="Systemmeldungen, Direktnachrichten und Gruppenchats an einem zentralen Ort."
   />
+
+  @if (feedback()) {
+    <div class="inbox-page__feedback" role="status" aria-live="polite">
+      <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+      <span>{{ feedback() }}</span>
+    </div>
+  }
+
+  <div class="inbox-page__metrics" aria-label="Inbox-Zusammenfassung">
+    <article class="inbox-page__metric inbox-page__metric--brand">
+      <span class="material-symbols-outlined" aria-hidden="true">mark_email_unread</span>
+      <div>
+        <strong>{{ inboxService.totalUnreadCount() }}</strong>
+        <span>ungelesen</span>
+      </div>
+    </article>
+
+    <article class="inbox-page__metric inbox-page__metric--info">
+      <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+      <div>
+        <strong>{{ inboxService.systemNotifications().length }}</strong>
+        <span>Systemmeldungen</span>
+      </div>
+    </article>
+
+    <article class="inbox-page__metric inbox-page__metric--success">
+      <span class="material-symbols-outlined" aria-hidden="true">forum</span>
+      <div>
+        <strong>{{ inboxService.conversations().length }}</strong>
+        <span>Unterhaltungen</span>
+      </div>
+    </article>
+  </div>
+
+  <div class="inbox-page__layout">
+    <section class="inbox-panel inbox-panel--system" aria-labelledby="system-messages-title">
+      <header class="inbox-panel__header">
+        <div>
+          <span>Aktivitäten</span>
+          <h2 id="system-messages-title">Systemnachrichten</h2>
+        </div>
+
+        <div class="inbox-panel__actions">
+          <span class="inbox-panel__counter" aria-label="Ungelesene Systemnachrichten">
+            {{ inboxService.unreadSystemCount() }}
+          </span>
+          <button
+            type="button"
+            class="inbox-panel__icon-button"
+            aria-label="Alle Systemnachrichten als gelesen markieren"
+            title="Alle als gelesen markieren"
+            [disabled]="inboxService.unreadSystemCount() === 0"
+            (click)="inboxService.markAllSystemNotificationsRead()"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">done_all</span>
+          </button>
+          <button
+            type="button"
+            class="inbox-panel__icon-button"
+            aria-label="Alle Systemnachrichten löschen"
+            title="Systemnachrichten leeren"
+            [disabled]="inboxService.systemNotifications().length === 0"
+            (click)="inboxService.clearSystemNotifications()"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">delete_sweep</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="inbox-panel__filters" aria-label="Systemnachrichten filtern">
+        <button
+          type="button"
+          [class.is-active]="systemFilter() === 'all'"
+          [attr.aria-pressed]="systemFilter() === 'all'"
+          (click)="setSystemFilter('all')"
+        >
+          Alle
+        </button>
+        <button
+          type="button"
+          [class.is-active]="systemFilter() === 'unread'"
+          [attr.aria-pressed]="systemFilter() === 'unread'"
+          (click)="setSystemFilter('unread')"
+        >
+          Ungelesen
+        </button>
+      </div>
+
+      <div class="inbox-panel__scroll inbox-system-list">
+        @for (notification of visibleSystemNotifications(); track notification.id) {
+          <article
+            class="inbox-system-card"
+            [class.inbox-system-card--unread]="!notification.isRead"
+          >
+            <button
+              type="button"
+              class="inbox-system-card__content"
+              (click)="openSystemNotification(notification)"
+            >
+              <span
+                class="inbox-system-card__icon material-symbols-outlined"
+                [attr.data-kind]="notification.kind"
+                aria-hidden="true"
+              >
+                {{ notification.icon }}
+              </span>
+
+              <span class="inbox-system-card__copy">
+                <span class="inbox-system-card__meta">
+                  <small>{{ getNotificationKindLabel(notification) }}</small>
+                  <time [attr.datetime]="notification.createdAt">
+                    {{ formatDateTime(notification.createdAt) }}
+                  </time>
+                </span>
+                <strong>{{ notification.title }}</strong>
+                <span>{{ notification.body }}</span>
+
+                @if (notification.actor) {
+                  <span class="inbox-system-card__actor">
+                    <span
+                      class="inbox-avatar inbox-avatar--small"
+                      [style.background]="notification.actor.avatarColor"
+                      [style.color]="notification.actor.avatarTextColor"
+                      aria-hidden="true"
+                    >
+                      {{ notification.actor.initials }}
+                    </span>
+                    {{ notification.actor.fullName }}
+                  </span>
+                }
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="inbox-system-card__delete"
+              aria-label="Systemnachricht löschen"
+              title="Systemnachricht löschen"
+              (click)="deleteSystemNotification(notification.id, $event)"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+          </article>
+        } @empty {
+          <div class="inbox-empty-state">
+            <span class="material-symbols-outlined" aria-hidden="true">notifications_off</span>
+            <strong>Keine passenden Systemmeldungen</strong>
+            <span
+              >Neue Änderungen an Tasks, Projekten und Mitgliedern erscheinen automatisch
+              hier.</span
+            >
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="inbox-panel inbox-panel--conversations" aria-labelledby="conversations-title">
+      <header class="inbox-panel__header">
+        <div>
+          <span>Nachrichten</span>
+          <h2 id="conversations-title">Direkt- und Gruppenchats</h2>
+        </div>
+
+        <button
+          type="button"
+          class="inbox-panel__primary-button"
+          (click)="openNewConversationDialog()"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">add_comment</span>
+          Neuer Chat
+        </button>
+      </header>
+
+      <div class="inbox-panel__scroll inbox-conversation-list">
+        @for (conversation of inboxService.conversations(); track conversation.id) {
+          <button
+            type="button"
+            class="inbox-conversation-card"
+            [class.inbox-conversation-card--active]="selectedConversationId() === conversation.id"
+            [class.inbox-conversation-card--unread]="conversation.unreadCount > 0"
+            (click)="selectConversation(conversation.id)"
+          >
+            <span class="inbox-avatar-stack" aria-hidden="true">
+              @for (
+                participant of getOtherParticipants(conversation).slice(0, 3);
+                track participant.id
+              ) {
+                <span
+                  class="inbox-avatar"
+                  [style.background]="participant.avatarColor"
+                  [style.color]="participant.avatarTextColor"
+                >
+                  {{ participant.initials }}
+                </span>
+              }
+            </span>
+
+            <span class="inbox-conversation-card__copy">
+              <span class="inbox-conversation-card__title-row">
+                <strong>{{ getConversationTitle(conversation) }}</strong>
+                <time [attr.datetime]="conversation.updatedAt">
+                  {{ formatDateTime(conversation.updatedAt) }}
+                </time>
+              </span>
+              <span>{{ getConversationPreview(conversation) }}</span>
+              <small>
+                {{
+                  conversation.participants.length === 2
+                    ? 'Direktnachricht'
+                    : conversation.participants.length + ' Personen'
+                }}
+              </small>
+            </span>
+
+            @if (conversation.unreadCount > 0) {
+              <span class="inbox-conversation-card__badge" aria-label="Ungelesene Nachrichten">
+                {{ conversation.unreadCount }}
+              </span>
+            }
+          </button>
+        } @empty {
+          <div class="inbox-empty-state">
+            <span class="material-symbols-outlined" aria-hidden="true">forum</span>
+            <strong>Noch keine Unterhaltung</strong>
+            <span>Starte einen Direktchat und ergänze später weitere Teammitglieder.</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="inbox-thread" aria-label="Aktiver Chatverlauf">
+      @if (activeConversation(); as conversation) {
+        <header class="inbox-thread__header">
+          <div class="inbox-thread__identity">
+            <span class="inbox-avatar-stack" aria-hidden="true">
+              @for (
+                participant of getOtherParticipants(conversation).slice(0, 3);
+                track participant.id
+              ) {
+                <span
+                  class="inbox-avatar"
+                  [style.background]="participant.avatarColor"
+                  [style.color]="participant.avatarTextColor"
+                >
+                  {{ participant.initials }}
+                </span>
+              }
+            </span>
+            <div>
+              <span>{{
+                conversation.participants.length === 2 ? 'Direktnachricht' : 'Gruppenchat'
+              }}</span>
+              <h2>{{ getConversationTitle(conversation) }}</h2>
+              <small>{{ conversation.participants.length }} Teilnehmende</small>
+            </div>
+          </div>
+
+          <div class="inbox-thread__actions">
+            <button
+              type="button"
+              class="inbox-panel__icon-button"
+              aria-label="Personen zum Chat hinzufügen"
+              title="Personen hinzufügen"
+              [disabled]="availableParticipantAdditions().length === 0"
+              (click)="openAddParticipantsDialog()"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">group_add</span>
+            </button>
+            <button
+              type="button"
+              class="inbox-panel__icon-button inbox-panel__icon-button--danger"
+              aria-label="Unterhaltung aus der Inbox entfernen"
+              title="Unterhaltung entfernen"
+              (click)="openDeleteConversationDialog()"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+            </button>
+          </div>
+        </header>
+
+        <div #threadViewport class="inbox-thread__messages">
+          @for (message of conversation.messages; track message.id) {
+            @if (message.kind === 'system') {
+              <div class="inbox-thread__event">
+                <span class="material-symbols-outlined" aria-hidden="true">group_add</span>
+                <span>{{ message.body }}</span>
+                <time [attr.datetime]="message.createdAt">{{
+                  formatDateTime(message.createdAt)
+                }}</time>
+              </div>
+            } @else {
+              <article
+                class="inbox-message"
+                [class.inbox-message--own]="isOwnMessage(message.sender?.id)"
+              >
+                @if (!isOwnMessage(message.sender?.id) && message.sender) {
+                  <span
+                    class="inbox-avatar inbox-avatar--small"
+                    [style.background]="message.sender.avatarColor"
+                    [style.color]="message.sender.avatarTextColor"
+                    aria-hidden="true"
+                  >
+                    {{ message.sender.initials }}
+                  </span>
+                }
+
+                <div class="inbox-message__content">
+                  <header>
+                    <strong>{{
+                      isOwnMessage(message.sender?.id) ? 'Du' : message.sender?.fullName
+                    }}</strong>
+                    <time [attr.datetime]="message.createdAt">{{
+                      formatDateTime(message.createdAt)
+                    }}</time>
+                  </header>
+                  @if (message.subject) {
+                    <span class="inbox-message__subject">{{ message.subject }}</span>
+                  }
+                  <p>{{ message.body }}</p>
+                </div>
+              </article>
+            }
+          }
+        </div>
+
+        <form class="inbox-composer" [formGroup]="messageForm" (ngSubmit)="sendMessage()">
+          <label for="inbox-message-body">Nachricht</label>
+          <div class="inbox-composer__field">
+            <textarea
+              id="inbox-message-body"
+              formControlName="body"
+              rows="3"
+              maxlength="2000"
+              placeholder="Nachricht schreiben …"
+              [attr.aria-invalid]="
+                submittedMessage() && messageForm.controls.body.invalid ? 'true' : null
+              "
+            ></textarea>
+            <button type="submit" aria-label="Nachricht senden" title="Nachricht senden">
+              <span class="material-symbols-outlined" aria-hidden="true">send</span>
+            </button>
+          </div>
+          <footer>
+            @if (submittedMessage() && messageForm.controls.body.invalid) {
+              <small role="alert">Bitte eine Nachricht eingeben.</small>
+            } @else {
+              <small>{{ messageForm.controls.body.value.length }}/2000 Zeichen</small>
+            }
+          </footer>
+        </form>
+      } @else {
+        <div class="inbox-thread__empty">
+          <span class="material-symbols-outlined" aria-hidden="true">chat_bubble</span>
+          <strong>Unterhaltung auswählen</strong>
+          <span>Wähle links einen Chat oder starte eine neue Unterhaltung.</span>
+          <button type="button" (click)="openNewConversationDialog()">
+            <span class="material-symbols-outlined" aria-hidden="true">add_comment</span>
+            Neuer Chat
+          </button>
+        </div>
+      }
+    </section>
+  </div>
 </section>
+
+@if (dialogState(); as activeDialog) {
+  <div class="inbox-dialog-backdrop" role="presentation" (click)="closeDialog()">
+    <section
+      class="inbox-dialog"
+      [class.inbox-dialog--danger]="activeDialog === 'delete-conversation'"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="inbox-dialog-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="inbox-dialog__header">
+        <span class="inbox-dialog__icon material-symbols-outlined" aria-hidden="true">
+          @if (activeDialog === 'new-chat') {
+            add_comment
+          } @else if (activeDialog === 'add-participants') {
+            group_add
+          } @else {
+            delete
+          }
+        </span>
+        <div>
+          <span>Inbox</span>
+          <h2 id="inbox-dialog-title">
+            @if (activeDialog === 'new-chat') {
+              Neue Unterhaltung
+            } @else if (activeDialog === 'add-participants') {
+              Personen hinzufügen
+            } @else {
+              Unterhaltung entfernen
+            }
+          </h2>
+        </div>
+        <button type="button" aria-label="Dialog schließen" (click)="closeDialog()">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      @if (activeDialog === 'new-chat') {
+        <form
+          class="inbox-dialog__form"
+          [formGroup]="newConversationForm"
+          (ngSubmit)="createConversation()"
+        >
+          <fieldset class="inbox-dialog__members">
+            <legend>Empfänger auswählen</legend>
+            <p>
+              Eine Person startet einen Direktchat. Mehrere Personen starten direkt einen
+              Gruppenchat.
+            </p>
+
+            <div class="inbox-dialog__member-list">
+              @for (member of availableConversationMembers(); track member.id) {
+                <label class="inbox-dialog__member">
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(member.id, selectedNewParticipantIds())"
+                    (change)="toggleNewParticipant(member.id)"
+                  />
+                  <span
+                    class="inbox-avatar"
+                    [style.background]="member.avatarColor"
+                    [style.color]="member.avatarTextColor"
+                    aria-hidden="true"
+                  >
+                    {{ member.initials }}
+                  </span>
+                  <span>
+                    <strong>{{ member.fullName }}</strong>
+                    <small>{{ member.email }}</small>
+                  </span>
+                  <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+                </label>
+              }
+            </div>
+
+            @if (submittedNewConversation() && selectedNewParticipantIds().length === 0) {
+              <small class="inbox-dialog__error" role="alert"
+                >Bitte mindestens eine Person auswählen.</small
+              >
+            }
+          </fieldset>
+
+          <label class="inbox-dialog__field">
+            <span>Betreff <small>optional</small></span>
+            <input
+              type="text"
+              formControlName="subject"
+              maxlength="120"
+              placeholder="Worum geht es?"
+            />
+          </label>
+
+          <label class="inbox-dialog__field">
+            <span>Erste Nachricht</span>
+            <textarea
+              formControlName="body"
+              rows="6"
+              maxlength="2000"
+              placeholder="Nachricht schreiben …"
+              [attr.aria-invalid]="
+                submittedNewConversation() && newConversationForm.controls.body.invalid
+                  ? 'true'
+                  : null
+              "
+            ></textarea>
+            @if (submittedNewConversation() && newConversationForm.controls.body.invalid) {
+              <small class="inbox-dialog__error" role="alert">Bitte eine Nachricht eingeben.</small>
+            }
+          </label>
+
+          <footer class="inbox-dialog__actions">
+            <button type="button" class="inbox-dialog__button" (click)="closeDialog()">
+              Abbrechen
+            </button>
+            <button type="submit" class="inbox-dialog__button inbox-dialog__button--primary">
+              <span class="material-symbols-outlined" aria-hidden="true">send</span>
+              Unterhaltung starten
+            </button>
+          </footer>
+        </form>
+      } @else if (activeDialog === 'add-participants') {
+        <div class="inbox-dialog__form">
+          <div class="inbox-dialog__members">
+            <p>Aus dem bestehenden Direktchat wird automatisch ein Gruppenchat.</p>
+            <div class="inbox-dialog__member-list">
+              @for (member of availableParticipantAdditions(); track member.id) {
+                <label class="inbox-dialog__member">
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(member.id, selectedAdditionalParticipantIds())"
+                    (change)="toggleAdditionalParticipant(member.id)"
+                  />
+                  <span
+                    class="inbox-avatar"
+                    [style.background]="member.avatarColor"
+                    [style.color]="member.avatarTextColor"
+                    aria-hidden="true"
+                  >
+                    {{ member.initials }}
+                  </span>
+                  <span>
+                    <strong>{{ member.fullName }}</strong>
+                    <small>{{ member.email }}</small>
+                  </span>
+                  <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <footer class="inbox-dialog__actions">
+            <button type="button" class="inbox-dialog__button" (click)="closeDialog()">
+              Abbrechen
+            </button>
+            <button
+              type="button"
+              class="inbox-dialog__button inbox-dialog__button--primary"
+              [disabled]="selectedAdditionalParticipantIds().length === 0"
+              (click)="addParticipants()"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">group_add</span>
+              Hinzufügen
+            </button>
+          </footer>
+        </div>
+      } @else if (activeConversation(); as conversation) {
+        <div class="inbox-dialog__confirmation">
+          <p>
+            Möchtest du die Unterhaltung mit
+            <strong>{{ getConversationTitle(conversation) }}</strong>
+            wirklich aus deiner lokalen Inbox entfernen?
+          </p>
+          <small
+            >Die Aktion betrifft nur die lokale Vorschau und kann nicht rückgängig gemacht
+            werden.</small
+          >
+        </div>
+
+        <footer class="inbox-dialog__actions">
+          <button type="button" class="inbox-dialog__button" (click)="closeDialog()">
+            Abbrechen
+          </button>
+          <button
+            type="button"
+            class="inbox-dialog__button inbox-dialog__button--danger"
+            (click)="deleteActiveConversation()"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+            Unterhaltung entfernen
+          </button>
+        </footer>
+      }
+    </section>
+  </div>
+}

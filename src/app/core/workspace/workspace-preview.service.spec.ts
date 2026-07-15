@@ -428,4 +428,49 @@ describe('WorkspacePreviewService', () => {
     expect(message?.recipient.id).toBe(member.id);
     expect(service.sentMessages()[0]?.subject).toBe('Willkommen');
   });
+
+  it('erstellt und aktualisiert Mitglieder inklusive kontrastreicher Initialenfarbe', () => {
+    const createdMember = service.createMember({
+      fullName: 'Lina Beispiel',
+      email: 'lina@example.test',
+      role: 'member',
+      avatarColor: '#FFFFFF',
+    });
+
+    expect(createdMember?.initials).toBe('LB');
+    expect(createdMember?.avatarTextColor).toBe('#241B2E');
+
+    const updatedMember = service.updateMember('member-noah', {
+      fullName: 'Noah Beispiel',
+      email: 'noah.neu@example.test',
+      role: 'manager',
+      avatarColor: '#111111',
+    });
+    const assignedTask = service.getTaskById('task-105');
+
+    expect(updatedMember?.initials).toBe('NB');
+    expect(updatedMember?.avatarTextColor).toBe('#FFFFFF');
+    expect(assignedTask?.assignee?.fullName).toBe('Noah Beispiel');
+    expect(assignedTask?.assignee?.role).toBe('manager');
+  });
+
+  it('entfernt Mitglieder und bereinigt aktive Zuweisungen', () => {
+    expect(service.deleteMember('member-noah')).toBe(true);
+
+    const pooledTask = service.getTaskById('task-105');
+    expect(service.members().some((member) => member.id === 'member-noah')).toBe(false);
+    expect(pooledTask?.assignee).toBeNull();
+    expect(pooledTask?.isSharedPool).toBe(true);
+    expect(service.deleteMember('member-ben')).toBe(false);
+  });
+
+  it('gibt Beitrittsanfragen frei oder lehnt sie ab', () => {
+    const approvedMember = service.approveJoinRequest('join-request-jona');
+    const rejected = service.rejectJoinRequest('join-request-emilia');
+
+    expect(approvedMember?.email).toBe('jona@carly.local');
+    expect(service.members().some((member) => member.id === approvedMember?.id)).toBe(true);
+    expect(rejected).toBe(true);
+    expect(service.joinRequests()).toEqual([]);
+  });
 });
