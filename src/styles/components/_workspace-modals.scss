@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_workspace-modals.scss
    Projekt: Carly Managed
-   Version: 1.2.0
+   Version: 1.3.0
    Beschreibung: Definiert Regel- und Wiederholungsmodals des Workspace.
 
    Inhaltsverzeichnis:
@@ -242,7 +242,8 @@
   z-index: var(--z-index-dialog);
   display: grid;
   width: min(72rem, calc(100vw - 3rem));
-  max-height: min(50rem, calc(100dvh - 3rem));
+  height: min(37.5rem, calc(100dvh - 3rem));
+  max-height: calc(100dvh - 3rem);
   grid-template-rows: auto minmax(0, 1fr);
   border: var(--border-width-subtle) solid var(--color-border-subtle);
   border-radius: var(--radius-xl);
@@ -271,6 +272,8 @@
   align-content: start;
   gap: var(--space-5);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   scroll-padding-block: var(--space-4);
 }
 
@@ -1076,6 +1079,7 @@
 
   .automation-modal {
     width: calc(100vw - 1rem);
+    height: calc(100dvh - 1rem);
     max-height: calc(100dvh - 1rem);
     border-radius: var(--radius-lg);
   }
