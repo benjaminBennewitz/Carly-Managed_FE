@@ -258,6 +258,7 @@ export class ProjectSettingsPageComponent {
       dueAt: value.dueAt,
       color: this.selectedColor(),
       icon: this.selectedIcon(),
+      isPinned: currentProject.isPinned,
       allowsOnDemandTasks: value.allowsOnDemandTasks,
     });
 
