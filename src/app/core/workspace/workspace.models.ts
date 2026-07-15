@@ -29,6 +29,7 @@ export interface WorkspaceMember {
 export interface WorkspaceSubtask {
   id: string;
   title: string;
+  assignee: WorkspaceMember | null;
   isDone: boolean;
   createdAt: string;
 }
@@ -129,6 +130,10 @@ export interface WorkspaceTask {
   projectTitle: string | null;
   projectAllowsOnDemandTasks: boolean;
   parentTaskId: string | null;
+  parentTaskTitle: string | null;
+  isSubtaskMirror: boolean;
+  sourceTaskId: string | null;
+  sourceSubtaskId: string | null;
   owner: WorkspaceMember;
   assignee: WorkspaceMember | null;
   collaborators: WorkspaceMember[];

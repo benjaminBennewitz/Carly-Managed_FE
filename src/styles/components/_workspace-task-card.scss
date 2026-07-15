@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_workspace-task-card.scss
    Projekt: Carly Managed
-   Version: 1.3.0
+   Version: 1.4.0
    Beschreibung: Definiert die wiederverwendbare Task-Karte.
 
    Inhaltsverzeichnis:
@@ -9,7 +9,8 @@
    2. Kopf
    3. Kontext und Tags
    4. Metadaten
-  5. Abschlusszustand
+   5. Zusammenarbeit
+   6. Abschlusszustand
    ========================================================================== */
 
 .workspace-task-card {
@@ -197,6 +198,11 @@
   color: var(--color-info);
 }
 
+.workspace-task-card__context--parent {
+  background: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
+}
+
 .workspace-task-card__review {
   display: grid;
   width: 100%;
@@ -255,6 +261,54 @@
   gap: var(--space-2);
   color: var(--color-text-muted);
   font-size: var(--font-size-100);
+}
+
+.workspace-task-card__meta-main {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.workspace-task-card__collaborators {
+  display: inline-flex;
+  min-height: 1.35rem;
+  padding: 0.12rem 0.35rem;
+  align-items: center;
+  gap: 0.2rem;
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
+}
+
+.workspace-task-card__collaborators > .material-symbols-outlined {
+  color: var(--color-action-primary);
+  font-size: 0.85rem;
+}
+
+.workspace-task-card__collaborator-stack {
+  display: flex;
+  padding-left: 0.18rem;
+}
+
+.workspace-task-card__collaborator-stack > span {
+  display: grid;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-left: -0.18rem;
+  place-items: center;
+  border: 0.08rem solid var(--color-surface-secondary);
+  border-radius: var(--radius-round);
+  background: var(--task-collaborator-color);
+  color: var(--task-collaborator-text);
+  font-size: 0.42rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.workspace-task-card__collaborators strong {
+  font-size: 0.58rem;
 }
 
 .workspace-task-card__date {

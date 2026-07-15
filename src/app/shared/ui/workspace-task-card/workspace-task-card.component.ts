@@ -1,17 +1,9 @@
 // src/app/shared/ui/workspace-task-card/workspace-task-card.component.ts
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
-import {
-  isOnDemandReadyTask,
-} from '../../../core/workspace/task-rules';
-import { WorkspaceTask } from '../../../core/workspace/workspace.models';
+import { isOnDemandReadyTask } from '../../../core/workspace/task-rules';
+import { WorkspaceMember, WorkspaceTask } from '../../../core/workspace/workspace.models';
 
 @Component({
   selector: 'cm-workspace-task-card',
@@ -34,9 +26,37 @@ export class WorkspaceTaskCardComponent {
     const item = this.task();
     return item.dueDate === new Date().toISOString().slice(0, 10);
   });
-  protected readonly isOnDemandReady = computed(() =>
-    isOnDemandReadyTask(this.task()),
+  protected readonly isOnDemandReady = computed(() => isOnDemandReadyTask(this.task()));
+  protected readonly collaboratingMembers = computed(() => {
+    const item = this.task();
+    const candidates = [
+      ...item.collaborators,
+      ...item.subtasks.map((subtask) => subtask.assignee),
+    ].filter((member): member is WorkspaceMember => !!member);
+    const uniqueMembers = new Map<string, WorkspaceMember>();
+
+    for (const member of candidates) {
+      if (member.id !== item.assignee?.id) {
+        uniqueMembers.set(member.id, member);
+      }
+    }
+
+    return [...uniqueMembers.values()];
+  });
+  protected readonly visibleCollaborators = computed(() => this.collaboratingMembers().slice(0, 3));
+  protected readonly remainingCollaboratorCount = computed(() =>
+    Math.max(0, this.collaboratingMembers().length - this.visibleCollaborators().length),
   );
+  protected readonly collaboratorLabel = computed(() =>
+    this.collaboratingMembers()
+      .map((member) => member.fullName)
+      .join(', '),
+  );
+  protected readonly completionLabel = computed(() => {
+    const item = this.task();
+    const subject = item.isSubtaskMirror ? 'Unteraufgabe' : 'Aufgabe';
+    return item.isDone ? `${subject} wieder öffnen` : `${subject} abschließen`;
+  });
   protected readonly scheduleLabel = computed(() => {
     const item = this.task();
 

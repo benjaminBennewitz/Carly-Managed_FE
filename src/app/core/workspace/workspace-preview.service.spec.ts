@@ -238,6 +238,68 @@ describe('WorkspacePreviewService', () => {
     expect(newColumn?.tasks.some((task) => task.id === 'task-104')).toBe(true);
   });
 
+  it('spiegelt fremd zugewiesene Unteraufgaben in die persönliche Neu-Spalte', () => {
+    service.addSubtask('personal', 'task-personal-1', 'Freigabe abstimmen', 'member-mira');
+
+    const miraBoard = service.getBoard('personal-member-mira');
+    const mirrorTask = miraBoard
+      .flatMap((column) => column.tasks)
+      .find((task) => task.isSubtaskMirror && task.parentTaskId === 'task-personal-1');
+    const sourceTask = service.getTaskById('task-personal-1');
+
+    expect(miraBoard.find((column) => column.systemRole === 'new-assigned')).toBeDefined();
+    expect(mirrorTask?.title).toBe('Freigabe abstimmen');
+    expect(mirrorTask?.parentTaskTitle).toBe(sourceTask?.title);
+    expect(mirrorTask?.projectTitle).toBeNull();
+    expect(sourceTask?.history[0]?.action).toContain('Mira');
+  });
+
+  it('verschiebt eine Unteraufgaben-Spiegelung bei einer neuen Zuweisung', () => {
+    service.addSubtask('carly-managed', 'task-101', 'Review koordinieren', 'member-mira');
+    const sourceTask = service.getTaskById('task-101');
+    const subtask = sourceTask?.subtasks.find((item) => item.title === 'Review koordinieren');
+
+    service.updateSubtaskAssignee('carly-managed', 'task-101', subtask?.id ?? '', 'member-lea');
+
+    expect(
+      service
+        .getBoard('personal-member-mira')
+        .flatMap((column) => column.tasks)
+        .some((task) => task.sourceSubtaskId === subtask?.id),
+    ).toBe(false);
+    expect(
+      service
+        .getBoard('personal-member-lea')
+        .flatMap((column) => column.tasks)
+        .some((task) => task.sourceSubtaskId === subtask?.id),
+    ).toBe(true);
+    expect(service.getTaskById('task-101')?.history[0]?.action).toContain('Lea');
+  });
+
+  it('synchronisiert den Abschluss einer gespiegelten Unteraufgabe mit der Hauptaufgabe', () => {
+    service.addSubtask('carly-managed', 'task-101', 'Gemeinsam testen', 'member-lea');
+    const mirrorTask = service
+      .getBoard('personal-member-lea')
+      .flatMap((column) => column.tasks)
+      .find((task) => task.parentTaskId === 'task-101' && task.title === 'Gemeinsam testen');
+
+    expect(mirrorTask).toBeDefined();
+
+    service.toggleMirroredSubtask('personal-member-lea', mirrorTask!);
+
+    const sourceTask = service.getTaskById('task-101');
+    const mirroredState = service
+      .getBoard('personal-member-lea')
+      .flatMap((column) => column.tasks)
+      .find((task) => task.id === mirrorTask?.id);
+
+    expect(sourceTask?.subtasks.find((item) => item.title === 'Gemeinsam testen')?.isDone).toBe(
+      true,
+    );
+    expect(sourceTask?.history[0]?.action).toContain('abgeschlossen');
+    expect(mirroredState).toBeUndefined();
+  });
+
   it('legt Aufgaben ohne Zuweisung mit Prüfhinweis im Pool ab', () => {
     const createdTask = service.createUnplacedTask('carly-managed', null, 'Ungeklärte Aufgabe');
     const pooledTask = service.poolTasks().find((task) => task.id === createdTask.id);

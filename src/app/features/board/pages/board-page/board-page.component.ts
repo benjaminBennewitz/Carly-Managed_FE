@@ -91,6 +91,8 @@ export class BoardPageComponent {
   protected readonly taskDescriptionDraft = signal('');
   protected readonly commentDraft = signal('');
   protected readonly subtaskDraft = signal('');
+  protected readonly subtaskAssigneeDraft = signal<string | null>(null);
+  protected readonly focusedSubtaskId = signal<string | null>(null);
   protected readonly editingSubtaskId = signal<string | null>(null);
   protected readonly subtaskEditDraft = signal('');
   protected readonly collaboratorSelection = signal<string | null>(null);
@@ -255,23 +257,40 @@ export class BoardPageComponent {
     }
   }
 
-  /** Öffnet die Task-Detailansicht. */
+  /** Öffnet die Task-Detailansicht oder die Hauptaufgabe einer Unteraufgaben-Spiegelung. */
   openTask(task: WorkspaceTask): void {
     if (this.closeTimerId !== null) {
       window.clearTimeout(this.closeTimerId);
       this.closeTimerId = null;
     }
+
+    const sourceTask =
+      task.isSubtaskMirror && task.sourceTaskId
+        ? this.workspaceService.getTaskById(task.sourceTaskId)
+        : null;
+    const drawerTask = sourceTask ?? task;
+
     this.drawerClosing.set(false);
-    this.selectedTask.set(this.cloneTask(task));
-    this.taskTitleDraft.set(task.title);
-    this.taskDescriptionDraft.set(task.description);
+    this.selectedTask.set(this.cloneTask(drawerTask));
+    this.taskTitleDraft.set(drawerTask.title);
+    this.taskDescriptionDraft.set(drawerTask.description);
     this.commentDraft.set('');
     this.subtaskDraft.set('');
+    this.subtaskAssigneeDraft.set(null);
+    this.focusedSubtaskId.set(task.isSubtaskMirror ? task.sourceSubtaskId : null);
     this.editingSubtaskId.set(null);
     this.subtaskEditDraft.set('');
     this.collaboratorSelection.set(null);
     this.attachmentDragActive.set(false);
-    this.activeTaskTab.set('details');
+    this.activeTaskTab.set(task.isSubtaskMirror ? 'subtasks' : 'details');
+
+    if (task.isSubtaskMirror && task.sourceSubtaskId) {
+      queueMicrotask(() => {
+        document
+          .getElementById(`subtask-row-${task.sourceSubtaskId}`)
+          ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      });
+    }
   }
 
   /** Startet die animierte Schließbewegung des Task-Drawers. */
@@ -299,11 +318,20 @@ export class BoardPageComponent {
     this.activeTaskTab.set(tab);
   }
 
-  /** Schaltet eine Aufgabe zwischen offen und erledigt um. */
+  /** Schaltet eine Aufgabe oder gespiegelte Unteraufgabe zwischen offen und erledigt um. */
   toggleTaskCompleted(task: WorkspaceTask): void {
     if (this.isReadOnly()) {
       return;
     }
+
+    if (task.isSubtaskMirror) {
+      this.columns.set(this.workspaceService.toggleMirroredSubtask(this.projectId(), task));
+      if (task.sourceTaskId && this.selectedTask()?.id === task.sourceTaskId) {
+        this.syncSelectedTask(task.sourceTaskId);
+      }
+      return;
+    }
+
     this.columns.set(this.workspaceService.toggleTaskCompleted(this.projectId(), task.id));
     this.syncSelectedTask(task.id);
   }
@@ -564,14 +592,38 @@ export class BoardPageComponent {
       return;
     }
     this.applyTaskColumns(
-      this.workspaceService.addSubtask(this.projectId(), task.id, this.subtaskDraft()),
+      this.workspaceService.addSubtask(
+        this.projectId(),
+        task.id,
+        this.subtaskDraft(),
+        this.subtaskAssigneeDraft(),
+      ),
       task.id,
     );
     this.subtaskDraft.set('');
+    this.subtaskAssigneeDraft.set(null);
     this.editingSubtaskId.set(null);
     this.subtaskEditDraft.set('');
     this.collaboratorSelection.set(null);
     this.attachmentDragActive.set(false);
+  }
+
+  /** Ändert die verantwortliche Person einer Unteraufgabe. */
+  changeSubtaskAssignee(subtaskId: string, memberId: string): void {
+    const task = this.selectedTask();
+    if (!task || this.taskEditingDisabled()) {
+      return;
+    }
+
+    this.applyTaskColumns(
+      this.workspaceService.updateSubtaskAssignee(
+        this.projectId(),
+        task.id,
+        subtaskId,
+        memberId || null,
+      ),
+      task.id,
+    );
   }
 
   /** Schaltet eine Unteraufgabe um. */
@@ -898,9 +950,10 @@ export class BoardPageComponent {
 
   /** Synchronisiert die Detailansicht nach einer Task-Mutation. */
   private syncSelectedTask(taskId: string): void {
-    const task = this.columns()
-      .flatMap((column) => column.tasks)
-      .find((item) => item.id === taskId);
+    const task =
+      this.columns()
+        .flatMap((column) => column.tasks)
+        .find((item) => item.id === taskId) ?? this.workspaceService.getTaskById(taskId);
     if (!task) {
       this.resetDrawerImmediately();
       return;
@@ -939,6 +992,8 @@ export class BoardPageComponent {
     this.drawerClosing.set(false);
     this.commentDraft.set('');
     this.subtaskDraft.set('');
+    this.subtaskAssigneeDraft.set(null);
+    this.focusedSubtaskId.set(null);
     this.editingSubtaskId.set(null);
     this.subtaskEditDraft.set('');
     this.collaboratorSelection.set(null);

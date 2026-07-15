@@ -560,13 +560,25 @@
       @if (activeTaskTab() === 'subtasks') {
         <section class="task-drawer__section">
           @if (!taskEditingDisabled()) {
-            <form class="task-create-row" (submit)="$event.preventDefault(); addSubtask()">
+            <form
+              class="task-create-row task-create-row--subtask"
+              (submit)="$event.preventDefault(); addSubtask()"
+            >
               <input
                 type="text"
                 maxlength="160"
                 placeholder="Unteraufgabe hinzufügen"
                 [value]="subtaskDraft()"
                 (input)="subtaskDraft.set($any($event.target).value)"
+              />
+              <cm-member-select
+                class="task-create-row__assignee"
+                label="Verantwortlich für neue Unteraufgabe"
+                placeholder="Zuweisen"
+                [compact]="true"
+                [value]="subtaskAssigneeDraft()"
+                [members]="workspaceService.members()"
+                (valueChange)="subtaskAssigneeDraft.set($event || null)"
               />
               <button type="submit" [disabled]="!subtaskDraft().trim()">
                 <span class="material-symbols-outlined" aria-hidden="true">add</span>
@@ -578,8 +590,10 @@
           <div class="task-subtask-list">
             @for (subtask of task.subtasks; track subtask.id) {
               <article
+                [id]="'subtask-row-' + subtask.id"
                 [class.is-done]="subtask.isDone"
                 [class.is-editing]="editingSubtaskId() === subtask.id"
+                [class.is-focused]="focusedSubtaskId() === subtask.id"
               >
                 <button
                   class="task-subtask-list__check"
@@ -593,36 +607,53 @@
                   <span class="material-symbols-outlined" aria-hidden="true">check</span>
                 </button>
 
-                @if (editingSubtaskId() === subtask.id) {
-                  <input
-                    class="task-subtask-list__edit"
-                    type="text"
-                    maxlength="160"
-                    [value]="subtaskEditDraft()"
-                    aria-label="Unteraufgabe bearbeiten"
-                    (input)="subtaskEditDraft.set($any($event.target).value)"
-                    (keydown.enter)="$event.preventDefault(); saveSubtaskEdit()"
-                    (keydown.escape)="cancelSubtaskEdit()"
+                <div class="task-subtask-list__content">
+                  @if (editingSubtaskId() === subtask.id) {
+                    <input
+                      class="task-subtask-list__edit"
+                      type="text"
+                      maxlength="160"
+                      [value]="subtaskEditDraft()"
+                      aria-label="Unteraufgabe bearbeiten"
+                      (input)="subtaskEditDraft.set($any($event.target).value)"
+                      (keydown.enter)="$event.preventDefault(); saveSubtaskEdit()"
+                      (keydown.escape)="cancelSubtaskEdit()"
+                    />
+                  } @else {
+                    <span class="task-subtask-list__title">{{ subtask.title }}</span>
+                  }
+
+                  <cm-member-select
+                    class="task-subtask-list__assignee"
+                    [label]="'Zuweisung für ' + subtask.title"
+                    placeholder="Nicht zugewiesen"
+                    [compact]="true"
+                    [disabled]="taskEditingDisabled()"
+                    [value]="subtask.assignee?.id || null"
+                    [members]="workspaceService.members()"
+                    (valueChange)="changeSubtaskAssignee(subtask.id, $event)"
                   />
-                  <button
-                    class="task-inline-action"
-                    type="button"
-                    aria-label="Änderung speichern"
-                    (click)="saveSubtaskEdit()"
-                  >
-                    <span class="material-symbols-outlined" aria-hidden="true">check</span>
-                  </button>
-                  <button
-                    class="ui-close-button task-inline-close"
-                    type="button"
-                    aria-label="Bearbeitung abbrechen"
-                    (click)="cancelSubtaskEdit()"
-                  >
-                    <span class="material-symbols-outlined" aria-hidden="true">close</span>
-                  </button>
-                } @else {
-                  <span>{{ subtask.title }}</span>
-                  @if (!taskEditingDisabled()) {
+                </div>
+
+                <div class="task-subtask-list__actions">
+                  @if (editingSubtaskId() === subtask.id) {
+                    <button
+                      class="task-inline-action"
+                      type="button"
+                      aria-label="Änderung speichern"
+                      (click)="saveSubtaskEdit()"
+                    >
+                      <span class="material-symbols-outlined" aria-hidden="true">check</span>
+                    </button>
+                    <button
+                      class="ui-close-button task-inline-close"
+                      type="button"
+                      aria-label="Bearbeitung abbrechen"
+                      (click)="cancelSubtaskEdit()"
+                    >
+                      <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                    </button>
+                  } @else if (!taskEditingDisabled()) {
                     <button
                       class="task-inline-action"
                       type="button"
@@ -640,7 +671,7 @@
                       <span class="material-symbols-outlined" aria-hidden="true">delete</span>
                     </button>
                   }
-                }
+                </div>
               </article>
             } @empty {
               <div class="task-drawer__empty">

@@ -299,6 +299,10 @@ function task(id: string, title: string, overrides: Partial<WorkspaceTask> = {})
     projectTitle: 'Carly Managed',
     projectAllowsOnDemandTasks: true,
     parentTaskId: null,
+    parentTaskTitle: null,
+    isSubtaskMirror: false,
+    sourceTaskId: null,
+    sourceSubtaskId: null,
     owner: BEN,
     assignee: BEN,
     collaborators: [],
@@ -333,6 +337,7 @@ function task(id: string, title: string, overrides: Partial<WorkspaceTask> = {})
     createdTask.subtasks = Array.from({ length: overrides.subtaskCount ?? 0 }, (_, index) => ({
       id: `subtask-${id}-${index + 1}`,
       title: `Arbeitsschritt ${index + 1}`,
+      assignee: null,
       isDone: index < (overrides.completedSubtaskCount ?? 0),
       createdAt: createdTask.createdAt,
     }));
@@ -442,18 +447,21 @@ const CARLY_BOARD: WorkspaceColumn[] = [
           {
             id: 'subtask-106-1',
             title: 'Spaltenlayout übertragen',
+            assignee: MIRA,
             isDone: true,
             createdAt: isoDateTime(-4),
           },
           {
             id: 'subtask-106-2',
             title: 'Drag-Vorschau prüfen',
+            assignee: null,
             isDone: true,
             createdAt: isoDateTime(-3),
           },
           {
             id: 'subtask-106-3',
             title: 'Task-Drawer ausbauen',
+            assignee: LEA,
             isDone: false,
             createdAt: isoDateTime(-2),
           },
@@ -800,7 +808,10 @@ function cloneMember(member: WorkspaceMember): WorkspaceMember {
 }
 
 function normalizeTaskCounters(source: WorkspaceTask): WorkspaceTask {
-  const subtasks = source.subtasks ?? [];
+  const subtasks = (source.subtasks ?? []).map((item) => ({
+    ...item,
+    assignee: item.assignee ? cloneMember(item.assignee) : null,
+  }));
   const comments = source.comments ?? [];
   const attachments = source.attachments ?? [];
 
@@ -813,6 +824,10 @@ function normalizeTaskCounters(source: WorkspaceTask): WorkspaceTask {
     attachments,
     history: source.history ?? [],
     collaborators: source.collaborators ?? [],
+    parentTaskTitle: source.parentTaskTitle ?? null,
+    isSubtaskMirror: source.isSubtaskMirror ?? false,
+    sourceTaskId: source.sourceTaskId ?? null,
+    sourceSubtaskId: source.sourceSubtaskId ?? null,
     isRecurring: recurrenceRule !== null,
     recurrenceLabel: recurrenceRule?.summary ?? null,
     recurrenceRule,
@@ -833,7 +848,10 @@ function cloneTask(source: WorkspaceTask): WorkspaceTask {
     assignee: source.assignee ? cloneMember(source.assignee) : null,
     collaborators: (source.collaborators ?? []).map(cloneMember),
     tags: [...source.tags],
-    subtasks: (source.subtasks ?? []).map((item) => ({ ...item })),
+    subtasks: (source.subtasks ?? []).map((item) => ({
+      ...item,
+      assignee: item.assignee ? cloneMember(item.assignee) : null,
+    })),
     comments: (source.comments ?? []).map((item) => ({
       ...item,
       author: cloneMember(item.author),
@@ -1418,6 +1436,11 @@ export class WorkspacePreviewService {
     return structuredClone(message);
   }
 
+  /** Liefert eine tiefe Kopie einer Aufgabe unabhängig von ihrer Boardplatzierung. */
+  getTaskById(taskId: string): WorkspaceTask | null {
+    return this.findTask(taskId);
+  }
+
   /**
    * Schaltet den Abschlussstatus einer Aufgabe um.
    */
@@ -1878,14 +1901,27 @@ export class WorkspacePreviewService {
     return this.getBoard(projectId);
   }
 
-  /** Fügt einer Aufgabe eine Unteraufgabe hinzu. */
-  addSubtask(projectId: string, taskId: string, title: string): WorkspaceColumn[] {
+  /** Fügt einer Aufgabe eine optional zugewiesene Unteraufgabe hinzu. */
+  addSubtask(
+    projectId: string,
+    taskId: string,
+    title: string,
+    assigneeId: string | null = null,
+  ): WorkspaceColumn[] {
     const cleanTitle = title.trim().slice(0, MAX_SUBTASK_TITLE_LENGTH);
-    if (!cleanTitle) return this.getBoard(projectId);
+    const assignee = assigneeId
+      ? (this.members().find((member) => member.id === assigneeId) ?? null)
+      : null;
+
+    if (!cleanTitle) {
+      return this.getBoard(projectId);
+    }
+
     return this.mutateTask(projectId, taskId, (currentTask) => {
       const subtask: WorkspaceSubtask = {
         id: `subtask-${Date.now()}`,
         title: cleanTitle,
+        assignee,
         isDone: false,
         createdAt: new Date().toISOString(),
       };
@@ -1895,27 +1931,47 @@ export class WorkspacePreviewService {
           subtasks: [...currentTask.subtasks, subtask],
           updatedAt: new Date().toISOString(),
         }),
-        'Unteraufgabe hinzugefügt',
-        'account_tree',
+        assignee
+          ? `Unteraufgabe „${cleanTitle}“ an ${this.getMemberFirstName(assignee)} zugewiesen`
+          : `Unteraufgabe „${cleanTitle}“ hinzugefügt`,
+        assignee ? 'person_add' : 'account_tree',
       );
     });
   }
 
   /** Schaltet den Status einer Unteraufgabe um. */
   toggleSubtask(projectId: string, taskId: string, subtaskId: string): WorkspaceColumn[] {
-    return this.mutateTask(projectId, taskId, (currentTask) =>
-      this.addHistory(
+    return this.mutateTask(projectId, taskId, (currentTask) => {
+      const currentSubtask = currentTask.subtasks.find((item) => item.id === subtaskId);
+
+      if (!currentSubtask) {
+        return currentTask;
+      }
+
+      const nextDoneState = !currentSubtask.isDone;
+      return this.addHistory(
         normalizeTaskCounters({
           ...currentTask,
           subtasks: currentTask.subtasks.map((item) =>
-            item.id === subtaskId ? { ...item, isDone: !item.isDone } : item,
+            item.id === subtaskId ? { ...item, isDone: nextDoneState } : item,
           ),
           updatedAt: new Date().toISOString(),
         }),
-        'Unteraufgabe aktualisiert',
-        'task_alt',
-      ),
-    );
+        `Unteraufgabe „${currentSubtask.title}“ ${
+          nextDoneState ? 'abgeschlossen' : 'wieder geöffnet'
+        }`,
+        nextDoneState ? 'task_alt' : 'restart_alt',
+      );
+    });
+  }
+
+  /** Schaltet den Status einer im persönlichen Board gespiegelten Unteraufgabe um. */
+  toggleMirroredSubtask(projectId: string, mirrorTask: WorkspaceTask): WorkspaceColumn[] {
+    if (!mirrorTask.isSubtaskMirror || !mirrorTask.sourceTaskId || !mirrorTask.sourceSubtaskId) {
+      return this.getBoard(projectId);
+    }
+
+    return this.toggleSubtask(projectId, mirrorTask.sourceTaskId, mirrorTask.sourceSubtaskId);
   }
 
   /** Ändert den Titel einer Unteraufgabe. */
@@ -1940,6 +1996,43 @@ export class WorkspacePreviewService {
         'edit',
       ),
     );
+  }
+
+  /** Ändert oder entfernt die verantwortliche Person einer Unteraufgabe. */
+  updateSubtaskAssignee(
+    projectId: string,
+    taskId: string,
+    subtaskId: string,
+    memberId: string | null,
+  ): WorkspaceColumn[] {
+    const member = memberId ? (this.members().find((item) => item.id === memberId) ?? null) : null;
+
+    return this.mutateTask(projectId, taskId, (currentTask) => {
+      const currentSubtask = currentTask.subtasks.find((item) => item.id === subtaskId);
+
+      if (!currentSubtask || currentSubtask.assignee?.id === member?.id) {
+        return currentTask;
+      }
+
+      const previousAssignee = currentSubtask.assignee;
+      const action = member
+        ? `Unteraufgabe „${currentSubtask.title}“ an ${this.getMemberFirstName(member)} zugewiesen`
+        : `Zuweisung von Unteraufgabe „${currentSubtask.title}“ entfernt`;
+
+      return this.addHistory(
+        normalizeTaskCounters({
+          ...currentTask,
+          subtasks: currentTask.subtasks.map((item) =>
+            item.id === subtaskId ? { ...item, assignee: member } : item,
+          ),
+          updatedAt: new Date().toISOString(),
+        }),
+        previousAssignee && member
+          ? `${action} · vorher ${this.getMemberFirstName(previousAssignee)}`
+          : action,
+        member ? 'assignment_ind' : 'person_off',
+      );
+    });
   }
 
   /** Entfernt eine Unteraufgabe. */
@@ -2283,46 +2376,100 @@ export class WorkspacePreviewService {
 
     boards[POOL_BOARD_ID] = [poolColumn];
 
-    const assignedTaskMap = new Map<string, WorkspaceTask>();
-    Object.entries(boards)
-      .filter(([boardId]) => boardId !== POOL_BOARD_ID)
-      .flatMap(([, columns]) => columns.flatMap((column) => column.tasks))
-      .forEach((item) => {
-        if (!item.isDone && !item.isSharedPool && item.assignee && !assignedTaskMap.has(item.id)) {
-          assignedTaskMap.set(item.id, item);
+    const sourceTaskMap = new Map<string, WorkspaceTask>();
+    const boardEntries = Object.entries(boards);
+
+    for (const [boardId, columns] of boardEntries) {
+      if (boardId === POOL_BOARD_ID || this.isPersonalBoardId(boardId)) {
+        continue;
+      }
+
+      for (const item of columns.flatMap((column) => column.tasks)) {
+        if (!item.isSubtaskMirror && !sourceTaskMap.has(item.id)) {
+          sourceTaskMap.set(item.id, item);
         }
-      });
+      }
+    }
+
+    for (const [boardId, columns] of boardEntries) {
+      if (!this.isPersonalBoardId(boardId)) {
+        continue;
+      }
+
+      for (const item of columns.flatMap((column) => column.tasks)) {
+        if (!item.isSubtaskMirror && !sourceTaskMap.has(item.id)) {
+          sourceTaskMap.set(item.id, item);
+        }
+      }
+    }
+
+    const assignedTaskMap = new Map<string, WorkspaceTask>();
+    for (const item of sourceTaskMap.values()) {
+      if (!item.isDone && !item.isSharedPool && item.assignee) {
+        assignedTaskMap.set(item.id, item);
+      }
+    }
+
+    const subtaskMirrorsByMember = new Map<string, Map<string, WorkspaceTask>>();
+    for (const sourceTask of sourceTaskMap.values()) {
+      if (sourceTask.isDone || sourceTask.isSharedPool) {
+        continue;
+      }
+
+      for (const subtask of sourceTask.subtasks) {
+        if (!subtask.assignee || subtask.assignee.id === sourceTask.assignee?.id) {
+          continue;
+        }
+
+        const mirrorTask = this.createSubtaskMirrorTask(sourceTask, subtask);
+        const memberMirrors =
+          subtaskMirrorsByMember.get(subtask.assignee.id) ?? new Map<string, WorkspaceTask>();
+        memberMirrors.set(mirrorTask.id, mirrorTask);
+        subtaskMirrorsByMember.set(subtask.assignee.id, memberMirrors);
+      }
+    }
 
     for (const member of this.members()) {
       const personalBoardId = this.getPersonalBoardId(member.id);
       const currentColumns = cloneColumns(boards[personalBoardId] ?? []);
-      const assignedProjectTasks = [...assignedTaskMap.values()].filter(
+      const assignedTasks = [...assignedTaskMap.values()].filter(
         (item) => item.assignee?.id === member.id,
       );
-      const assignedProjectTaskIds = new Set(assignedProjectTasks.map((item) => item.id));
+      const assignedTaskIds = new Set(assignedTasks.map((item) => item.id));
+      const expectedMirrorMap = subtaskMirrorsByMember.get(member.id) ?? new Map();
+      const expectedMirrorIds = new Set(expectedMirrorMap.keys());
       const cleanedColumns = currentColumns.map((column) => ({
         ...column,
-        tasks: column.tasks.filter((item) => {
-          if (item.createdOutsideColumn || !item.projectId) {
-            return item.assignee?.id === member.id && !item.isSharedPool;
-          }
+        tasks: column.tasks
+          .filter((item) => {
+            if (item.isSubtaskMirror) {
+              return expectedMirrorIds.has(item.id);
+            }
 
-          return item.assignee?.id === member.id && !item.isSharedPool;
-        }),
+            return item.assignee?.id === member.id && !item.isSharedPool;
+          })
+          .map((item) =>
+            item.isSubtaskMirror ? cloneTask(expectedMirrorMap.get(item.id) ?? item) : item,
+          ),
       }));
       const existingTaskIds = new Set(
         cleanedColumns.flatMap((column) => column.tasks.map((item) => item.id)),
       );
-      const missingTasks = assignedProjectTasks.filter((item) => !existingTaskIds.has(item.id));
+      const missingTasks = assignedTasks.filter((item) => !existingTaskIds.has(item.id));
+      const missingMirrors = [...expectedMirrorMap.values()].filter(
+        (item) => !item.isDone && !existingTaskIds.has(item.id),
+      );
       const existingNewColumn = cleanedColumns.find(
         (column) => column.systemRole === 'new-assigned',
       );
-      const newColumnTasks = [
-        ...missingTasks,
-        ...(existingNewColumn?.tasks ?? []).filter(
-          (item) => item.createdOutsideColumn || assignedProjectTaskIds.has(item.id),
-        ),
-      ].filter(
+      const existingNewTasks = (existingNewColumn?.tasks ?? []).filter((item) => {
+        if (item.isSubtaskMirror) {
+          return expectedMirrorIds.has(item.id) && !item.isDone;
+        }
+
+        return item.createdOutsideColumn || assignedTaskIds.has(item.id);
+      });
+      const newColumnTasks = [...missingTasks, ...missingMirrors, ...existingNewTasks].filter(
         (item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index,
       );
       const regularColumns = cleanedColumns.filter(
@@ -2348,6 +2495,79 @@ export class WorkspacePreviewService {
         ]),
       ),
     );
+  }
+
+  /** Erstellt eine persönliche Kartenansicht für eine fremd zugewiesene Unteraufgabe. */
+  private createSubtaskMirrorTask(
+    sourceTask: WorkspaceTask,
+    subtask: WorkspaceSubtask,
+  ): WorkspaceTask {
+    const assignee = subtask.assignee;
+
+    if (!assignee) {
+      return cloneTask(sourceTask);
+    }
+
+    const collaborators = this.getTaskCollaborationMembers(sourceTask, assignee.id);
+    return normalizeTaskCounters({
+      ...cloneTask(sourceTask),
+      id: `subtask-mirror-${sourceTask.id}-${subtask.id}-${assignee.id}`,
+      title: subtask.title,
+      description: `Unteraufgabe von „${sourceTask.title}“.`,
+      parentTaskId: sourceTask.id,
+      parentTaskTitle: sourceTask.title,
+      isSubtaskMirror: true,
+      sourceTaskId: sourceTask.id,
+      sourceSubtaskId: subtask.id,
+      assignee: cloneMember(assignee),
+      collaborators,
+      tags: ['Unteraufgabe'],
+      subtasks: [],
+      comments: [],
+      attachments: [],
+      history: [],
+      subtaskCount: 0,
+      completedSubtaskCount: 0,
+      commentCount: 0,
+      attachmentCount: 0,
+      isRecurring: false,
+      recurrenceLabel: null,
+      recurrenceRule: null,
+      isDone: subtask.isDone,
+      completedAt: subtask.isDone ? sourceTask.updatedAt : null,
+      isSharedPool: false,
+      requiresReview: false,
+      reviewHint: null,
+      createdOutsideColumn: false,
+      createdAt: subtask.createdAt,
+      updatedAt: sourceTask.updatedAt,
+    });
+  }
+
+  /** Liefert direkte und über Unteraufgaben beteiligte Personen ohne Duplikate. */
+  private getTaskCollaborationMembers(
+    task: WorkspaceTask,
+    excludedMemberId: string | null,
+  ): WorkspaceMember[] {
+    const members = [
+      task.assignee,
+      ...task.collaborators,
+      ...task.subtasks.map((item) => item.assignee),
+    ].filter((member): member is WorkspaceMember => !!member);
+    const uniqueMembers = new Map<string, WorkspaceMember>();
+
+    for (const member of members) {
+      if (member.id !== excludedMemberId) {
+        uniqueMembers.set(member.id, cloneMember(member));
+      }
+    }
+
+    return [...uniqueMembers.values()];
+  }
+
+  /** Liefert den persönlichen Vornamen einer Person. */
+  private getMemberFirstName(member: WorkspaceMember): string {
+    return member.fullName.trim().split(/\s+/)[0] ?? member.fullName;
   }
 
   /** Erstellt die dynamische Neu-Spalte einer Person. */

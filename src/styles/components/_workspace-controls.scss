@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_workspace-controls.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert wiederverwendbare Auswahl- und Aktionskomponenten.
 
    Inhaltsverzeichnis:
@@ -75,6 +75,41 @@
   min-height: 2.25rem;
   padding: var(--space-1) var(--space-2);
   font-size: var(--font-size-200);
+}
+
+.member-select--compact {
+  gap: 0.2rem;
+}
+
+.member-select--compact .member-select__label {
+  position: absolute;
+  width: 0.0625rem;
+  height: 0.0625rem;
+  padding: 0;
+  margin: -0.0625rem;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.member-select--compact .member-select__trigger {
+  min-height: 2.25rem;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-200);
+}
+
+.member-select--compact .member-select__avatar {
+  width: 1.55rem;
+  height: 1.55rem;
+  font-size: 0.52rem;
+}
+
+.member-select--compact .member-select__menu {
+  right: 0;
+  left: auto;
+  width: min(16rem, calc(100vw - 3rem));
+  min-width: 13rem;
 }
 
 .ui-select__value,

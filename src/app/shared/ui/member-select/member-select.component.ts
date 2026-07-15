@@ -26,17 +26,16 @@ export class MemberSelectComponent {
   readonly value = input<string | null>(null);
   readonly members = input.required<readonly WorkspaceMember[]>();
   readonly disabled = input(false);
+  readonly compact = input(false);
   readonly allowEmpty = input(true);
   readonly placeholder = input('Person auswählen');
   readonly valueChange = output<string>();
 
   private readonly menuId = `member-select-${++memberSelectInstanceId}`;
 
-  protected readonly open = computed(
-    () => this.dropdownCoordinator.activeId() === this.menuId,
-  );
-  protected readonly selectedMember = computed(() =>
-    this.members().find((member) => member.id === this.value()) ?? null,
+  protected readonly open = computed(() => this.dropdownCoordinator.activeId() === this.menuId);
+  protected readonly selectedMember = computed(
+    () => this.members().find((member) => member.id === this.value()) ?? null,
   );
 
   constructor(
@@ -67,9 +66,76 @@ export class MemberSelectComponent {
 
   /** Öffnet oder schließt die Personenliste. */
   toggle(): void {
-    if (!this.disabled()) {
-      this.dropdownCoordinator.toggle(this.menuId);
+    if (this.disabled()) {
+      return;
     }
+
+    const willOpen = !this.open();
+    this.dropdownCoordinator.toggle(this.menuId);
+
+    if (willOpen) {
+      this.revealOpenMenu();
+    }
+  }
+
+  /** Scrollt den nächsten begrenzten Container bis zur sichtbaren Personenliste. */
+  private revealOpenMenu(): void {
+    window.requestAnimationFrame(() => {
+      const host = this.elementRef.nativeElement;
+      const menu = host.querySelector<HTMLElement>('.member-select__menu');
+      const scrollContainer = this.findScrollContainer(host);
+
+      if (!menu || !scrollContainer) {
+        return;
+      }
+
+      const menuRect = menu.getBoundingClientRect();
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const safeInset = 12;
+      const bottomOverflow = menuRect.bottom - (containerRect.bottom - safeInset);
+      const topOverflow = containerRect.top + safeInset - menuRect.top;
+
+      if (bottomOverflow > 0) {
+        scrollContainer.scrollBy({
+          top: bottomOverflow + safeInset,
+          behavior: this.prefersReducedMotion() ? 'auto' : 'smooth',
+        });
+        return;
+      }
+
+      if (topOverflow > 0) {
+        scrollContainer.scrollBy({
+          top: -(topOverflow + safeInset),
+          behavior: this.prefersReducedMotion() ? 'auto' : 'smooth',
+        });
+      }
+    });
+  }
+
+  /** Ermittelt den nächsten tatsächlich scrollbaren Vorfahren. */
+  private findScrollContainer(element: HTMLElement): HTMLElement | null {
+    let parent = element.parentElement;
+
+    while (parent) {
+      const style = window.getComputedStyle(parent);
+      const overflowY = style.overflowY;
+      const canScroll =
+        (overflowY === 'auto' || overflowY === 'scroll') &&
+        parent.scrollHeight > parent.clientHeight;
+
+      if (canScroll) {
+        return parent;
+      }
+
+      parent = parent.parentElement;
+    }
+
+    return null;
+  }
+
+  /** Prüft die systemweite Einstellung für reduzierte Bewegung. */
+  private prefersReducedMotion(): boolean {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   /** Übernimmt eine Person oder entfernt die aktuelle Auswahl. */

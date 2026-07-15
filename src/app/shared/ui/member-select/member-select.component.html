@@ -1,6 +1,10 @@
 <!-- src/app/shared/ui/member-select/member-select.component.html -->
 
-<div class="member-select" [class.member-select--open]="open()">
+<div
+  class="member-select"
+  [class.member-select--open]="open()"
+  [class.member-select--compact]="compact()"
+>
   <span class="member-select__label">{{ label() }}</span>
 
   <button
@@ -17,7 +21,8 @@
         [style.--member-select-color]="member.avatarColor"
         [style.--member-select-text]="member.avatarTextColor"
         aria-hidden="true"
-      >{{ member.initials }}</span>
+        >{{ member.initials }}</span
+      >
       <span class="member-select__value">{{ getFirstName(member) }}</span>
     } @else {
       <span class="member-select__avatar member-select__avatar--empty" aria-hidden="true">
@@ -65,7 +70,8 @@
             [style.--member-select-color]="member.avatarColor"
             [style.--member-select-text]="member.avatarTextColor"
             aria-hidden="true"
-          >{{ member.initials }}</span>
+            >{{ member.initials }}</span
+          >
           <span class="member-select__option-copy">
             <strong>{{ getFirstName(member) }}</strong>
             <small>{{ member.email }}</small>

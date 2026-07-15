@@ -16,8 +16,8 @@
         [class.workspace-task-card__complete--done]="task().isDone"
         type="button"
         [disabled]="!canToggleComplete()"
-        [attr.aria-label]="task().isDone ? 'Aufgabe wieder öffnen' : 'Aufgabe abschließen'"
-        [attr.title]="task().isDone ? 'Aufgabe wieder öffnen' : 'Aufgabe abschließen'"
+        [attr.aria-label]="completionLabel()"
+        [attr.title]="completionLabel()"
         (click)="toggleComplete($event)"
       >
         <span class="material-symbols-outlined" aria-hidden="true">check</span>
@@ -54,6 +54,16 @@
     </div>
   }
 
+  @if (task().isSubtaskMirror && task().parentTaskTitle) {
+    <div
+      class="workspace-task-card__context workspace-task-card__context--parent"
+      [attr.title]="'Hauptaufgabe: ' + task().parentTaskTitle"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
+      <span>Hauptaufgabe: {{ task().parentTaskTitle }}</span>
+    </div>
+  }
+
   @if (isOnDemandReady()) {
     <div class="workspace-task-card__context workspace-task-card__context--on-demand">
       <span class="material-symbols-outlined" aria-hidden="true">assignment_ind</span>
@@ -87,14 +97,38 @@
   }
 
   <div class="workspace-task-card__meta">
-    <span
-      class="workspace-task-card__date"
-      [class.workspace-task-card__date--today]="isDueToday()"
-      [class.workspace-task-card__date--overdue]="isOverdue()"
-    >
-      <span class="material-symbols-outlined" aria-hidden="true">event</span>
-      <span>{{ scheduleLabel() }}</span>
-    </span>
+    <div class="workspace-task-card__meta-main">
+      <span
+        class="workspace-task-card__date"
+        [class.workspace-task-card__date--today]="isDueToday()"
+        [class.workspace-task-card__date--overdue]="isOverdue()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">event</span>
+        <span>{{ scheduleLabel() }}</span>
+      </span>
+
+      @if (collaboratingMembers().length > 0) {
+        <div
+          class="workspace-task-card__collaborators"
+          [attr.title]="'Zusammenarbeit mit ' + collaboratorLabel()"
+          [attr.aria-label]="'Zusammenarbeit mit ' + collaboratorLabel()"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">group</span>
+          <span class="workspace-task-card__collaborator-stack" aria-hidden="true">
+            @for (member of visibleCollaborators(); track member.id) {
+              <span
+                [style.--task-collaborator-color]="member.avatarColor"
+                [style.--task-collaborator-text]="member.avatarTextColor"
+                >{{ member.initials }}</span
+              >
+            }
+          </span>
+          @if (remainingCollaboratorCount() > 0) {
+            <strong>+{{ remainingCollaboratorCount() }}</strong>
+          }
+        </div>
+      }
+    </div>
 
     <div class="workspace-task-card__counters" aria-label="Aufgabenkennzahlen">
       @if (task().isRecurring) {

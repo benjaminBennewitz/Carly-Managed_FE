@@ -14,6 +14,10 @@ const TASK: WorkspaceTask = {
   projectTitle: 'Carly Managed',
   projectAllowsOnDemandTasks: true,
   parentTaskId: null,
+  parentTaskTitle: null,
+  isSubtaskMirror: false,
+  sourceTaskId: null,
+  sourceSubtaskId: null,
   owner: {
     id: 'member-ben',
     fullName: 'Benjamin Bennewitz',

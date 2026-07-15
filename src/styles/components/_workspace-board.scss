@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_workspace-board.scss
    Projekt: Carly Managed
-   Version: 2.4.0
+   Version: 2.5.0
    Beschreibung: Definiert Projektkopf, Kanban, Liste und Task-Drawer.
 
    Inhaltsverzeichnis:
@@ -1416,6 +1416,15 @@
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
+.task-create-row--subtask {
+  grid-template-columns: minmax(0, 1fr) minmax(10rem, 12rem) auto;
+  align-items: end;
+}
+
+.task-create-row__assignee {
+  min-width: 0;
+}
+
 .task-create-row button,
 .task-comment-form button,
 .task-file-upload {
@@ -1462,9 +1471,38 @@
   align-items: center;
 }
 
-.task-subtask-list article.is-done > span {
+.task-subtask-list article.is-focused {
+  border-color: var(--color-action-primary);
+  background: var(--color-brand-subtle);
+  box-shadow: 0 0 0 0.1875rem color-mix(in srgb, var(--color-focus) 16%, transparent);
+}
+
+.task-subtask-list__content {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(9.5rem, 11rem);
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.task-subtask-list__title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.task-subtask-list article.is-done .task-subtask-list__title {
   color: var(--color-text-muted);
   text-decoration: line-through;
+}
+
+.task-subtask-list__assignee {
+  min-width: 0;
+}
+
+.task-subtask-list__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
 }
 
 .task-subtask-list__check {
@@ -1930,7 +1968,7 @@
 }
 
 .task-subtask-list article {
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
 .task-subtask-list article.is-editing {
@@ -2097,13 +2135,22 @@
     width: min(15.5rem, calc(100vw - 3rem));
   }
 
-  .task-subtask-list article,
-  .task-subtask-list article.is-editing {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+  .task-create-row--subtask {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .task-inline-close {
-    grid-column: 3;
+  .task-create-row__assignee {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .task-subtask-list__content {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  .task-subtask-list__actions {
+    align-self: start;
   }
 }
 
