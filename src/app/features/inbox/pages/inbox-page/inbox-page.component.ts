@@ -35,6 +35,7 @@ type InboxDialogState = 'new-chat' | 'add-participants' | 'delete-conversation' 
 })
 export class InboxPageComponent {
   @ViewChild('threadViewport') private readonly threadViewport?: ElementRef<HTMLElement>;
+  @ViewChild('messageTextarea') private readonly messageTextarea?: ElementRef<HTMLTextAreaElement>;
 
   protected readonly inboxService: WorkspaceInboxService;
   protected readonly workspaceService: WorkspacePreviewService;
@@ -46,7 +47,32 @@ export class InboxPageComponent {
   protected readonly submittedNewConversation = signal(false);
   protected readonly submittedMessage = signal(false);
   protected readonly feedback = signal('');
+  protected readonly emojiPickerOpen = signal(false);
+  protected readonly mentionQuery = signal<string | null>(null);
+  protected readonly mentionStartIndex = signal<number | null>(null);
   protected readonly currentMemberId = 'member-ben';
+  protected readonly emojis = [
+    '😀',
+    '😊',
+    '😂',
+    '😍',
+    '🤔',
+    '😎',
+    '🥳',
+    '🙌',
+    '👏',
+    '👍',
+    '👀',
+    '💪',
+    '✨',
+    '🔥',
+    '💡',
+    '✅',
+    '🎯',
+    '🚀',
+    '📌',
+    '❤️',
+  ] as const;
 
   private readonly formBuilder = inject(FormBuilder);
   private feedbackTimerId: number | null = null;
@@ -81,6 +107,21 @@ export class InboxPageComponent {
       .members()
       .filter((member) => member.id !== this.currentMemberId && !participantIds.has(member.id));
   });
+  protected readonly mentionSuggestionsVisible = computed(() => this.mentionQuery() !== null);
+  protected readonly filteredMentionMembers = computed(() => {
+    const query = this.mentionQuery()?.trim().toLocaleLowerCase('de-DE') ?? '';
+    return this.availableParticipantAdditions()
+      .filter((member) => {
+        if (!query) {
+          return true;
+        }
+
+        return [member.fullName, member.email].some((value) =>
+          value.toLocaleLowerCase('de-DE').includes(query),
+        );
+      })
+      .slice(0, 6);
+  });
 
   constructor(
     inboxService: WorkspaceInboxService,
@@ -101,12 +142,15 @@ export class InboxPageComponent {
     });
   }
 
-  /** Schließt aktive Inbox-Dialoge über die Escape-Taste. */
+  /** Schließt aktive Dialoge und Eingabeauswahlen über die Escape-Taste. */
   @HostListener('document:keydown.escape')
   closeDialogFromKeyboard(): void {
     if (this.dialogState()) {
       this.closeDialog();
+      return;
     }
+
+    this.closeComposerMenus();
   }
 
   /** Öffnet eine Systemnachricht, markiert sie gelesen und navigiert zum Kontext. */
@@ -136,11 +180,13 @@ export class InboxPageComponent {
   selectConversation(conversationId: string): void {
     this.selectedConversationId.set(conversationId);
     this.inboxService.markConversationRead(conversationId);
+    this.closeComposerMenus();
     this.scrollThreadToEnd();
   }
 
   /** Öffnet den Dialog für eine neue Direkt- oder Gruppenunterhaltung. */
   openNewConversationDialog(): void {
+    this.closeComposerMenus();
     this.newConversationForm.reset({ subject: '', body: '' });
     this.selectedNewParticipantIds.set([]);
     this.submittedNewConversation.set(false);
@@ -149,6 +195,7 @@ export class InboxPageComponent {
 
   /** Öffnet die Teilnehmerauswahl für den aktiven Chat. */
   openAddParticipantsDialog(): void {
+    this.closeComposerMenus();
     if (!this.activeConversation() || this.availableParticipantAdditions().length === 0) {
       return;
     }
@@ -238,6 +285,89 @@ export class InboxPageComponent {
 
     this.messageForm.reset({ body: '' });
     this.submittedMessage.set(false);
+    this.closeComposerMenus();
+    this.scrollThreadToEnd();
+  }
+
+  /** Öffnet oder schließt die Emoji-Auswahl für die aktuelle Nachricht. */
+  toggleEmojiPicker(): void {
+    this.mentionQuery.set(null);
+    this.mentionStartIndex.set(null);
+    this.emojiPickerOpen.update((isOpen) => !isOpen);
+  }
+
+  /** Fügt ein Emoji an der aktuellen Cursorposition in die Nachricht ein. */
+  insertEmoji(emoji: string): void {
+    const textarea = this.messageTextarea?.nativeElement;
+    const currentValue = this.messageForm.controls.body.value;
+    const selectionStart = textarea?.selectionStart ?? currentValue.length;
+    const selectionEnd = textarea?.selectionEnd ?? selectionStart;
+    const nextValue =
+      `${currentValue.slice(0, selectionStart)}${emoji}${currentValue.slice(selectionEnd)}`.slice(
+        0,
+        2_000,
+      );
+    const nextCursorPosition = Math.min(selectionStart + emoji.length, nextValue.length);
+
+    this.messageForm.controls.body.setValue(nextValue);
+    this.emojiPickerOpen.set(false);
+    this.focusMessageTextarea(nextCursorPosition);
+  }
+
+  /** Prüft die aktuelle Eingabe auf eine @-Suche nach weiteren Teammitgliedern. */
+  handleMessageInput(event: Event): void {
+    const textarea = event.currentTarget as HTMLTextAreaElement;
+    const cursorPosition = textarea.selectionStart ?? textarea.value.length;
+    const textBeforeCursor = textarea.value.slice(0, cursorPosition);
+    const match = textBeforeCursor.match(/(?:^|\s)@([^\s@]*)$/u);
+
+    if (!match) {
+      this.mentionQuery.set(null);
+      this.mentionStartIndex.set(null);
+      return;
+    }
+
+    const matchValue = match[0];
+    const mentionStart = cursorPosition - matchValue.length + (matchValue.startsWith(' ') ? 1 : 0);
+    this.emojiPickerOpen.set(false);
+    this.mentionStartIndex.set(mentionStart);
+    this.mentionQuery.set(match[1] ?? '');
+  }
+
+  /** Fügt eine gefundene Person zum Chat hinzu und ergänzt ihre Erwähnung im Text. */
+  addMentionedParticipant(member: WorkspaceMember): void {
+    const conversation = this.activeConversation();
+    const textarea = this.messageTextarea?.nativeElement;
+    const mentionStart = this.mentionStartIndex();
+    if (!conversation || mentionStart === null) {
+      return;
+    }
+
+    const updatedConversation = this.inboxService.addParticipants(
+      conversation.id,
+      [member.id],
+      this.workspaceService.members(),
+    );
+    if (!updatedConversation) {
+      return;
+    }
+
+    const currentValue = this.messageForm.controls.body.value;
+    const selectionEnd = textarea?.selectionStart ?? currentValue.length;
+    const mentionName = member.fullName.split(/\s+/u)[0] ?? member.fullName;
+    const replacement = `@${mentionName} `;
+    const nextValue =
+      `${currentValue.slice(0, mentionStart)}${replacement}${currentValue.slice(selectionEnd)}`.slice(
+        0,
+        2_000,
+      );
+    const nextCursorPosition = Math.min(mentionStart + replacement.length, nextValue.length);
+
+    this.messageForm.controls.body.setValue(nextValue);
+    this.mentionQuery.set(null);
+    this.mentionStartIndex.set(null);
+    this.showFeedback(`${member.fullName} wurde zum Chat hinzugefügt.`);
+    this.focusMessageTextarea(nextCursorPosition);
     this.scrollThreadToEnd();
   }
 
@@ -332,6 +462,26 @@ export class InboxPageComponent {
   /** Prüft, ob eine Person in der übergebenen Auswahlliste enthalten ist. */
   isSelected(memberId: string, selectedIds: readonly string[]): boolean {
     return selectedIds.includes(memberId);
+  }
+
+  /** Schließt Emoji- und Erwähnungsauswahl im Nachrichteneditor. */
+  private closeComposerMenus(): void {
+    this.emojiPickerOpen.set(false);
+    this.mentionQuery.set(null);
+    this.mentionStartIndex.set(null);
+  }
+
+  /** Setzt Fokus und Cursorposition nach einer Einfügung wieder in das Textfeld. */
+  private focusMessageTextarea(cursorPosition: number): void {
+    window.setTimeout(() => {
+      const textarea = this.messageTextarea?.nativeElement;
+      if (!textarea) {
+        return;
+      }
+
+      textarea.focus();
+      textarea.setSelectionRange(cursorPosition, cursorPosition);
+    });
   }
 
   /** Zeigt eine kurze Statusmeldung oberhalb der Inbox an. */

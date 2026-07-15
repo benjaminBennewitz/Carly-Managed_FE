@@ -171,6 +171,8 @@
         <button
           type="button"
           class="inbox-panel__primary-button"
+          aria-label="Neuen Chat starten"
+          title="Neuen Chat starten"
           (click)="openNewConversationDialog()"
         >
           <span class="material-symbols-outlined" aria-hidden="true">add_comment</span>
@@ -333,17 +335,98 @@
         <form class="inbox-composer" [formGroup]="messageForm" (ngSubmit)="sendMessage()">
           <label for="inbox-message-body">Nachricht</label>
           <div class="inbox-composer__field">
-            <textarea
-              id="inbox-message-body"
-              formControlName="body"
-              rows="3"
-              maxlength="2000"
-              placeholder="Nachricht schreiben …"
-              [attr.aria-invalid]="
-                submittedMessage() && messageForm.controls.body.invalid ? 'true' : null
-              "
-            ></textarea>
-            <button type="submit" aria-label="Nachricht senden" title="Nachricht senden">
+            <div class="inbox-composer__input">
+              <textarea
+                #messageTextarea
+                id="inbox-message-body"
+                formControlName="body"
+                rows="3"
+                maxlength="2000"
+                placeholder="Nachricht schreiben · Emoji wählen · @ tippen, um Personen hinzuzufügen"
+                [attr.aria-invalid]="
+                  submittedMessage() && messageForm.controls.body.invalid ? 'true' : null
+                "
+                (input)="handleMessageInput($event)"
+              ></textarea>
+
+              <div class="inbox-composer__tools">
+                <button
+                  type="button"
+                  class="inbox-composer__tool-button"
+                  [class.is-active]="emojiPickerOpen()"
+                  [attr.aria-expanded]="emojiPickerOpen()"
+                  aria-controls="inbox-emoji-picker"
+                  aria-label="Emoji auswählen"
+                  title="Emoji auswählen"
+                  (click)="toggleEmojiPicker()"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">mood</span>
+                </button>
+                <span>Mit <strong>@</strong> weitere Personen zum Chat hinzufügen</span>
+              </div>
+
+              @if (emojiPickerOpen()) {
+                <div
+                  id="inbox-emoji-picker"
+                  class="inbox-composer__popover inbox-composer__emoji-picker"
+                  aria-label="Emoji auswählen"
+                >
+                  @for (emoji of emojis; track emoji) {
+                    <button
+                      type="button"
+                      [attr.aria-label]="'Emoji ' + emoji + ' einfügen'"
+                      (click)="insertEmoji(emoji)"
+                    >
+                      {{ emoji }}
+                    </button>
+                  }
+                </div>
+              }
+
+              @if (mentionSuggestionsVisible()) {
+                <div
+                  class="inbox-composer__popover inbox-composer__mentions"
+                  aria-label="Teammitglied zum Chat hinzufügen"
+                >
+                  <header>
+                    <span class="material-symbols-outlined" aria-hidden="true">group_add</span>
+                    <div>
+                      <strong>Person hinzufügen</strong>
+                      <small>Wird direkt Teil dieser Unterhaltung</small>
+                    </div>
+                  </header>
+
+                  <div class="inbox-composer__mention-list">
+                    @for (member of filteredMentionMembers(); track member.id) {
+                      <button type="button" (click)="addMentionedParticipant(member)">
+                        <span
+                          class="inbox-avatar inbox-avatar--small"
+                          [style.background]="member.avatarColor"
+                          [style.color]="member.avatarTextColor"
+                          aria-hidden="true"
+                        >
+                          {{ member.initials }}
+                        </span>
+                        <span>
+                          <strong>{{ member.fullName }}</strong>
+                          <small>{{ member.email }}</small>
+                        </span>
+                        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+                      </button>
+                    } @empty {
+                      <p>Keine weiteren passenden Teammitglieder verfügbar.</p>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            <button
+              type="submit"
+              class="inbox-composer__send"
+              aria-label="Nachricht senden"
+              title="Nachricht senden"
+            >
               <span class="material-symbols-outlined" aria-hidden="true">send</span>
             </button>
           </div>

@@ -271,8 +271,6 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: var(--size-control-md);
-  padding: 0 var(--space-4);
   border: 0;
   border-radius: var(--radius-md);
   background: var(--color-action-primary);
@@ -282,6 +280,26 @@
   transition:
     background var(--motion-duration-fast) var(--motion-easing-standard),
     transform var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.inbox-panel__primary-button {
+  min-width: 0;
+  min-height: var(--size-control-sm);
+  flex: 0 0 auto;
+  gap: var(--space-1);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-100);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.inbox-panel__primary-button .material-symbols-outlined {
+  font-size: var(--size-icon-sm);
+}
+
+.inbox-thread__empty button {
+  min-height: var(--size-control-md);
+  padding: 0 var(--space-4);
 }
 
 .inbox-panel__primary-button:hover,
@@ -752,6 +770,13 @@
   gap: var(--space-2);
 }
 
+.inbox-composer__input {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  gap: var(--space-2);
+}
+
 .inbox-composer textarea,
 .inbox-dialog__field input,
 .inbox-dialog__field textarea {
@@ -767,10 +792,190 @@
 }
 
 .inbox-composer textarea {
-  min-height: 4.5rem;
+  min-height: 4.25rem;
   max-height: 10rem;
   padding: var(--space-3) var(--space-4);
   resize: vertical;
+}
+
+.inbox-composer__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+}
+
+.inbox-composer__tools > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox-composer__tools strong {
+  color: var(--color-action-primary);
+}
+
+.inbox-composer__tool-button {
+  display: grid;
+  place-items: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  flex: 0 0 auto;
+  padding: 0;
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-primary);
+  color: var(--color-icon-secondary);
+  cursor: pointer;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    background var(--motion-duration-fast) var(--motion-easing-standard),
+    color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.inbox-composer__tool-button:hover,
+.inbox-composer__tool-button.is-active {
+  border-color: color-mix(in srgb, var(--color-action-primary) 40%, var(--color-border-subtle));
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+}
+
+.inbox-composer__tool-button .material-symbols-outlined {
+  font-size: var(--size-icon-sm);
+}
+
+.inbox-composer__popover {
+  position: absolute;
+  z-index: var(--z-index-dropdown);
+  bottom: calc(100% + var(--space-2));
+  left: 0;
+  width: min(22rem, 100%);
+  overflow: hidden;
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.inbox-composer__emoji-picker {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-1);
+  width: min(18rem, 100%);
+  padding: var(--space-3);
+}
+
+.inbox-composer__emoji-picker button {
+  display: grid;
+  place-items: center;
+  min-width: var(--size-control-sm);
+  min-height: var(--size-control-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: var(--font-size-500);
+  cursor: pointer;
+}
+
+.inbox-composer__emoji-picker button:hover,
+.inbox-composer__emoji-picker button:focus-visible {
+  background: var(--color-surface-hover);
+}
+
+.inbox-composer__mentions > header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
+  background: var(--color-surface-elevated);
+}
+
+.inbox-composer__mentions > header > .material-symbols-outlined {
+  color: var(--color-action-primary);
+}
+
+.inbox-composer__mentions > header > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.inbox-composer__mentions > header strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-200);
+}
+
+.inbox-composer__mentions > header small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+}
+
+.inbox-composer__mention-list {
+  display: grid;
+  max-height: 15rem;
+  overflow-y: auto;
+  padding: var(--space-2);
+  overscroll-behavior: contain;
+}
+
+.inbox-composer__mention-list > button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inbox-composer__mention-list > button:hover,
+.inbox-composer__mention-list > button:focus-visible {
+  background: var(--color-surface-hover);
+}
+
+.inbox-composer__mention-list > button > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.inbox-composer__mention-list strong,
+.inbox-composer__mention-list small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox-composer__mention-list strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-200);
+}
+
+.inbox-composer__mention-list small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+}
+
+.inbox-composer__mention-list > button > .material-symbols-outlined {
+  color: var(--color-action-primary);
+  font-size: var(--size-icon-sm);
+}
+
+.inbox-composer__mention-list > p {
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-200);
+  text-align: center;
 }
 
 .inbox-composer textarea:focus,
@@ -786,7 +991,7 @@
   border-color: var(--color-field-border-invalid);
 }
 
-.inbox-composer__field > button {
+.inbox-composer__send {
   display: grid;
   place-items: center;
   width: var(--size-control-lg);
@@ -799,7 +1004,7 @@
   cursor: pointer;
 }
 
-.inbox-composer__field > button:hover {
+.inbox-composer__send:hover {
   background: var(--color-action-primary-hover);
 }
 
@@ -1126,6 +1331,16 @@
     padding-right: var(--space-4);
     padding-left: var(--space-4);
   }
+
+  .inbox-panel__primary-button {
+    width: var(--size-click-target);
+    padding: 0;
+    font-size: 0;
+  }
+
+  .inbox-panel__primary-button .material-symbols-outlined {
+    font-size: var(--size-icon-md);
+  }
 }
 
 @media (max-width: 56rem) {
@@ -1179,16 +1394,6 @@
   .inbox-panel__header,
   .inbox-thread__header {
     align-items: flex-start;
-  }
-
-  .inbox-panel__primary-button {
-    width: var(--size-click-target);
-    padding: 0;
-    font-size: 0;
-  }
-
-  .inbox-panel__primary-button .material-symbols-outlined {
-    font-size: var(--size-icon-md);
   }
 
   .inbox-system-list,
