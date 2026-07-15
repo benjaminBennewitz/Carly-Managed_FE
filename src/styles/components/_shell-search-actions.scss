@@ -1,7 +1,7 @@
 /* ========================================================================== 
    Datei: src/styles/components/_shell-search-actions.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert globale Suche und Schnellaktionen der Topbar.
 
    Inhaltsverzeichnis:
@@ -104,15 +104,34 @@
   position: absolute;
   top: 50%;
   right: var(--space-2);
+  display: grid;
   width: 2rem;
   min-width: 2rem;
   height: 2rem;
   min-height: 2rem;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-icon-muted);
   transform: translateY(-50%);
+  transition:
+    background var(--motion-duration-fast) var(--motion-easing-standard),
+    color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 .global-search__clear:hover {
-  transform: translateY(-50%) rotate(90deg) scale(1.04);
+  background: var(--color-surface-hover);
+  color: var(--color-action-primary);
+}
+
+.global-search__clear:active {
+  background: var(--color-brand-subtle);
+}
+
+.global-search__clear .material-symbols-outlined {
+  font-size: 1.05rem;
 }
 
 .global-search__panel {
@@ -445,9 +464,16 @@
 }
 
 .quick-action-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-index-dialog) + 2);
   display: grid;
-  padding: var(--space-6);
+  width: 100vw;
+  height: 100dvh;
+  padding: clamp(var(--space-3), 4vw, var(--space-8));
   place-items: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .quick-action-modal {
@@ -455,7 +481,8 @@
   z-index: var(--z-index-dialog);
   display: grid;
   width: min(34rem, 100%);
-  max-height: min(46rem, calc(100dvh - 3rem));
+  max-height: min(46rem, calc(100dvh - 2rem));
+  margin: auto;
   grid-template-rows: auto minmax(0, 1fr);
   border: var(--border-width-subtle) solid var(--color-border-subtle);
   border-radius: var(--radius-xl);

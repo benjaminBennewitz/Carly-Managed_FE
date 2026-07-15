@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_shell-navigation.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert Topbar und dynamische Sidebar-Navigation.
 
    Inhaltsverzeichnis:
@@ -21,19 +21,35 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
+  position: relative;
+  isolation: isolate;
   border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
+  background: transparent;
+  box-shadow: var(--shadow-xs);
+}
+
+.topbar::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background:
     color-mix(in srgb, var(--color-surface-primary) 94%, transparent);
-  box-shadow: var(--shadow-xs);
   backdrop-filter: blur(1rem);
+  content: '';
+  pointer-events: none;
 }
 
 .topbar__left,
-.topbar__actions {
+.topbar__actions,
+.topbar__utility-actions {
   display: flex;
   min-width: 0;
   align-items: center;
   gap: var(--space-2);
+}
+
+.topbar__utility-actions {
+  flex: 0 0 auto;
 }
 
 .topbar__control,
@@ -222,7 +238,8 @@
   }
 
   .topbar__left,
-  .topbar__actions {
+  .topbar__actions,
+  .topbar__utility-actions {
     gap: var(--space-1);
   }
 

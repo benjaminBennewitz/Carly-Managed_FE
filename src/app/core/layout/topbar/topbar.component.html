@@ -30,7 +30,41 @@
   </div>
 
   <div class="topbar__actions">
-    <cm-quick-actions />
+    <div class="topbar__utility-actions">
+      <cm-quick-actions />
+
+      <a
+        class="topbar__control topbar__notifications"
+        [class.topbar__notifications--sidebar-closed]="!sidebarOpen()"
+        routerLink="/inbox"
+        routerLinkActive="topbar__control--active"
+        aria-label="Inbox und Benachrichtigungen öffnen"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+        @if (!sidebarOpen()) {
+          <span class="topbar__notification-indicator" aria-hidden="true"></span>
+        }
+      </a>
+
+      <a
+        class="topbar__control"
+        routerLink="/carly"
+        routerLinkActive="topbar__control--active"
+        aria-label="Carly öffnen"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">pets</span>
+      </a>
+
+      <a
+        class="topbar__control"
+        routerLink="/settings"
+        routerLinkActive="topbar__control--active"
+        aria-label="Einstellungen öffnen"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">settings</span>
+      </a>
+    </div>
+
     <button
       class="topbar__theme"
       [class.topbar__theme--dark]="themeService.mode() === 'dark'"
@@ -48,36 +82,5 @@
       </span>
       <span class="topbar__theme-label">{{ themeService.label() }}</span>
     </button>
-
-    <a
-      class="topbar__control topbar__notifications"
-      [class.topbar__notifications--sidebar-closed]="!sidebarOpen()"
-      routerLink="/inbox"
-      routerLinkActive="topbar__control--active"
-      aria-label="Inbox und Benachrichtigungen öffnen"
-    >
-      <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
-      @if (!sidebarOpen()) {
-        <span class="topbar__notification-indicator" aria-hidden="true"></span>
-      }
-    </a>
-
-    <a
-      class="topbar__control"
-      routerLink="/carly"
-      routerLinkActive="topbar__control--active"
-      aria-label="Carly öffnen"
-    >
-      <span class="material-symbols-outlined" aria-hidden="true">pets</span>
-    </a>
-
-    <a
-      class="topbar__control"
-      routerLink="/settings"
-      routerLinkActive="topbar__control--active"
-      aria-label="Einstellungen öffnen"
-    >
-      <span class="material-symbols-outlined" aria-hidden="true">settings</span>
-    </a>
   </div>
 </header>

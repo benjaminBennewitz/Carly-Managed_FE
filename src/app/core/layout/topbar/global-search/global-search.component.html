@@ -27,12 +27,12 @@
 
   @if (query()) {
     <button
-      class="global-search__clear ui-close-button"
+      class="global-search__clear"
       type="button"
       aria-label="Suche leeren"
       (click)="clearQuery()"
     >
-      <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      <span class="material-symbols-outlined" aria-hidden="true">backspace</span>
     </button>
   } @else {
     <kbd class="global-search__shortcut" aria-hidden="true">Ctrl K</kbd>
