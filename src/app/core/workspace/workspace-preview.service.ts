@@ -2,11 +2,36 @@
 
 import { computed, Injectable, signal } from '@angular/core';
 
-import { normalizeMultilineInput, normalizeSingleLineInput } from '../security/frontend-input.utils';
+import {
+  normalizeMultilineInput,
+  normalizeSingleLineInput,
+} from '../security/frontend-input.utils';
 import { releaseTaskToPool } from './task-rules';
 import { WorkspaceAutomationService } from './workspace-automation.service';
 import { isWorkspaceProjectColor, isWorkspaceProjectIcon } from './workspace-project-options';
-import { ArchivedTaskEntry, TaskPriority, WorkspaceAttachment, WorkspaceAutomationTrigger, WorkspaceColumn, WorkspaceColumnSortMode, WorkspaceComment, WorkspaceHistoryEntry, WorkspaceMember, WorkspaceMemberInvitePayload, WorkspaceMessage, WorkspaceMessageCreatePayload, WorkspaceProject, WorkspaceProjectCreatePayload, WorkspaceProjectUpdatePayload, WorkspaceRecurrenceScheduleType, WorkspaceRecurrenceWeekday, WorkspaceSubtask, WorkspaceTask, WorkspaceTaskRecurrenceRule, WorkspaceTaskRecurrenceSavePayload } from './workspace.models';
+import {
+  ArchivedTaskEntry,
+  TaskPriority,
+  WorkspaceAttachment,
+  WorkspaceAutomationTrigger,
+  WorkspaceColumn,
+  WorkspaceColumnSortMode,
+  WorkspaceComment,
+  WorkspaceHistoryEntry,
+  WorkspaceMember,
+  WorkspaceMemberInvitePayload,
+  WorkspaceMessage,
+  WorkspaceMessageCreatePayload,
+  WorkspaceProject,
+  WorkspaceProjectCreatePayload,
+  WorkspaceProjectUpdatePayload,
+  WorkspaceRecurrenceScheduleType,
+  WorkspaceRecurrenceWeekday,
+  WorkspaceSubtask,
+  WorkspaceTask,
+  WorkspaceTaskRecurrenceRule,
+  WorkspaceTaskRecurrenceSavePayload,
+} from './workspace.models';
 
 const day = 86_400_000;
 const WORKSPACE_PROJECTS_STORAGE_KEY = 'carly-managed-preview-projects-v2';
@@ -635,6 +660,7 @@ const INITIAL_PROJECTS: WorkspaceProject[] = [
     dueAt: isoDate(24),
     updatedAt: isoDateTime(-1, 14),
     completedAt: null,
+    archivedAt: null,
     lastOpenedAt: isoDateTime(-1, 11),
     isPinned: true,
     allowsOnDemandTasks: true,
@@ -658,6 +684,7 @@ const INITIAL_PROJECTS: WorkspaceProject[] = [
     dueAt: isoDate(36),
     updatedAt: isoDateTime(-2, 16),
     completedAt: null,
+    archivedAt: null,
     lastOpenedAt: isoDateTime(-3, 9),
     isPinned: false,
     allowsOnDemandTasks: false,
@@ -680,6 +707,7 @@ const INITIAL_PROJECTS: WorkspaceProject[] = [
     dueAt: isoDate(12),
     updatedAt: isoDateTime(-1, 8),
     completedAt: null,
+    archivedAt: null,
     lastOpenedAt: null,
     isPinned: false,
     allowsOnDemandTasks: true,
@@ -702,6 +730,7 @@ const INITIAL_PROJECTS: WorkspaceProject[] = [
     dueAt: isoDate(-18),
     updatedAt: isoDateTime(-18, 15),
     completedAt: isoDateTime(-18, 15),
+    archivedAt: null,
     lastOpenedAt: isoDateTime(-19, 10),
     isPinned: false,
     allowsOnDemandTasks: false,
@@ -847,6 +876,7 @@ function sortTasks(
 function cloneProjects(projects: WorkspaceProject[]): WorkspaceProject[] {
   return projects.map((project) => ({
     ...project,
+    archivedAt: project.archivedAt ?? null,
     owner: cloneMember(project.owner),
     managers: project.managers.map(cloneMember),
     collaborators: project.collaborators.map(cloneMember),
@@ -1159,6 +1189,98 @@ export class WorkspacePreviewService {
     return cloneProjects([updatedProject])[0] ?? null;
   }
 
+  /** Markiert ein aktives Projekt als abgeschlossen und erhält Board sowie Aufgaben. */
+  completeProject(projectId: string): WorkspaceProject | null {
+    const currentProject = this.getProject(projectId);
+
+    if (!currentProject || currentProject.status !== 'active') {
+      return currentProject ? (cloneProjects([currentProject])[0] ?? null) : null;
+    }
+
+    const now = new Date().toISOString();
+    const completedProject: WorkspaceProject = {
+      ...currentProject,
+      status: 'completed',
+      completedAt: now,
+      archivedAt: null,
+      updatedAt: now,
+      isPinned: false,
+      dueState: 'geringe-restmenge',
+      dueSummary: 'Projekt abgeschlossen',
+    };
+
+    this.projectsState.update((projects) =>
+      projects.map((project) => (project.id === projectId ? completedProject : project)),
+    );
+    this.persistProjects();
+
+    return cloneProjects([completedProject])[0] ?? null;
+  }
+
+  /** Verschiebt ein Projekt unabhängig vom Aufgabenstatus dauerhaft in das Archiv. */
+  archiveProject(projectId: string): WorkspaceProject | null {
+    const currentProject = this.getProject(projectId);
+
+    if (!currentProject) {
+      return null;
+    }
+
+    if (currentProject.status === 'archived') {
+      return cloneProjects([currentProject])[0] ?? null;
+    }
+
+    const now = new Date().toISOString();
+    const archivedProject: WorkspaceProject = {
+      ...currentProject,
+      status: 'archived',
+      archivedAt: now,
+      updatedAt: now,
+      isPinned: false,
+      dueState: 'geringe-restmenge',
+      dueSummary: 'Projekt archiviert',
+    };
+
+    this.projectsState.update((projects) =>
+      projects.map((project) => (project.id === projectId ? archivedProject : project)),
+    );
+    this.persistProjects();
+
+    return cloneProjects([archivedProject])[0] ?? null;
+  }
+
+  /**
+   * Löscht ein Projekt einschließlich Board, Task-Spiegelungen und Automationsregeln.
+   */
+  deleteProject(projectId: string): boolean {
+    if (!this.getProject(projectId)) {
+      return false;
+    }
+
+    this.projectsState.update((projects) => projects.filter((project) => project.id !== projectId));
+    this.boardsState.update((boards) =>
+      Object.fromEntries(
+        Object.entries(boards)
+          .filter(([boardId]) => boardId !== projectId)
+          .map(([boardId, columns]) => [
+            boardId,
+            this.normalizeDynamicColumns(
+              boardId,
+              columns.map((column) => ({
+                ...column,
+                tasks: column.tasks.filter((task) => task.projectId !== projectId),
+              })),
+            ),
+          ]),
+      ),
+    );
+
+    this.automationService.deleteBoardRules(projectId);
+    this.persistProjects();
+    this.persistBoards();
+
+    return true;
+  }
+
   /**
    * Erstellt ein neues lokales Projekt inklusive Startboard.
    */
@@ -1188,6 +1310,7 @@ export class WorkspacePreviewService {
       dueAt,
       updatedAt: new Date().toISOString(),
       completedAt: null,
+      archivedAt: null,
       lastOpenedAt: null,
       isPinned: false,
       allowsOnDemandTasks: false,

@@ -1,16 +1,28 @@
 // src/app/features/projects/pages/project-settings-page/project-settings-page.component.ts
 
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  HostListener,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { WorkspaceMember, WorkspaceProject } from '../../../../core/workspace/workspace.models';
-import { WORKSPACE_PROJECT_COLOR_OPTIONS, WORKSPACE_PROJECT_ICON_OPTIONS } from '../../../../core/workspace/workspace-project-options';
+import {
+  WORKSPACE_PROJECT_COLOR_OPTIONS,
+  WORKSPACE_PROJECT_ICON_OPTIONS,
+} from '../../../../core/workspace/workspace-project-options';
 import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
 import { MemberSelectComponent } from '../../../../shared/ui/member-select/member-select.component';
 
-type ProjectSettingsTab = 'general' | 'members' | 'interface';
+type ProjectSettingsTab = 'general' | 'members' | 'interface' | 'management';
+type ProjectLifecycleAction = 'complete' | 'archive' | 'delete';
 
 @Component({
   selector: 'cm-project-settings-page',
@@ -30,6 +42,9 @@ export class ProjectSettingsPageComponent {
   protected readonly submitted = signal(false);
   protected readonly saved = signal(false);
   protected readonly saveError = signal('');
+  protected readonly lifecycleError = signal('');
+  protected readonly pendingLifecycleAction = signal<ProjectLifecycleAction | null>(null);
+  protected readonly deleteConfirmation = signal('');
   protected readonly iconOptions = WORKSPACE_PROJECT_ICON_OPTIONS;
   protected readonly colorOptions = WORKSPACE_PROJECT_COLOR_OPTIONS;
 
@@ -70,6 +85,68 @@ export class ProjectSettingsPageComponent {
     () =>
       this.colorOptions.find((option) => option.value === this.selectedColor())?.label ?? 'Violett',
   );
+  protected readonly lifecycleStatusLabel = computed(() => {
+    const status = this.project()?.status;
+
+    if (status === 'completed') {
+      return 'Abgeschlossen';
+    }
+
+    if (status === 'archived') {
+      return 'Archiviert';
+    }
+
+    return 'Aktiv';
+  });
+  protected readonly lifecycleActionTitle = computed(() => {
+    const action = this.pendingLifecycleAction();
+
+    if (action === 'complete') {
+      return 'Projekt abschließen';
+    }
+
+    if (action === 'archive') {
+      return 'Projekt archivieren';
+    }
+
+    return 'Projekt dauerhaft löschen';
+  });
+  protected readonly lifecycleActionIcon = computed(() => {
+    const action = this.pendingLifecycleAction();
+
+    if (action === 'complete') {
+      return 'task_alt';
+    }
+
+    if (action === 'archive') {
+      return 'inventory_2';
+    }
+
+    return 'delete_forever';
+  });
+  protected readonly lifecycleConfirmLabel = computed(() => {
+    const action = this.pendingLifecycleAction();
+
+    if (action === 'complete') {
+      return 'Projekt abschließen';
+    }
+
+    if (action === 'archive') {
+      return 'Projekt archivieren';
+    }
+
+    return 'Projekt löschen';
+  });
+  protected readonly canConfirmLifecycleAction = computed(() => {
+    const action = this.pendingLifecycleAction();
+    const currentProject = this.project();
+
+    if (!action || !currentProject) {
+      return false;
+    }
+
+    return action !== 'delete' || this.deleteConfirmation() === currentProject.name;
+  });
 
   private savedTimerId: number | null = null;
 
@@ -206,6 +283,77 @@ export class ProjectSettingsPageComponent {
     }, 2_500);
   }
 
+  /** Öffnet die Bestätigung für eine Projektstatus-Aktion. */
+  openLifecycleDialog(action: ProjectLifecycleAction): void {
+    this.lifecycleError.set('');
+    this.deleteConfirmation.set('');
+    this.pendingLifecycleAction.set(action);
+  }
+
+  /** Schließt die Projektstatus-Bestätigung ohne Änderung. */
+  closeLifecycleDialog(): void {
+    this.pendingLifecycleAction.set(null);
+    this.deleteConfirmation.set('');
+    this.lifecycleError.set('');
+  }
+
+  /** Übernimmt den eingegebenen Projektnamen für die Löschbestätigung. */
+  updateDeleteConfirmation(event: Event): void {
+    this.deleteConfirmation.set((event.target as HTMLInputElement).value);
+  }
+
+  /** Führt die bestätigte Projektstatus-Aktion aus. */
+  confirmLifecycleAction(): void {
+    const currentProject = this.project();
+    const action = this.pendingLifecycleAction();
+
+    if (!currentProject || !action || !this.canConfirmLifecycleAction()) {
+      return;
+    }
+
+    if (action === 'complete') {
+      const completedProject = this.workspaceService.completeProject(currentProject.id);
+
+      if (!completedProject) {
+        this.lifecycleError.set('Das Projekt konnte nicht abgeschlossen werden.');
+        return;
+      }
+
+      this.closeLifecycleDialog();
+      void this.router.navigate(['/archive']);
+      return;
+    }
+
+    if (action === 'archive') {
+      const archivedProject = this.workspaceService.archiveProject(currentProject.id);
+
+      if (!archivedProject) {
+        this.lifecycleError.set('Das Projekt konnte nicht archiviert werden.');
+        return;
+      }
+
+      this.closeLifecycleDialog();
+      void this.router.navigate(['/archive']);
+      return;
+    }
+
+    if (!this.workspaceService.deleteProject(currentProject.id)) {
+      this.lifecycleError.set('Das Projekt konnte nicht gelöscht werden.');
+      return;
+    }
+
+    this.closeLifecycleDialog();
+    void this.router.navigate(['/projects']);
+  }
+
+  /** Schließt einen geöffneten Bestätigungsdialog per Escape. */
+  @HostListener('document:keydown.escape')
+  closeLifecycleDialogByKeyboard(): void {
+    if (this.pendingLifecycleAction()) {
+      this.closeLifecycleDialog();
+    }
+  }
+
   /** Wechselt zurück zum Projektboard. */
   openProjectBoard(): void {
     const currentProject = this.project();
@@ -243,6 +391,9 @@ export class ProjectSettingsPageComponent {
     this.submitted.set(false);
     this.saved.set(false);
     this.saveError.set('');
+    this.lifecycleError.set('');
+    this.pendingLifecycleAction.set(null);
+    this.deleteConfirmation.set('');
 
     if (!project) {
       return;

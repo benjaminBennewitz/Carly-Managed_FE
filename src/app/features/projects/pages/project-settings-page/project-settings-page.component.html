@@ -80,6 +80,17 @@
           <span class="material-symbols-outlined" aria-hidden="true">palette</span>
           <span><strong>Darstellung</strong><small>Icon und Projektfarbe</small></span>
         </button>
+        <button
+          type="button"
+          [class.is-active]="activeTab() === 'management'"
+          [attr.aria-pressed]="activeTab() === 'management'"
+          (click)="setActiveTab('management')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
+          <span
+            ><strong>Verwaltung</strong><small>Abschließen, archivieren oder löschen</small></span
+          >
+        </button>
       </nav>
 
       <form class="project-settings-content" [formGroup]="form" (ngSubmit)="saveProject()">
@@ -415,6 +426,129 @@
           </section>
         }
 
+        @if (activeTab() === 'management') {
+          <section
+            class="project-settings-section project-settings-section--management"
+            aria-labelledby="project-settings-management-title"
+          >
+            <header class="project-settings-section__head">
+              <span class="material-symbols-outlined" aria-hidden="true">
+                admin_panel_settings
+              </span>
+              <div>
+                <h2 id="project-settings-management-title">Projektverwaltung</h2>
+                <p>Status ändern oder das Projekt dauerhaft aus dem Workspace entfernen.</p>
+              </div>
+            </header>
+
+            <article
+              class="project-settings-lifecycle-status"
+              [class.project-settings-lifecycle-status--completed]="
+                activeProject.status === 'completed'
+              "
+              [class.project-settings-lifecycle-status--archived]="
+                activeProject.status === 'archived'
+              "
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">
+                {{
+                  activeProject.status === 'active'
+                    ? 'radio_button_checked'
+                    : activeProject.status === 'completed'
+                      ? 'task_alt'
+                      : 'inventory_2'
+                }}
+              </span>
+              <div>
+                <small>Aktueller Projektstatus</small>
+                <strong>{{ lifecycleStatusLabel() }}</strong>
+              </div>
+              <span>{{ workspaceService.getOpenTaskCount(activeProject.id) }} offene Aufgaben</span>
+            </article>
+
+            <div class="project-settings-lifecycle-list">
+              <article
+                class="project-settings-lifecycle-card project-settings-lifecycle-card--complete"
+              >
+                <span
+                  class="project-settings-lifecycle-card__icon material-symbols-outlined"
+                  aria-hidden="true"
+                >
+                  task_alt
+                </span>
+                <div>
+                  <h3>Projekt abschließen</h3>
+                  <p>
+                    Markiert das Projekt als abgeschlossen. Board, Aufgaben und Verlauf bleiben
+                    erhalten und werden schreibgeschützt im Archiv angezeigt.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  [disabled]="activeProject.status !== 'active'"
+                  (click)="openLifecycleDialog('complete')"
+                >
+                  {{
+                    activeProject.status === 'completed'
+                      ? 'Bereits abgeschlossen'
+                      : 'Projekt abschließen'
+                  }}
+                </button>
+              </article>
+
+              <article
+                class="project-settings-lifecycle-card project-settings-lifecycle-card--archive"
+              >
+                <span
+                  class="project-settings-lifecycle-card__icon material-symbols-outlined"
+                  aria-hidden="true"
+                >
+                  inventory_2
+                </span>
+                <div>
+                  <h3>Projekt archivieren</h3>
+                  <p>
+                    Entfernt das Projekt aus der aktiven Übersicht und aus der Sidebar. Sämtliche
+                    Inhalte bleiben im Archiv verfügbar.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  [disabled]="activeProject.status === 'archived'"
+                  (click)="openLifecycleDialog('archive')"
+                >
+                  {{
+                    activeProject.status === 'archived'
+                      ? 'Bereits archiviert'
+                      : 'Projekt archivieren'
+                  }}
+                </button>
+              </article>
+
+              <article
+                class="project-settings-lifecycle-card project-settings-lifecycle-card--delete"
+              >
+                <span
+                  class="project-settings-lifecycle-card__icon material-symbols-outlined"
+                  aria-hidden="true"
+                >
+                  delete_forever
+                </span>
+                <div>
+                  <h3>Projekt löschen</h3>
+                  <p>
+                    Löscht Projekt, Board, Task-Spiegelungen, Wiederholungen und Automationsregeln
+                    dauerhaft aus der lokalen Vorschau.
+                  </p>
+                </div>
+                <button type="button" (click)="openLifecycleDialog('delete')">
+                  Projekt löschen
+                </button>
+              </article>
+            </div>
+          </section>
+        }
+
         @if (saveError()) {
           <p class="project-settings-error" role="alert">
             <span class="material-symbols-outlined" aria-hidden="true">error</span>
@@ -423,6 +557,112 @@
         }
       </form>
     </div>
+
+    @if (pendingLifecycleAction(); as lifecycleAction) {
+      <div class="project-lifecycle-backdrop" role="presentation" (click)="closeLifecycleDialog()">
+        <section
+          class="project-lifecycle-dialog"
+          [class.project-lifecycle-dialog--danger]="lifecycleAction === 'delete'"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="project-lifecycle-dialog-title"
+          aria-describedby="project-lifecycle-dialog-description"
+          (click)="$event.stopPropagation()"
+        >
+          <header>
+            <span
+              class="project-lifecycle-dialog__icon material-symbols-outlined"
+              aria-hidden="true"
+            >
+              {{ lifecycleActionIcon() }}
+            </span>
+            <div>
+              <span>Projektverwaltung</span>
+              <h2 id="project-lifecycle-dialog-title">{{ lifecycleActionTitle() }}</h2>
+            </div>
+            <button
+              class="ui-close-button"
+              type="button"
+              aria-label="Bestätigung schließen"
+              (click)="closeLifecycleDialog()"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+          </header>
+
+          <div class="project-lifecycle-dialog__body">
+            @if (lifecycleAction === 'complete') {
+              <p id="project-lifecycle-dialog-description">
+                <strong>{{ activeProject.name }}</strong> wird abgeschlossen und in den
+                schreibgeschützten Projektbereich des Archivs verschoben.
+              </p>
+              @if (workspaceService.getOpenTaskCount(activeProject.id) > 0) {
+                <div class="project-lifecycle-dialog__notice">
+                  <span class="material-symbols-outlined" aria-hidden="true">info</span>
+                  <span>
+                    {{ workspaceService.getOpenTaskCount(activeProject.id) }} offene Aufgaben
+                    bleiben unverändert erhalten.
+                  </span>
+                </div>
+              }
+            }
+
+            @if (lifecycleAction === 'archive') {
+              <p id="project-lifecycle-dialog-description">
+                <strong>{{ activeProject.name }}</strong> verschwindet aus der aktiven
+                Projektübersicht. Board, Aufgaben und Verlauf bleiben im Archiv erhalten.
+              </p>
+            }
+
+            @if (lifecycleAction === 'delete') {
+              <p id="project-lifecycle-dialog-description">
+                Diese Aktion kann nicht rückgängig gemacht werden. Sämtliche projektbezogenen
+                Inhalte werden dauerhaft entfernt.
+              </p>
+
+              <label class="project-lifecycle-dialog__confirmation">
+                <span>
+                  Gib zur Bestätigung
+                  <strong>{{ activeProject.name }}</strong>
+                  ein.
+                </span>
+                <input
+                  type="text"
+                  autocomplete="off"
+                  [value]="deleteConfirmation()"
+                  [attr.aria-invalid]="
+                    deleteConfirmation().length > 0 && !canConfirmLifecycleAction()
+                  "
+                  (input)="updateDeleteConfirmation($event)"
+                />
+              </label>
+            }
+
+            @if (lifecycleError()) {
+              <p class="project-settings-error" role="alert">
+                <span class="material-symbols-outlined" aria-hidden="true">error</span>
+                {{ lifecycleError() }}
+              </p>
+            }
+          </div>
+
+          <footer>
+            <button type="button" (click)="closeLifecycleDialog()">Abbrechen</button>
+            <button
+              class="project-lifecycle-dialog__confirm"
+              type="button"
+              [disabled]="!canConfirmLifecycleAction()"
+              (click)="confirmLifecycleAction()"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">
+                {{ lifecycleActionIcon() }}
+              </span>
+              {{ lifecycleConfirmLabel() }}
+            </button>
+          </footer>
+        </section>
+      </div>
+    }
   </section>
 } @else {
   <section class="project-settings-not-found">

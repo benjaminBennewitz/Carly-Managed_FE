@@ -45,7 +45,12 @@
                 </div>
                 <div class="archive-tags">
                   <span>Projekt</span>
-                  <span>Abgeschlossen</span>
+                  <span [class.archive-tag--archived]="project.status === 'archived'">
+                    <span class="material-symbols-outlined" aria-hidden="true">
+                      {{ getProjectStatusIcon(project) }}
+                    </span>
+                    {{ getProjectStatusLabel(project) }}
+                  </span>
                 </div>
               </div>
 
@@ -63,9 +68,18 @@
               </div>
 
               <div class="archive-card__grid">
-                <div><span>Abgeschlossen</span><strong>{{ formatDate(project.completedAt, true) }}</strong></div>
-                <div><span>Aufgaben</span><strong>{{ workspaceService.getTaskCount(project.id) }}</strong></div>
-                <div><span>Spalten</span><strong>{{ workspaceService.getColumnCount(project.id) }}</strong></div>
+                <div>
+                  <span>{{ getProjectStatusLabel(project) }}</span>
+                  <strong>{{ formatDate(getProjectLifecycleDate(project), true) }}</strong>
+                </div>
+                <div>
+                  <span>Aufgaben</span
+                  ><strong>{{ workspaceService.getTaskCount(project.id) }}</strong>
+                </div>
+                <div>
+                  <span>Spalten</span
+                  ><strong>{{ workspaceService.getColumnCount(project.id) }}</strong>
+                </div>
               </div>
 
               <footer>
@@ -78,11 +92,20 @@
       } @else {
         <div class="archive-list">
           @for (project of sortedProjects(); track project.id) {
-            <article class="archive-list-row" role="button" tabindex="0" (click)="openProject(project)" (keydown.enter)="openProject(project)">
+            <article
+              class="archive-list-row"
+              role="button"
+              tabindex="0"
+              (click)="openProject(project)"
+              (keydown.enter)="openProject(project)"
+            >
               <span class="archive-card__dot" [style.background]="project.color"></span>
-              <div><h2>{{ project.name }}</h2><small>{{ project.description }}</small></div>
-              <span>Abgeschlossen</span>
-              <strong>{{ formatDate(project.completedAt) }}</strong>
+              <div>
+                <h2>{{ project.name }}</h2>
+                <small>{{ project.description }}</small>
+              </div>
+              <span>{{ getProjectStatusLabel(project) }}</span>
+              <strong>{{ formatDate(getProjectLifecycleDate(project)) }}</strong>
             </article>
           }
         </div>
@@ -149,7 +172,10 @@
           @for (entry of sortedTasks(); track entry.task.id) {
             <article class="archive-list-row archive-list-row--task">
               <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
-              <div><h2>{{ entry.task.title }}</h2><small>{{ entry.sourceLabel }}</small></div>
+              <div>
+                <h2>{{ entry.task.title }}</h2>
+                <small>{{ entry.sourceLabel }}</small>
+              </div>
               <span>{{ entry.task.priority }}</span>
               <strong>{{ formatDate(entry.archivedAt) }}</strong>
             </article>

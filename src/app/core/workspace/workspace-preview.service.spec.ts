@@ -52,6 +52,56 @@ describe('WorkspacePreviewService', () => {
     expect(result.some((column) => column.id === 'portfolio-ideas')).toBe(false);
     expect(service.getTaskCount('portfolio-relaunch')).toBe(before);
   });
+  it('schließt ein Projekt ab und entfernt es aus den aktiven Projekten', () => {
+    const completedProject = service.completeProject('carly-managed');
+
+    expect(completedProject?.status).toBe('completed');
+    expect(completedProject?.completedAt).not.toBeNull();
+    expect(completedProject?.isPinned).toBe(false);
+    expect(service.projects().some((project) => project.id === 'carly-managed')).toBe(false);
+    expect(
+      service
+        .archivedProjects()
+        .some((project) => project.id === 'carly-managed' && project.status === 'completed'),
+    ).toBe(true);
+    expect(service.getBoard('carly-managed').length).toBeGreaterThan(0);
+  });
+
+  it('archiviert ein Projekt unabhängig von offenen Aufgaben', () => {
+    const archivedProject = service.archiveProject('portfolio-relaunch');
+
+    expect(archivedProject?.status).toBe('archived');
+    expect(archivedProject?.archivedAt).not.toBeNull();
+    expect(service.projects().some((project) => project.id === 'portfolio-relaunch')).toBe(false);
+    expect(
+      service
+        .archivedProjects()
+        .some((project) => project.id === 'portfolio-relaunch' && project.status === 'archived'),
+    ).toBe(true);
+  });
+
+  it('löscht Projekt, Board und projektbezogene Task-Spiegelungen', () => {
+    expect(
+      service
+        .getBoard('personal')
+        .flatMap((column) => column.tasks)
+        .some((task) => task.projectId === 'carly-managed'),
+    ).toBe(true);
+
+    const deleted = service.deleteProject('carly-managed');
+
+    expect(deleted).toBe(true);
+    expect(service.getProject('carly-managed')).toBeNull();
+    expect(service.getBoard('carly-managed')).toEqual([]);
+    expect(
+      service
+        .getBoard('personal')
+        .flatMap((column) => column.tasks)
+        .some((task) => task.projectId === 'carly-managed'),
+    ).toBe(false);
+    expect(service.poolTasks().some((task) => task.projectId === 'carly-managed')).toBe(false);
+  });
+
   it('persistiert Spaltenreihenfolge und Farben im Browser-Speicher', () => {
     const columns = service.getBoard('carly-managed');
     const reordered = [{ ...columns[1], color: '#B9546A' }, columns[0], ...columns.slice(2)];

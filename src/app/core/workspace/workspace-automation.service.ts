@@ -192,6 +192,16 @@ export class WorkspaceAutomationService {
     this.persistRules();
   }
 
+  /** Entfernt sämtliche Regeln eines dauerhaft gelöschten Boardkontexts. */
+  deleteBoardRules(boardId: string): void {
+    this.rulesState.update((rules) => {
+      const nextRules = { ...rules };
+      delete nextRules[boardId];
+      return nextRules;
+    });
+    this.persistRules();
+  }
+
   /** Ermittelt die erste passende Zielspalte einer aktiven Verschieberegel. */
   resolveMoveTarget(event: WorkspaceAutomationEvent): string | null {
     const matchingRule = (this.rulesState()[event.boardId] ?? [])

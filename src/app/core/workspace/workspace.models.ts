@@ -185,6 +185,7 @@ export interface WorkspaceProject {
   dueAt: string;
   updatedAt: string;
   completedAt: string | null;
+  archivedAt: string | null;
   lastOpenedAt: string | null;
   isPinned: boolean;
   allowsOnDemandTasks: boolean;

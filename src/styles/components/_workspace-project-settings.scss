@@ -1,7 +1,7 @@
 /* ========================================================================== 
    Datei: src/styles/components/_workspace-project-settings.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert die vollständige Bearbeitung von Projektdaten.
 
    Inhaltsverzeichnis:
@@ -12,8 +12,10 @@
    5. Optionen
    6. Personenverwaltung
    7. Darstellungsoptionen
-   8. Status und Leerzustände
-   9. Responsive Darstellung
+   8. Projektverwaltung
+   9. Bestätigungsdialog
+   10. Status und Leerzustände
+   11. Responsive Darstellung
    ========================================================================== */
 
 .project-settings-page {
@@ -813,6 +815,305 @@
   text-decoration: none;
 }
 
+.project-settings-section--management {
+  gap: var(--space-6);
+}
+
+.project-settings-lifecycle-status {
+  display: grid;
+  min-height: 5rem;
+  padding: var(--space-4);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  border: var(--border-width-subtle) solid
+    color-mix(in srgb, var(--color-success) 34%, var(--color-border-subtle));
+  border-radius: var(--radius-lg);
+  background: var(--color-success-surface);
+}
+
+.project-settings-lifecycle-status > .material-symbols-outlined {
+  color: var(--color-success);
+  font-size: 1.7rem;
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 28;
+}
+
+.project-settings-lifecycle-status > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.project-settings-lifecycle-status small,
+.project-settings-lifecycle-status > span:last-child {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+}
+
+.project-settings-lifecycle-status strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-400);
+}
+
+.project-settings-lifecycle-status--completed {
+  border-color: color-mix(in srgb, var(--color-action-primary) 34%, var(--color-border-subtle));
+  background: var(--color-brand-subtle);
+}
+
+.project-settings-lifecycle-status--completed > .material-symbols-outlined {
+  color: var(--color-action-primary);
+}
+
+.project-settings-lifecycle-status--archived {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-secondary);
+}
+
+.project-settings-lifecycle-status--archived > .material-symbols-outlined {
+  color: var(--color-icon-secondary);
+}
+
+.project-settings-lifecycle-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.project-settings-lifecycle-card {
+  display: grid;
+  min-height: 7rem;
+  padding: var(--space-4);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-primary);
+}
+
+.project-settings-lifecycle-card__icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+  font-size: 1.45rem;
+}
+
+.project-settings-lifecycle-card > div {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.project-settings-lifecycle-card h3,
+.project-lifecycle-dialog h2 {
+  margin: 0;
+}
+
+.project-settings-lifecycle-card p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.project-settings-lifecycle-card > button {
+  min-height: var(--size-control-md);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.project-settings-lifecycle-card > button:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+  transform: translateY(-0.0625rem);
+}
+
+.project-settings-lifecycle-card > button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.project-settings-lifecycle-card--complete .project-settings-lifecycle-card__icon {
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+
+.project-settings-lifecycle-card--archive .project-settings-lifecycle-card__icon {
+  background: var(--color-surface-secondary);
+  color: var(--color-icon-secondary);
+}
+
+.project-settings-lifecycle-card--delete {
+  border-color: color-mix(in srgb, var(--color-danger) 28%, var(--color-border-subtle));
+  background: color-mix(in srgb, var(--color-danger-surface) 45%, var(--color-surface-primary));
+}
+
+.project-settings-lifecycle-card--delete .project-settings-lifecycle-card__icon {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.project-settings-lifecycle-card--delete > button {
+  border-color: color-mix(in srgb, var(--color-danger) 42%, var(--color-border-subtle));
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.project-settings-lifecycle-card--delete > button:hover {
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+  color: #ffffff;
+}
+
+.project-lifecycle-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-index-dialog) + 4);
+  display: grid;
+  padding: var(--space-5);
+  place-items: center;
+  background: var(--color-backdrop);
+  backdrop-filter: blur(0.35rem);
+}
+
+.project-lifecycle-dialog {
+  display: grid;
+  width: min(34rem, 100%);
+  max-height: calc(100dvh - 2rem);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+.project-lifecycle-dialog > header {
+  display: grid;
+  padding: var(--space-5);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
+}
+
+.project-lifecycle-dialog__icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+  font-size: 1.45rem;
+}
+
+.project-lifecycle-dialog > header > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.project-lifecycle-dialog > header > div > span {
+  color: var(--color-action-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.project-lifecycle-dialog__body {
+  display: grid;
+  min-height: 0;
+  padding: var(--space-5);
+  align-content: start;
+  gap: var(--space-4);
+  overflow-y: auto;
+}
+
+.project-lifecycle-dialog__body > p {
+  margin: 0;
+}
+
+.project-lifecycle-dialog__notice {
+  display: flex;
+  padding: var(--space-3);
+  align-items: flex-start;
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-warning-surface);
+  color: var(--color-warning);
+}
+
+.project-lifecycle-dialog__confirmation {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+}
+
+.project-lifecycle-dialog__confirmation input {
+  min-height: var(--size-control-lg);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-subtle) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+}
+
+.project-lifecycle-dialog__confirmation input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 0.1875rem color-mix(in srgb, var(--color-danger) 18%, transparent);
+}
+
+.project-lifecycle-dialog > footer {
+  display: flex;
+  padding: var(--space-4) var(--space-5);
+  justify-content: flex-end;
+  gap: var(--space-2);
+  border-top: var(--border-width-subtle) solid var(--color-border-subtle);
+  background: var(--color-surface-secondary);
+}
+
+.project-lifecycle-dialog > footer button {
+  min-height: var(--size-control-md);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-primary);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-bold);
+}
+
+.project-lifecycle-dialog > footer .project-lifecycle-dialog__confirm {
+  border-color: transparent;
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+}
+
+.project-lifecycle-dialog > footer .project-lifecycle-dialog__confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.project-lifecycle-dialog--danger .project-lifecycle-dialog__icon {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.project-lifecycle-dialog--danger > footer .project-lifecycle-dialog__confirm:not(:disabled) {
+  background: var(--color-danger);
+  color: #ffffff;
+}
+
 @media (max-width: 70rem) {
   .project-settings-head {
     align-items: flex-start;
@@ -830,7 +1131,7 @@
 
   .project-settings-tabs {
     position: static;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .project-settings-tabs button {
@@ -876,6 +1177,17 @@
     grid-column: auto;
   }
 
+  .project-settings-lifecycle-status,
+  .project-settings-lifecycle-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .project-settings-lifecycle-status > span:last-child,
+  .project-settings-lifecycle-card > button {
+    grid-column: 2;
+    justify-self: start;
+  }
+
   .project-settings-member-card {
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
@@ -898,6 +1210,26 @@
 
   .project-settings-color-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 38rem) {
+  .project-lifecycle-backdrop {
+    padding: var(--space-2);
+  }
+
+  .project-lifecycle-dialog > header,
+  .project-lifecycle-dialog__body {
+    padding: var(--space-4);
+  }
+
+  .project-lifecycle-dialog > footer {
+    padding: var(--space-3) var(--space-4);
+    flex-direction: column-reverse;
+  }
+
+  .project-lifecycle-dialog > footer button {
+    width: 100%;
   }
 }
 

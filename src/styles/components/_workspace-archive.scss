@@ -1,7 +1,7 @@
 /* ==========================================================================
    Datei: src/styles/components/_workspace-archive.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Definiert Projektarchiv und Aufgabenverlauf.
 
    Inhaltsverzeichnis:
@@ -183,7 +183,7 @@
   gap: var(--space-1);
 }
 
-.archive-tags span,
+.archive-tags > span,
 .archive-task-card__top > span:last-child {
   padding: 0.2rem 0.45rem;
   border-radius: var(--radius-round);
@@ -191,6 +191,21 @@
   color: var(--color-action-primary);
   font-size: 0.62rem;
   font-weight: var(--font-weight-bold);
+}
+
+.archive-tags > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.archive-tags .material-symbols-outlined {
+  font-size: 0.8rem;
+}
+
+.archive-tags .archive-tag--archived {
+  background: var(--color-surface-primary);
+  color: var(--color-text-secondary);
 }
 
 .archive-people-boxes,

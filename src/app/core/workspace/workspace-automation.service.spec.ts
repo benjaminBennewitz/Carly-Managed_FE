@@ -88,6 +88,15 @@ describe('WorkspaceAutomationService', () => {
     expect(service.getRules('studio-operations')[0]?.isActive).toBe(false);
   });
 
+  it('entfernt alle Regeln eines gelöschten Boardkontexts', () => {
+    expect(service.getActiveRuleCount('carly-managed')).toBeGreaterThan(0);
+
+    service.deleteBoardRules('carly-managed');
+
+    expect(service.getRules('carly-managed')).toEqual([]);
+    expect(service.getActiveRuleCount('carly-managed')).toBe(0);
+  });
+
   it('ermittelt für passende Ereignisse die Zielspalte', () => {
     const target = service.resolveMoveTarget({
       boardId: 'carly-managed',

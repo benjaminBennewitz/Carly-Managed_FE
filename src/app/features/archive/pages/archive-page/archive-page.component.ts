@@ -3,10 +3,7 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
-import {
-  ArchivedTaskEntry,
-  WorkspaceProject,
-} from '../../../../core/workspace/workspace.models';
+import { ArchivedTaskEntry, WorkspaceProject } from '../../../../core/workspace/workspace.models';
 import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
 
 type ArchiveViewMode = 'cards' | 'list';
@@ -24,7 +21,7 @@ export class ArchivePageComponent {
   protected readonly newestFirst = signal(true);
   protected readonly sortedProjects = computed(() =>
     [...this.workspaceService.archivedProjects()].sort((left, right) =>
-      this.compareDates(left.completedAt, right.completedAt),
+      this.compareDates(this.getProjectLifecycleDate(left), this.getProjectLifecycleDate(right)),
     ),
   );
   protected readonly sortedTasks = computed(() =>
@@ -90,6 +87,23 @@ export class ArchivePageComponent {
     }
 
     return new Intl.DateTimeFormat('de-DE', options).format(new Date(value));
+  }
+
+  /** Liefert den sichtbaren Status eines abgeschlossenen oder archivierten Projekts. */
+  getProjectStatusLabel(project: WorkspaceProject): string {
+    return project.status === 'archived' ? 'Archiviert' : 'Abgeschlossen';
+  }
+
+  /** Liefert das passende Statussymbol eines Projekts. */
+  getProjectStatusIcon(project: WorkspaceProject): string {
+    return project.status === 'archived' ? 'inventory_2' : 'task_alt';
+  }
+
+  /** Liefert den relevanten Lifecycle-Zeitpunkt für Sortierung und Darstellung. */
+  getProjectLifecycleDate(project: WorkspaceProject): string | null {
+    return project.status === 'archived'
+      ? (project.archivedAt ?? project.updatedAt)
+      : project.completedAt;
   }
 
   /**
