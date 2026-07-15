@@ -28,16 +28,18 @@
 
 .page-header {
   display: grid;
-  max-width: 52rem;
-  gap: var(--space-3);
+  max-width: 64rem;
+  gap: var(--space-2);
 }
 
 .page-header p {
+  max-width: 58rem;
   color: var(--color-action-primary);
   font-family: var(--font-family-mono);
   font-size: var(--font-size-100);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--letter-spacing-label);
+  line-height: var(--line-height-body);
   text-transform: uppercase;
 }
 
@@ -45,7 +47,3 @@
   font-size: var(--font-size-800);
 }
 
-.page-header span {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-500);
-}

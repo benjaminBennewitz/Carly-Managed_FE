@@ -28,6 +28,7 @@ export class AppShellComponent {
   );
   protected readonly isBoardRoute = signal(false);
   protected readonly isProjectSettingsRoute = signal(false);
+  protected readonly isInboxRoute = signal(false);
 
   constructor(
     destroyRef: DestroyRef,
@@ -44,6 +45,7 @@ export class AppShellComponent {
       this.isProjectSettingsRoute.set(
         /^\/projects\/[^/]+\/settings(?:[?#].*)?$/.test(url),
       );
+      this.isInboxRoute.set(/^\/inbox(?:[?#].*)?$/.test(url));
     };
 
     updateRouteMode(router.url);

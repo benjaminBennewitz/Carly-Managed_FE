@@ -48,8 +48,8 @@
 
 .dashboard-page__kpis article {
   display: grid;
-  min-height: 7rem;
-  padding: var(--space-4);
+  min-height: 4.75rem;
+  padding: var(--space-3);
   gap: var(--space-1);
   border: var(--border-width-subtle) solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
@@ -66,7 +66,7 @@
 
 .dashboard-page__kpis strong {
   color: var(--color-action-primary);
-  font-size: var(--font-size-600);
+  font-size: var(--font-size-500);
 }
 
 .dashboard-page__kpis p {

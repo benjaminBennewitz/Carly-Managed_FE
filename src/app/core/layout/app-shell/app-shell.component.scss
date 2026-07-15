@@ -23,8 +23,9 @@
    02   Arbeitsbereich
    03   Boardmodus
    04   Projekt-Einstellungen
-   05   Routenfläche
-   06   Mobile Navigation
+   05   Inboxmodus
+   06   Routenfläche
+   07   Mobile Navigation
    ========================================================================== */
 
 /* ==========================================================================
@@ -100,7 +101,24 @@
 }
 
 /* ==========================================================================
-   05   Routenfläche
+   05   Inboxmodus
+   ========================================================================== */
+
+.app-shell--inbox-route .app-shell__main {
+  width: min(100%, var(--layout-content-max));
+  height: calc(100dvh - var(--layout-topbar-height));
+  min-height: 0;
+  padding: var(--space-5) var(--layout-page-gutter);
+  overflow: hidden;
+}
+
+.app-shell--inbox-route .app-shell__route {
+  height: 100%;
+  min-height: 0;
+}
+
+/* ==========================================================================
+   06   Routenfläche
    ========================================================================== */
 
 .app-shell__route {
@@ -113,7 +131,7 @@
 }
 
 /* ==========================================================================
-   06   Mobile Navigation
+   07   Mobile Navigation
    ========================================================================== */
 
 @media (max-width: 56rem) {
@@ -126,7 +144,8 @@
   }
 
   .app-shell--board-route .app-shell__main,
-  .app-shell--project-settings-route .app-shell__main {
+  .app-shell--project-settings-route .app-shell__main,
+  .app-shell--inbox-route .app-shell__main {
     padding: var(--space-4);
   }
 

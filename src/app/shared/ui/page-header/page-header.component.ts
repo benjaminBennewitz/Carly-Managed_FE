@@ -11,5 +11,4 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 export class PageHeaderComponent {
   readonly eyebrow = input.required<string>();
   readonly title = input.required<string>();
-  readonly description = input.required<string>();
 }

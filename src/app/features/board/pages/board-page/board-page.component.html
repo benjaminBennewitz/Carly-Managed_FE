@@ -3,6 +3,10 @@
 <section class="project-board-page" [class.project-board-page--personal]="!project()">
   <header class="board-page-head">
     <div class="board-page-head__copy">
+      @if (subtitle()) {
+        <p class="board-page-head__pretitle">{{ subtitle() }}</p>
+      }
+
       <div class="board-page-head__title-row">
         <h1>{{ title() }}</h1>
 
@@ -60,9 +64,6 @@
         }
       </div>
 
-      @if (subtitle()) {
-        <p>{{ subtitle() }}</p>
-      }
     </div>
 
     <div class="board-page-head__side">
