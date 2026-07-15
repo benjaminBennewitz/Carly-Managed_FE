@@ -1,15 +1,34 @@
-/* ==========================================================================
-   Datei: src/styles/components/_workspace-archive.scss
-   Projekt: Carly Managed
-   Version: 1.1.0
-   Beschreibung: Definiert Projektarchiv und Aufgabenverlauf.
+/*###############################
+###
+###     _workspace-archive.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Seitenlayout
-   2. Spaltenkopf
-   3. Karten
-   4. Listen
-   5. Responsive Darstellung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Seitenlayout
+   02   Spaltenkopf
+   03   Listen und Raster
+   04   Task- und Listenansicht
+   05   Karten
+   06   Responsive Darstellung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Seitenlayout
    ========================================================================== */
 
 .archive-page {
@@ -32,6 +51,10 @@
   box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
+
+/* ==========================================================================
+   02   Spaltenkopf
+   ========================================================================== */
 
 .archive-column__head {
   display: flex;
@@ -108,12 +131,25 @@
   background: var(--color-brand-soft);
 }
 
+/* ==========================================================================
+   03   Listen und Raster
+   ========================================================================== */
+
 .archive-card-list,
 .archive-list,
+
+/* ==========================================================================
+   04   Task- und Listenansicht
+   ========================================================================== */
+
 .archive-task-grid {
   display: grid;
   gap: var(--space-3);
 }
+
+/* ==========================================================================
+   05   Karten
+   ========================================================================== */
 
 .archive-card,
 .archive-task-card {
@@ -309,6 +345,10 @@
 .archive-list-row--task > .material-symbols-outlined {
   color: var(--color-success);
 }
+
+/* ==========================================================================
+   06   Responsive Darstellung
+   ========================================================================== */
 
 @media (max-width: 72rem) {
   .archive-page {

@@ -1,17 +1,36 @@
-/* ========================================================================== 
-   Datei: src/styles/components/_shell-search-actions.scss
-   Projekt: Carly Managed
-   Version: 1.1.0
-   Beschreibung: Definiert globale Suche und Schnellaktionen der Topbar.
+/*###############################
+###
+###     _shell-search-actions.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Topbar-Erweiterung
-   2. Globale Suche
-   3. Ergebnisgruppen
-   4. Schnellaktionsmenü
-   5. Schnellaktionsdialog
-   6. Responsive Darstellung
-   7. Reduzierte Bewegung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Topbar-Erweiterung
+   02   Globale Suche
+   03   Ergebnisgruppen
+   04   Schnellaktionsmenü
+   05   Schnellaktionsdialog
+   06   Animationen
+   07   Responsive Darstellung
+   08   Reduzierte Bewegung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Topbar-Erweiterung
    ========================================================================== */
 
 .topbar__search-slot {
@@ -21,6 +40,10 @@
   margin-inline: auto;
   justify-content: center;
 }
+
+/* ==========================================================================
+   02   Globale Suche
+   ========================================================================== */
 
 .global-search {
   position: relative;
@@ -168,6 +191,10 @@
 .global-search__summary small {
   color: var(--color-text-muted);
 }
+
+/* ==========================================================================
+   03   Ergebnisgruppen
+   ========================================================================== */
 
 .global-search__groups {
   display: grid;
@@ -326,6 +353,10 @@
   font-size: var(--font-size-200);
 }
 
+/* ==========================================================================
+   04   Schnellaktionsmenü
+   ========================================================================== */
+
 .quick-actions {
   position: relative;
 }
@@ -463,6 +494,10 @@
     both;
 }
 
+/* ==========================================================================
+   05   Schnellaktionsdialog
+   ========================================================================== */
+
 .quick-action-backdrop {
   position: fixed;
   inset: 0;
@@ -562,6 +597,10 @@
   gap: var(--space-2);
 }
 
+/* ==========================================================================
+   06   Animationen
+   ========================================================================== */
+
 @keyframes global-search-panel-in {
   from {
     opacity: 0;
@@ -589,6 +628,10 @@
     transform: translateY(-0.5rem);
   }
 }
+
+/* ==========================================================================
+   07   Responsive Darstellung
+   ========================================================================== */
 
 @media (max-width: 72rem) {
   .topbar__search-slot {
@@ -718,6 +761,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   08   Reduzierte Bewegung
+   ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .global-search__panel,

@@ -1,17 +1,35 @@
-/* ==========================================================================
-   Datei: src/app/core/layout/auth-layout/auth-layout.component.scss
-   Projekt: Carly Managed
-   Version: 1.2.0
-   Beschreibung: Definiert das viewport-feste Layout für Login und Registrierung.
+/*###############################
+###
+###     auth-layout.component.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Layout
-   2. Markenbereich
-   3. Vorteile
-   4. Inhaltsbereich
-   5. Rechtliche Links
-   6. Niedrige Viewports
-   7. Kompakte Darstellung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Layout
+   02   Markenbereich
+   03   Vorteile
+   04   Inhaltsbereich
+   05   Niedrige Desktop-Viewports
+   06   Tablet- und Mobilansicht
+   07   Kompakte Mobilansicht
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Layout
    ========================================================================== */
 
 :host {
@@ -31,6 +49,10 @@
   grid-template-columns: minmax(22rem, 0.88fr) minmax(36rem, 1.12fr);
   background: var(--color-page-background);
 }
+
+/* ==========================================================================
+   02   Markenbereich
+   ========================================================================== */
 
 .auth-layout__brand {
   position: relative;
@@ -87,6 +109,10 @@
   font-size: var(--font-size-500);
 }
 
+/* ==========================================================================
+   03   Vorteile
+   ========================================================================== */
+
 .auth-layout__benefits {
   position: relative;
   z-index: var(--z-index-raised);
@@ -137,6 +163,10 @@
   filter: saturate(0.82);
 }
 
+/* ==========================================================================
+   04   Inhaltsbereich
+   ========================================================================== */
+
 .auth-layout__content {
   position: relative;
   display: grid;
@@ -160,6 +190,10 @@
 .auth-layout__mobile-logo {
   display: none;
 }
+
+/* ==========================================================================
+   05   Niedrige Desktop-Viewports
+   ========================================================================== */
 
 @media (min-width: 62.01rem) and (max-height: 48rem) {
   .auth-layout__brand {
@@ -198,6 +232,10 @@
   }
 }
 
+/* ==========================================================================
+   06   Tablet- und Mobilansicht
+   ========================================================================== */
+
 @media (max-width: 62rem) {
   .auth-layout {
     grid-template-columns: minmax(0, 1fr);
@@ -219,6 +257,10 @@
     border-radius: var(--radius-md);
   }
 }
+
+/* ==========================================================================
+   07   Kompakte Mobilansicht
+   ========================================================================== */
 
 @media (max-width: 40rem) {
   .auth-layout__content {

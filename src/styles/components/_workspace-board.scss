@@ -1,24 +1,52 @@
-/* ==========================================================================
-   Datei: src/styles/components/_workspace-board.scss
-   Projekt: Carly Managed
-   Version: 2.5.0
-   Beschreibung: Definiert Projektkopf, Kanban, Liste und Task-Drawer.
+/*###############################
+###
+###     _workspace-board.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Projektkopf
-   2. Chips und Aktionen
-   3. Hilfsbereiche
-   4. Kanban
-   5. Boardspalten
-   6. Drag-and-drop
-   7. Listenansicht
-   8. Task-Drawer
-   9. Responsive Darstellung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Board-Grundlage
+   02   Projektkopf
+   03   Chips und Aktionen
+   04   Hilfsbereiche
+   05   Kanban
+   06   Boardspalten
+   07   Drag-and-drop
+   08   Listenansicht
+   09   Task-Drawer
+   10   Responsive Boardbasis
+   11   Erweiterte Board-Darstellung
+   12   Erweiterter Task-Drawer
+   13   Spaltenfarben
+   14   Task-Formulare und Zusammenarbeit
+   15   Kompakte Darstellung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Board-Grundlage
    ========================================================================== */
 
 :root {
   --board-column-width: 21.5rem;
 }
+
+/* ==========================================================================
+   02   Projektkopf
+   ========================================================================== */
 
 .project-board-page {
   display: grid;
@@ -133,6 +161,10 @@
   font-size: 1rem;
 }
 
+/* ==========================================================================
+   03   Chips und Aktionen
+   ========================================================================== */
+
 .head-chip {
   min-height: 2rem;
   padding: 0 var(--space-3);
@@ -235,6 +267,10 @@
   color: var(--color-text-primary);
 }
 
+/* ==========================================================================
+   04   Hilfsbereiche
+   ========================================================================== */
+
 .board-utility-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -268,6 +304,10 @@
   font-size: var(--font-size-200);
 }
 
+/* ==========================================================================
+   05   Kanban
+   ========================================================================== */
+
 .board-wrapper {
   min-width: 0;
   overflow: hidden;
@@ -297,6 +337,10 @@
 .board-columns::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* ==========================================================================
+   06   Boardspalten
+   ========================================================================== */
 
 .board-column-ui {
   display: flex;
@@ -594,6 +638,10 @@
   background: color-mix(in srgb, var(--color-surface-secondary) 72%, transparent);
 }
 
+/* ==========================================================================
+   07   Drag-and-drop
+   ========================================================================== */
+
 .board-column-preview,
 .board-task-preview {
   border-radius: var(--radius-xl);
@@ -648,6 +696,10 @@
 .board-column-ui__dropzone.cdk-drop-list-dragging .board-task-shell:not(.cdk-drag-placeholder) {
   transition: transform var(--motion-duration-normal) var(--motion-easing-standard);
 }
+
+/* ==========================================================================
+   08   Listenansicht
+   ========================================================================== */
 
 .board-list {
   min-width: 0;
@@ -824,6 +876,10 @@
 .board-list-row__counters span {
   gap: 0.12rem;
 }
+
+/* ==========================================================================
+   09   Task-Drawer
+   ========================================================================== */
 
 .task-drawer-backdrop {
   position: fixed;
@@ -1011,6 +1067,10 @@
   }
 }
 
+/* ==========================================================================
+   10   Responsive Boardbasis
+   ========================================================================== */
+
 @media (max-width: 68rem) {
   .board-page-head {
     display: grid;
@@ -1043,6 +1103,11 @@
 /* =========================================
    10) Vollflächiger Boardmodus
    ========================================= */
+
+/* ==========================================================================
+   11   Erweiterte Board-Darstellung
+   ========================================================================== */
+
 .project-board-page {
   width: 100%;
   height: 100%;
@@ -1203,6 +1268,11 @@
 /* =========================================
    12) Erweiterter Task-Drawer
    ========================================= */
+
+/* ==========================================================================
+   12   Erweiterter Task-Drawer
+   ========================================================================== */
+
 .task-drawer-backdrop {
   animation: task-backdrop-enter var(--motion-duration-normal) var(--motion-easing-standard) both;
 }
@@ -1683,6 +1753,10 @@
    10. Interaktive Board-Steuerung
    ========================================================================== */
 
+/* ==========================================================================
+   13   Spaltenfarben
+   ========================================================================== */
+
 .board-column-color-menu {
   position: absolute;
   top: calc(100% + var(--space-2));
@@ -1803,6 +1877,10 @@
     transform: translateY(-0.35rem) scale(0.96);
   }
 }
+
+/* ==========================================================================
+   14   Task-Formulare und Zusammenarbeit
+   ========================================================================== */
 
 .task-drawer__form-grid {
   align-items: start;
@@ -2128,6 +2206,10 @@
   overflow: hidden;
   clip: rect(0 0 0 0);
 }
+
+/* ==========================================================================
+   15   Kompakte Darstellung
+   ========================================================================== */
 
 @media (max-width: 36rem) {
   .board-column-ui__action-menu {

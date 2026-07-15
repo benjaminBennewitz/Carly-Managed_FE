@@ -1,13 +1,31 @@
-/* ==========================================================================
-   Datei: src/styles/base/_fonts.scss
-   Projekt: Carly Managed
-   Version: 1.2.0
-   Beschreibung: Bindet die lokalen variablen Schriftfamilien der Anwendung ein.
+/*###############################
+###
+###     _fonts.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Archivo Variable
-   2. Archivo Variable Italic
-   3. Bricolage Grotesque Variable
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Archivo Variable
+   02   Archivo Variable Italic
+   03   Bricolage Grotesque Variable
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Archivo Variable
    ========================================================================== */
 
 @font-face {
@@ -19,6 +37,10 @@
   src: url('/assets/fonts/archivo/archivo-latin-variable.ttf') format('truetype');
 }
 
+/* ==========================================================================
+   02   Archivo Variable Italic
+   ========================================================================== */
+
 @font-face {
   font-family: 'Archivo';
   font-style: italic;
@@ -27,6 +49,10 @@
   font-display: swap;
   src: url('/assets/fonts/archivo/archivo-latin-variable-italic.ttf') format('truetype');
 }
+
+/* ==========================================================================
+   03   Bricolage Grotesque Variable
+   ========================================================================== */
 
 @font-face {
   font-family: 'Bricolage Grotesque';

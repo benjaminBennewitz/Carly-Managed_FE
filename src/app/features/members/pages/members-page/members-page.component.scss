@@ -1,19 +1,43 @@
-/* ==========================================================================
-   Datei: src/app/features/members/pages/members-page/members-page.component.scss
-   Projekt: Carly Managed
-   Version: 1.1.0
-   Beschreibung: Definiert die erste Mitgliederübersicht.
+/*###############################
+###
+###     members-page.component.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Seite
-   2. Mitgliederliste
-   3. Responsive Darstellung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Seite
+   02   Mitgliederliste
+   03   Mitgliederkarten
+   04   Rollen und Anwesenheit
+   05   Responsive Darstellung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Seite
    ========================================================================== */
 
 .members-page {
   display: grid;
   gap: var(--space-8);
 }
+
+/* ==========================================================================
+   02   Mitgliederliste
+   ========================================================================== */
 
 .members-page__list {
   overflow: hidden;
@@ -22,6 +46,10 @@
   background: var(--color-surface-primary);
   box-shadow: var(--shadow-sm);
 }
+
+/* ==========================================================================
+   03   Mitgliederkarten
+   ========================================================================== */
 
 .members-page__member {
   display: grid;
@@ -84,6 +112,10 @@
   font-size: var(--font-size-200);
 }
 
+/* ==========================================================================
+   04   Rollen und Anwesenheit
+   ========================================================================== */
+
 .members-page__role,
 .members-page__presence {
   display: inline-flex;
@@ -120,6 +152,10 @@
     'GRAD' 0,
     'opsz' 12;
 }
+
+/* ==========================================================================
+   05   Responsive Darstellung
+   ========================================================================== */
 
 @media (max-width: 42rem) {
   .members-page__member {

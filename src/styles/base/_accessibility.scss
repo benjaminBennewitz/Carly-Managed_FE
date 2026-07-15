@@ -1,15 +1,33 @@
-/* ==========================================================================
-   Datei: src/styles/base/_accessibility.scss
-   Projekt: Carly Managed
-   Version: 1.0.0
-   Beschreibung: Enthält globale Hilfen für Fokus, Kontrast und reduzierte Bewegung.
+/*###############################
+###
+###     _accessibility.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Fokus
-   2. Visuell ausgeblendete Inhalte
-   3. Skip-Link
-   4. Erhöhter Kontrast
-   5. Reduzierte Bewegung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Fokus
+   02   Visuell ausgeblendete Inhalte
+   03   Skip-Link
+   04   Erhöhter Kontrast
+   05   Reduzierte Bewegung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Fokus
    ========================================================================== */
 
 :focus {
@@ -20,6 +38,10 @@
   outline: var(--focus-ring-width) solid var(--color-focus);
   outline-offset: var(--focus-ring-offset);
 }
+
+/* ==========================================================================
+   02   Visuell ausgeblendete Inhalte
+   ========================================================================== */
 
 .visually-hidden {
   position: absolute;
@@ -32,6 +54,10 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* ==========================================================================
+   03   Skip-Link
+   ========================================================================== */
 
 .skip-link {
   position: fixed;
@@ -51,6 +77,10 @@
   transform: translateY(0);
 }
 
+/* ==========================================================================
+   04   Erhöhter Kontrast
+   ========================================================================== */
+
 :root[data-contrast='more'] {
   --border-width-subtle: 0.125rem;
   --color-border-subtle: var(--color-border-strong);
@@ -64,6 +94,10 @@
     --focus-ring-width: 0.1875rem;
   }
 }
+
+/* ==========================================================================
+   05   Reduzierte Bewegung
+   ========================================================================== */
 
 :root[data-motion='reduced'] *,
 :root[data-motion='reduced'] *::before,

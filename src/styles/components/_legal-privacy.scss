@@ -1,19 +1,39 @@
-/* ========================================================================== 
-   Datei: src/styles/components/_legal-privacy.scss
-   Projekt: Carly Managed
-   Version: 2.5.0
-   Beschreibung: Präsentiert die Datenschutzerklärung als horizontalen Bento-Deck-Workspace.
+/*###############################
+###
+###     _legal-privacy.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Deck und horizontaler Track
-   2. Panels
-   3. Hero
-   4. Bento-Karten
-   5. Farbvarianten
-   6. Hintergrundmuster
-   7. Zurück-zum-Anfang-Button
-   8. Scrollbar
-   9. Responsive Darstellung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Deck und horizontaler Track
+   02   Panels
+   03   Hero
+   04   Bento-Karten
+   05   Farbvarianten
+   06   Hintergrundmuster
+   07   Zurück-zum-Anfang-Button
+   08   Outro
+   09   Scrollbar
+   10   Responsive Darstellung
+   11   Reduzierte Bewegung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Deck und horizontaler Track
    ========================================================================== */
 
 .privacy-deck {
@@ -45,6 +65,10 @@
   border-radius: var(--radius-2xl);
 }
 
+/* ==========================================================================
+   02   Panels
+   ========================================================================== */
+
 .privacy-deck__panel {
   position: relative;
   min-width: 0;
@@ -57,6 +81,10 @@
   background: var(--color-surface-primary);
   box-shadow: var(--shadow-sm);
 }
+
+/* ==========================================================================
+   03   Hero
+   ========================================================================== */
 
 .privacy-deck__panel--hero {
   display: grid;
@@ -179,6 +207,10 @@
   color: color-mix(in srgb, var(--color-action-primary-text) 58%, transparent);
 }
 
+/* ==========================================================================
+   04   Bento-Karten
+   ========================================================================== */
+
 .privacy-deck__panel--bento {
   display: grid;
   padding: var(--space-3);
@@ -279,6 +311,10 @@
   gap: var(--space-1);
 }
 
+/* ==========================================================================
+   05   Farbvarianten
+   ========================================================================== */
+
 .privacy-deck__card--soft {
   background:
     radial-gradient(circle at 90% 8%, rgb(169 135 222 / 0.14), transparent 12rem),
@@ -318,6 +354,10 @@
   border-color: color-mix(in srgb, var(--color-success) 48%, var(--color-border-subtle));
   background: var(--color-success-surface);
 }
+
+/* ==========================================================================
+   06   Hintergrundmuster
+   ========================================================================== */
 
 @keyframes privacy-pattern-drift {
   from {
@@ -436,6 +476,10 @@
   animation: privacy-pattern-drift 26s linear infinite reverse;
 }
 
+/* ==========================================================================
+   07   Zurück-zum-Anfang-Button
+   ========================================================================== */
+
 .privacy-deck__to-start {
   position: absolute;
   right: var(--space-5);
@@ -480,6 +524,10 @@
 .privacy-deck__to-start .material-symbols-outlined {
   font-size: var(--size-icon-md);
 }
+
+/* ==========================================================================
+   08   Outro
+   ========================================================================== */
 
 .privacy-deck__panel--outro {
   display: grid;
@@ -539,6 +587,10 @@
   font-size: var(--font-size-100);
 }
 
+/* ==========================================================================
+   09   Scrollbar
+   ========================================================================== */
+
 .privacy-deck__track::-webkit-scrollbar {
   height: 0.55rem;
 }
@@ -577,6 +629,10 @@
 .privacy-deck__card::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* ==========================================================================
+   10   Responsive Darstellung
+   ========================================================================== */
 
 @media (max-width: 64rem) {
   .privacy-deck__panel {
@@ -660,6 +716,10 @@
     padding: var(--space-3) var(--space-4);
   }
 }
+
+/* ==========================================================================
+   11   Reduzierte Bewegung
+   ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .privacy-deck__card--pattern-grid::before,

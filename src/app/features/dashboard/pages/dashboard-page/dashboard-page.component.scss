@@ -1,20 +1,44 @@
-/* ==========================================================================
-   Datei: src/app/features/dashboard/pages/dashboard-page/dashboard-page.component.scss
-   Projekt: Carly Managed
-   Version: 1.1.0
-   Beschreibung: Definiert die statische Dashboard-Grundansicht.
+/*###############################
+###
+###     dashboard-page.component.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Seite
-   2. KPI-Pills
-   3. Inhaltsraster
-   4. Carly-Bereich
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Seite
+   02   KPI-Karten
+   03   Inhaltsraster
+   04   Panel und Leerzustand
+   05   Carly-Bereich
+   06   Responsive Darstellung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Seite
    ========================================================================== */
 
 .dashboard-page {
   display: grid;
   gap: var(--space-8);
 }
+
+/* ==========================================================================
+   02   KPI-Karten
+   ========================================================================== */
 
 .dashboard-page__kpis {
   display: grid;
@@ -49,6 +73,10 @@
   font-size: var(--font-size-200);
 }
 
+/* ==========================================================================
+   03   Inhaltsraster
+   ========================================================================== */
+
 .dashboard-page__grid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.6fr);
@@ -62,6 +90,10 @@
   border-radius: var(--radius-xl);
   background: var(--color-surface-primary);
 }
+
+/* ==========================================================================
+   04   Panel und Leerzustand
+   ========================================================================== */
 
 .dashboard-page__panel {
   display: grid;
@@ -98,6 +130,10 @@
   color: var(--color-text-primary);
 }
 
+/* ==========================================================================
+   05   Carly-Bereich
+   ========================================================================== */
+
 .dashboard-page__carly {
   position: relative;
   display: flex;
@@ -125,6 +161,10 @@
   max-width: 18rem;
   gap: var(--space-2);
 }
+
+/* ==========================================================================
+   06   Responsive Darstellung
+   ========================================================================== */
 
 @media (max-width: 68rem) {
   .dashboard-page__kpis {

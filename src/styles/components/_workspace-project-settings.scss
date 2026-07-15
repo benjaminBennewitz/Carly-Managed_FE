@@ -1,21 +1,39 @@
-/* ========================================================================== 
-   Datei: src/styles/components/_workspace-project-settings.scss
-   Projekt: Carly Managed
-   Version: 1.2.0
-   Beschreibung: Definiert die vollständige Bearbeitung von Projektdaten.
+/*###############################
+###
+###     _workspace-project-settings.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Seitenrahmen
-   2. Kopfbereich
-   3. Bereichsnavigation
-   4. Inhaltsviewport und Felder
-   5. Kompakte Optionen
-   6. Personenverwaltung
-   7. Darstellungsoptionen
-   8. Projektverwaltung
-   9. Bestätigungsdialog
-   10. Status und Leerzustände
-   11. Responsive Darstellung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Seitenrahmen
+   02   Kopfbereich
+   03   Layout und Bereichsnavigation
+   04   Inhaltsviewport und Felder
+   05   Status und Leerzustände
+   06   Kompakte Optionen
+   07   Personenverwaltung
+   08   Darstellungsoptionen
+   09   Projektverwaltung
+   10   Bestätigungsdialog
+   11   Responsive Darstellung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Seitenrahmen
    ========================================================================== */
 
 .project-settings-page {
@@ -28,6 +46,10 @@
   gap: var(--space-5);
   overflow: hidden;
 }
+
+/* ==========================================================================
+   02   Kopfbereich
+   ========================================================================== */
 
 .project-settings-head {
   position: relative;
@@ -184,6 +206,10 @@
   transform: translateY(-0.0625rem);
 }
 
+/* ==========================================================================
+   03   Layout und Bereichsnavigation
+   ========================================================================== */
+
 .project-settings-layout {
   display: grid;
   min-width: 0;
@@ -271,6 +297,10 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-100);
 }
+
+/* ==========================================================================
+   04   Inhaltsviewport und Felder
+   ========================================================================== */
 
 .project-settings-content,
 .project-settings-section {
@@ -410,6 +440,11 @@
 
 .project-settings-field__error,
 .project-settings-range-error,
+
+/* ==========================================================================
+   05   Status und Leerzustände
+   ========================================================================== */
+
 .project-settings-error {
   color: var(--color-danger) !important;
 }
@@ -428,6 +463,10 @@
 .project-settings-error .material-symbols-outlined {
   font-size: 1rem;
 }
+
+/* ==========================================================================
+   06   Kompakte Optionen
+   ========================================================================== */
 
 .project-settings-compact-options {
   display: flex;
@@ -519,6 +558,10 @@
   font-size: var(--font-size-100);
   font-weight: var(--font-weight-regular);
 }
+
+/* ==========================================================================
+   07   Personenverwaltung
+   ========================================================================== */
 
 .project-settings-member-block,
 .project-settings-interface-block {
@@ -640,6 +683,10 @@
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
 }
+
+/* ==========================================================================
+   08   Darstellungsoptionen
+   ========================================================================== */
 
 .project-settings-preview {
   display: grid;
@@ -837,6 +884,10 @@
   text-decoration: none;
 }
 
+/* ==========================================================================
+   09   Projektverwaltung
+   ========================================================================== */
+
 .project-settings-section--management {
   gap: var(--space-6);
 }
@@ -996,6 +1047,10 @@
   color: #ffffff;
 }
 
+/* ==========================================================================
+   10   Bestätigungsdialog
+   ========================================================================== */
+
 .project-lifecycle-backdrop {
   position: fixed;
   inset: 0;
@@ -1135,6 +1190,10 @@
   background: var(--color-danger);
   color: #ffffff;
 }
+
+/* ==========================================================================
+   11   Responsive Darstellung
+   ========================================================================== */
 
 @media (max-width: 70rem) {
   .project-settings-head {

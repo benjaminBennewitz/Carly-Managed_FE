@@ -1,12 +1,30 @@
-/* ==========================================================================
-   Datei: src/styles/base/_icons.scss
-   Projekt: Carly Managed
-   Version: 1.0.0
-   Beschreibung: Bindet Material Symbols Outlined lokal als Icon-Font ein.
+/*###############################
+###
+###     _icons.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Font Face
-   2. Icon-Klasse
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Font Face
+   02   Icon-Klasse
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Font Face
    ========================================================================== */
 
 @font-face {
@@ -16,6 +34,10 @@
   font-display: block;
   src: url('/assets/fonts/material-symbols-outlined-latin-fill-normal.woff2') format('woff2');
 }
+
+/* ==========================================================================
+   02   Icon-Klasse
+   ========================================================================== */
 
 .material-symbols-outlined {
   display: inline-block;

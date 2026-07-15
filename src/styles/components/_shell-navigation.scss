@@ -1,17 +1,36 @@
-/* ==========================================================================
-   Datei: src/styles/components/_shell-navigation.scss
-   Projekt: Carly Managed
-   Version: 1.1.0
-   Beschreibung: Definiert Topbar und dynamische Sidebar-Navigation.
+/*###############################
+###
+###     _shell-navigation.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Topbar
-   2. Theme-Switch
-   3. Sidebar
-   4. Hauptnavigation
-   5. Projekt-Subnavigation
-   6. Status und Nutzer
-   7. Responsive Darstellung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Topbar
+   02   Theme-Switch
+   03   Mobile Topbar
+   04   Sidebar
+   05   Hauptnavigation
+   06   Projekt-Subnavigation
+   07   Status und Nutzer
+   08   Responsive Sidebar
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Topbar
    ========================================================================== */
 
 .topbar {
@@ -53,6 +72,11 @@
 }
 
 .topbar__control,
+
+/* ==========================================================================
+   02   Theme-Switch
+   ========================================================================== */
+
 .topbar__theme {
   position: relative;
   display: inline-flex;
@@ -213,6 +237,10 @@
   background: var(--color-accent);
 }
 
+/* ==========================================================================
+   03   Mobile Topbar
+   ========================================================================== */
+
 @media (max-width: 56rem) {
   .topbar {
     padding-inline: var(--space-3);
@@ -253,6 +281,10 @@
   }
 }
 
+/* ==========================================================================
+   04   Sidebar
+   ========================================================================== */
+
 .primary-navigation__sidebar {
   position: fixed;
   inset: var(--layout-topbar-height) auto 0 0;
@@ -289,6 +321,10 @@
   flex-direction: column;
   gap: var(--space-3);
 }
+
+/* ==========================================================================
+   05   Hauptnavigation
+   ========================================================================== */
 
 .primary-navigation__links {
   display: grid;
@@ -346,6 +382,10 @@
     'GRAD' 0,
     'opsz' 24;
 }
+
+/* ==========================================================================
+   06   Projekt-Subnavigation
+   ========================================================================== */
 
 .primary-navigation__projects {
   display: flex;
@@ -486,6 +526,10 @@
   transform: rotate(24deg);
 }
 
+/* ==========================================================================
+   07   Status und Nutzer
+   ========================================================================== */
+
 .primary-navigation__footer {
   display: grid;
   flex: 0 0 auto;
@@ -574,6 +618,10 @@
 .primary-navigation__connection--online .material-symbols-outlined {
   color: var(--color-success);
 }
+
+/* ==========================================================================
+   08   Responsive Sidebar
+   ========================================================================== */
 
 @media (max-width: 56rem) {
   .primary-navigation__sidebar {

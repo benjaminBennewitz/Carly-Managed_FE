@@ -1,13 +1,31 @@
-/* ========================================================================== 
-   Datei: src/styles/components/_auth-legal.scss
-   Projekt: Carly Managed
-   Version: 1.0.0
-   Beschreibung: Definiert rechtliche Links innerhalb der Authentifizierungsansichten.
+/*###############################
+###
+###     _auth-legal.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Auth-Fußbereich
-   2. Datenschutzbestätigung
-   3. Responsive Darstellung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Auth-Fußbereich
+   02   Datenschutzbestätigung
+   03   Responsive Darstellung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Auth-Fußbereich
    ========================================================================== */
 
 .auth-layout__legal {
@@ -32,6 +50,10 @@
   color: var(--color-action-primary);
 }
 
+/* ==========================================================================
+   02   Datenschutzbestätigung
+   ========================================================================== */
+
 .auth-card__privacy {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -53,6 +75,10 @@
 .auth-card__privacy > a .material-symbols-outlined {
   font-size: var(--size-icon-sm);
 }
+
+/* ==========================================================================
+   03   Responsive Darstellung
+   ========================================================================== */
 
 @media (max-width: 42rem) {
   .auth-card__privacy {

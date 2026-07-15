@@ -1,14 +1,31 @@
-/* ==========================================================================
-   Datei: src/styles/settings/_themes.scss
-   Projekt: Carly Managed
-   Version: 1.2.0
-   Beschreibung: Definiert die semantischen Farb-Tokens für Light- und Dark-Mode.
+/*###############################
+###
+###     _themes.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Default Light
-   2. Default Dark
-   3. Formularzustände
-   4. Abgeleitete Statusflächen
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Default Light
+   02   Default Dark
+   03   Abgeleitete Statusflächen
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Default Light
    ========================================================================== */
 
 :root,
@@ -80,6 +97,10 @@
   --color-field-focus-ring: rgb(122 91 194 / 0.18);
 }
 
+/* ==========================================================================
+   02   Default Dark
+   ========================================================================== */
+
 :root[data-theme='default'][data-mode='dark'] {
   color-scheme: dark;
 
@@ -148,17 +169,17 @@
   --color-field-focus-ring: rgb(183 154 230 / 0.22);
 }
 
+/* ==========================================================================
+   03   Abgeleitete Statusflächen
+   ========================================================================== */
+
 :root {
-  --color-success-surface: color-mix(
-    in srgb,
-    var(--color-success) 14%,
-    var(--color-surface-primary)
-  );
-  --color-warning-surface: color-mix(
-    in srgb,
-    var(--color-warning) 14%,
-    var(--color-surface-primary)
-  );
+  --color-success-surface: color-mix(in srgb,
+      var(--color-success) 14%,
+      var(--color-surface-primary));
+  --color-warning-surface: color-mix(in srgb,
+      var(--color-warning) 14%,
+      var(--color-surface-primary));
   --color-danger-surface: color-mix(in srgb, var(--color-danger) 14%, var(--color-surface-primary));
   --color-info-surface: color-mix(in srgb, var(--color-info) 14%, var(--color-surface-primary));
 }

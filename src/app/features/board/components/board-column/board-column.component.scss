@@ -1,12 +1,30 @@
-/* ==========================================================================
-   Datei: src/app/features/board/components/board-column/board-column.component.scss
-   Projekt: Carly Managed
-   Version: 1.1.0
-   Beschreibung: Verankert Boardspalte und horizontales Spalten-Drag-and-drop.
+/*###############################
+###
+###     board-column.component.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Host
-   2. Drag-Zustand
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Host
+   02   Drag-Zustand
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Host
    ========================================================================== */
 
 :host {
@@ -16,6 +34,10 @@
   height: 100%;
   min-height: 0;
 }
+
+/* ==========================================================================
+   02   Drag-Zustand
+   ========================================================================== */
 
 :host.cdk-drag-placeholder {
   opacity: 1;

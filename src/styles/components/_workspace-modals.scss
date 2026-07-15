@@ -1,16 +1,35 @@
-/* ==========================================================================
-   Datei: src/styles/components/_workspace-modals.scss
-   Projekt: Carly Managed
-   Version: 1.3.0
-   Beschreibung: Definiert Regel- und Wiederholungsmodals des Workspace.
+/*###############################
+###
+###     _workspace-modals.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Gemeinsame Modalbasis
-   2. Regelbaukasten
-   3. Wiederholungsverwaltung
-   4. Task-Detailintegration
-   5. Responsive Darstellung
-   6. Reduzierte Bewegung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Gemeinsame Modalbasis
+   02   Regelbaukasten
+   03   Wiederholungsverwaltung
+   04   Task-Detailintegration
+   05   Animationen
+   06   Responsive Darstellung
+   07   Reduzierte Bewegung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Gemeinsame Modalbasis
    ========================================================================== */
 
 .app-shell__route:has(.workspace-modal-backdrop) {
@@ -235,6 +254,10 @@
   max-width: 24rem;
   margin: 0;
 }
+
+/* ==========================================================================
+   02   Regelbaukasten
+   ========================================================================== */
 
 .automation-modal {
   position: fixed;
@@ -506,6 +529,10 @@
 .task-recurrence-rule__delete .material-symbols-outlined {
   font-size: 1.1rem;
 }
+
+/* ==========================================================================
+   03   Wiederholungsverwaltung
+   ========================================================================== */
 
 .task-recurrence-modal {
   position: fixed;
@@ -898,6 +925,10 @@
   font-size: 0.95rem;
 }
 
+/* ==========================================================================
+   04   Task-Detailintegration
+   ========================================================================== */
+
 .task-drawer__section-head {
   display: flex;
   align-items: start;
@@ -1031,6 +1062,10 @@
   font-size: var(--font-size-200);
 }
 
+/* ==========================================================================
+   05   Animationen
+   ========================================================================== */
+
 @keyframes workspace-modal-backdrop-in {
   from {
     opacity: 0;
@@ -1050,6 +1085,10 @@
     transform: translateX(2.5rem);
   }
 }
+
+/* ==========================================================================
+   06   Responsive Darstellung
+   ========================================================================== */
 
 @media (max-width: 62rem) {
   .automation-modal__body {
@@ -1106,6 +1145,10 @@
     grid-column: 1 / -1;
   }
 }
+
+/* ==========================================================================
+   07   Reduzierte Bewegung
+   ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .workspace-modal-backdrop,

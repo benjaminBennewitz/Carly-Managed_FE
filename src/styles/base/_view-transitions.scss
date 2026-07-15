@@ -1,18 +1,36 @@
-/* ==========================================================================
-   Datei: src/styles/base/_view-transitions.scss
-   Projekt: Carly Managed
-   Version: 1.2.0
-   Beschreibung: Definiert native Übergänge für Auth-, Legal-, App- und Theme-Wechsel.
+/*###############################
+###
+###     _view-transitions.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Benannte Übergangselemente
-   2. Auth-Vorwärtsnavigation
-   3. Auth-Rückwärtsnavigation
-   4. App-Routen
-   5. Legal-Übergänge
-   6. Theme-Wechsel
-   7. Schlüsselbilder
-   8. Reduzierte Bewegung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Benannte Übergangselemente
+   02   Auth-Vorwärtsnavigation
+   03   Auth-Rückwärtsnavigation
+   04   App-Routen
+   05   Legal-Übergänge
+   06   Theme-Wechsel
+   07   Schlüsselbilder
+   08   Reduzierte Bewegung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Benannte Übergangselemente
    ========================================================================== */
 
 .auth-card {
@@ -33,6 +51,10 @@
   animation-timing-function: var(--motion-easing-emphasized);
 }
 
+/* ==========================================================================
+   02   Auth-Vorwärtsnavigation
+   ========================================================================== */
+
 :root[data-auth-transition-direction='forward']::view-transition-old(auth-card) {
   animation: surface-exit-left var(--motion-duration-slow) var(--motion-easing-emphasized) both;
 }
@@ -41,6 +63,10 @@
   animation: surface-enter-right var(--motion-duration-slow) var(--motion-easing-emphasized) both;
 }
 
+/* ==========================================================================
+   03   Auth-Rückwärtsnavigation
+   ========================================================================== */
+
 :root[data-auth-transition-direction='backward']::view-transition-old(auth-card) {
   animation: surface-exit-right var(--motion-duration-slow) var(--motion-easing-emphasized) both;
 }
@@ -48,6 +74,10 @@
 :root[data-auth-transition-direction='backward']::view-transition-new(auth-card) {
   animation: surface-enter-left var(--motion-duration-slow) var(--motion-easing-emphasized) both;
 }
+
+/* ==========================================================================
+   04   App-Routen
+   ========================================================================== */
 
 ::view-transition-old(app-route) {
   animation: app-route-exit-left var(--motion-duration-slow) var(--motion-easing-emphasized) both;
@@ -64,6 +94,10 @@
 :root[data-app-transition-direction='backward']::view-transition-new(app-route) {
   animation-name: app-route-enter-left;
 }
+
+/* ==========================================================================
+   05   Legal-Übergänge
+   ========================================================================== */
 
 ::view-transition-old(legal-shell) {
   animation: legal-shell-exit var(--motion-duration-slow) var(--motion-easing-emphasized) both;
@@ -97,6 +131,10 @@
   animation: title-enter var(--motion-duration-slow) var(--motion-easing-emphasized) both;
 }
 
+/* ==========================================================================
+   06   Theme-Wechsel
+   ========================================================================== */
+
 :root[data-theme-transition-direction='dark']::view-transition-old(root),
 :root[data-theme-transition-direction='light']::view-transition-old(root) {
   animation: none;
@@ -109,6 +147,10 @@
 :root[data-theme-transition-direction='light']::view-transition-new(root) {
   animation: theme-swipe-in-left 420ms var(--motion-easing-emphasized) both;
 }
+
+/* ==========================================================================
+   07   Schlüsselbilder
+   ========================================================================== */
 
 @keyframes surface-exit-left {
   to {
@@ -217,6 +259,10 @@
     clip-path: inset(0);
   }
 }
+
+/* ==========================================================================
+   08   Reduzierte Bewegung
+   ========================================================================== */
 
 :root[data-motion='reduced']::view-transition-group(auth-card),
 :root[data-motion='reduced']::view-transition-group(app-route),

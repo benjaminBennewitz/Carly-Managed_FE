@@ -1,16 +1,35 @@
-/* ==========================================================================
-   Datei: src/styles/components/_legal-imprint.scss
-   Projekt: Carly Managed
-   Version: 1.4.0
-   Beschreibung: Ordnet das Impressum als kompaktes Bento innerhalb eines Viewports an.
+/*###############################
+###
+###     _legal-imprint.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Bento-Raster
-   2. Hero
-   3. Karten
-   4. Farbvarianten
-   5. Kompakte Viewports
-   6. Mobile Darstellung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Bento-Raster
+   02   Hero
+   03   Karten
+   04   Farbvarianten
+   05   Kompakte Viewports
+   06   Mobile Darstellung
+   07   Reduzierte Bewegung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Bento-Raster
    ========================================================================== */
 
 .imprint-bento {
@@ -25,7 +44,16 @@
   view-transition-name: legal-document;
 }
 
+/* ==========================================================================
+   02   Hero
+   ========================================================================== */
+
 .imprint-bento__hero,
+
+/* ==========================================================================
+   03   Karten
+   ========================================================================== */
+
 .imprint-bento__card {
   position: relative;
   min-width: 0;
@@ -205,6 +233,10 @@
   opacity: 0.72;
 }
 
+/* ==========================================================================
+   04   Farbvarianten
+   ========================================================================== */
+
 .imprint-bento__card--provider {
   background:
     linear-gradient(135deg, rgb(169 135 222 / 0.16), transparent 65%),
@@ -340,6 +372,10 @@
   font-weight: var(--font-weight-bold);
 }
 
+/* ==========================================================================
+   05   Kompakte Viewports
+   ========================================================================== */
+
 @media (max-height: 48rem) and (min-width: 64.01rem) {
   .imprint-bento__hero {
     padding: var(--space-6);
@@ -372,6 +408,10 @@
   }
 }
 
+/* ==========================================================================
+   06   Mobile Darstellung
+   ========================================================================== */
+
 @media (max-width: 64rem) {
   .imprint-bento {
     overflow-y: auto;
@@ -396,6 +436,10 @@
     min-height: 21rem;
   }
 }
+
+/* ==========================================================================
+   07   Reduzierte Bewegung
+   ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .imprint-bento__hero::after {

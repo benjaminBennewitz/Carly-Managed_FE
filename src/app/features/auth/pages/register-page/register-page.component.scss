@@ -1,19 +1,36 @@
-/* ==========================================================================
-   Datei: src/app/features/auth/pages/register-page/register-page.component.scss
-   Projekt: Carly Managed
-   Version: 1.3.0
-   Beschreibung: Definiert eine viewport-feste, responsive Registrierung.
+/*###############################
+###
+###     register-page.component.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Host
-   2. Karte
-   3. Kopfbereich
-   4. Formularraster
-   5. Passwortbewertung
-   6. Datenschutzbestätigung
-   7. Status und Aktionen
-   8. Einspaltige Darstellung
-   9. Niedrige Viewports
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Host
+   02   Karte
+   03   Kopfbereich
+   04   Formularraster
+   05   Passwortbewertung
+   06   Formularweite Elemente
+   07   Status und Aktionen
+   08   Responsive Darstellung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Host
    ========================================================================== */
 
 :host {
@@ -21,6 +38,10 @@
   width: min(100%, 46rem);
   min-width: 0;
 }
+
+/* ==========================================================================
+   02   Karte
+   ========================================================================== */
 
 .auth-card {
   display: grid;
@@ -34,6 +55,10 @@
   background: var(--color-surface-primary);
   box-shadow: var(--shadow-sm);
 }
+
+/* ==========================================================================
+   03   Kopfbereich
+   ========================================================================== */
 
 .auth-card__header {
   display: grid;
@@ -87,12 +112,20 @@
   font-size: var(--font-size-300);
 }
 
+/* ==========================================================================
+   04   Formularraster
+   ========================================================================== */
+
 form {
   display: grid;
   min-width: 0;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(var(--space-2), 1.1vh, var(--space-4)) var(--space-4);
 }
+
+/* ==========================================================================
+   05   Passwortbewertung
+   ========================================================================== */
 
 .password-meter {
   display: grid;
@@ -112,10 +145,18 @@ form {
   background: var(--color-field-border-confirmed);
 }
 
+/* ==========================================================================
+   06   Formularweite Elemente
+   ========================================================================== */
+
 .auth-card__privacy,
 .auth-card__submit {
   grid-column: 1 / -1;
 }
+
+/* ==========================================================================
+   07   Status und Aktionen
+   ========================================================================== */
 
 .auth-card__status {
   display: grid;
@@ -159,6 +200,10 @@ form {
   background: var(--color-action-disabled);
   color: var(--color-action-disabled-text);
 }
+
+/* ==========================================================================
+   08   Responsive Darstellung
+   ========================================================================== */
 
 @media (max-width: 42rem) {
   :host {

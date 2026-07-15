@@ -1,16 +1,34 @@
-/* ==========================================================================
-   Datei: src/styles/components/_workspace-projects.scss
-   Projekt: Carly Managed
-   Version: 1.1.0
-   Beschreibung: Definiert KPI-Leiste und Projektkarten der Projektübersicht.
+/*###############################
+###
+###     _workspace-projects.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Seitenlayout
-   2. KPI-Leiste
-   3. Projektgrid
-   4. Projektkarten
-   5. Mitglieder und Footer
-   6. Responsive Darstellung
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Seitenlayout
+   02   KPI-Leiste
+   03   Projektgrid
+   04   Projektkarten
+   05   Statistiken, Mitglieder und Footer
+   06   Responsive Darstellung
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Seitenlayout
    ========================================================================== */
 
 .projects-page {
@@ -18,6 +36,10 @@
   gap: var(--space-6);
   min-width: 0;
 }
+
+/* ==========================================================================
+   02   KPI-Leiste
+   ========================================================================== */
 
 .projects-kpis {
   display: grid;
@@ -87,6 +109,10 @@
   background: color-mix(in srgb, var(--color-action-primary) 9%, transparent);
 }
 
+/* ==========================================================================
+   03   Projektgrid
+   ========================================================================== */
+
 .projects-content,
 .projects-grid {
   min-width: 0;
@@ -98,6 +124,10 @@
   align-content: start;
   gap: var(--space-4);
 }
+
+/* ==========================================================================
+   04   Projektkarten
+   ========================================================================== */
 
 .project-card {
   position: relative;
@@ -289,6 +319,10 @@
   font-size: 0.95rem;
 }
 
+/* ==========================================================================
+   05   Statistiken, Mitglieder und Footer
+   ========================================================================== */
+
 .project-card__summary-grid,
 .project-card__stats,
 .project-card__members {
@@ -397,6 +431,10 @@
   font-size: var(--font-size-200);
   font-weight: var(--font-weight-bold);
 }
+
+/* ==========================================================================
+   06   Responsive Darstellung
+   ========================================================================== */
 
 @media (max-width: 76rem) {
   .projects-kpis {

@@ -1,21 +1,29 @@
-/* ==========================================================================
-   Datei: src/styles/_index.scss
-   Projekt: Carly Managed
-   Version: 2.0.0
-   Beschreibung: Bündelt die globalen Designsystem-Dateien.
+/*###############################
+###
+###     _index.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Design-Tokens
-   2. Farbthemen
-   3. Schriftarten
-   4. Reset
-   5. Globale Basis
-   6. Icons
-   7. Seitenübergänge
-   8. Authentifizierungslinks
-   9. Rechtliche Seiten
-   10. Workspace-Komponenten
-   11. Barrierefreiheit
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Style Imports
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Style Imports
    ========================================================================== */
 
 @use 'settings/design-tokens';

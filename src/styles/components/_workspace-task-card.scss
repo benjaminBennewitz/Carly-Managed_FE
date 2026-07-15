@@ -1,16 +1,35 @@
-/* ==========================================================================
-   Datei: src/styles/components/_workspace-task-card.scss
-   Projekt: Carly Managed
-   Version: 1.4.0
-   Beschreibung: Definiert die wiederverwendbare Task-Karte.
+/*###############################
+###
+###     _workspace-task-card.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Karte
-   2. Kopf
-   3. Kontext und Tags
-   4. Metadaten
-   5. Zusammenarbeit
-   6. Abschlusszustand
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Karte
+   02   Abschluss- und Fristzustände
+   03   Kopf
+   04   Kontext und Tags
+   05   Metadaten
+   06   Zusammenarbeit
+   07   Datum und Zähler
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Karte
    ========================================================================== */
 
 .workspace-task-card {
@@ -40,6 +59,10 @@
   transform: translateY(-0.0625rem);
 }
 
+/* ==========================================================================
+   02   Abschluss- und Fristzustände
+   ========================================================================== */
+
 .workspace-task-card--done {
   opacity: var(--completed-task-opacity, 0.85);
 }
@@ -51,6 +74,10 @@
 .workspace-task-card--overdue {
   border-bottom-color: color-mix(in srgb, var(--color-danger) 50%, var(--color-border-subtle));
 }
+
+/* ==========================================================================
+   03   Kopf
+   ========================================================================== */
 
 .workspace-task-card__head,
 .workspace-task-card__head-right,
@@ -159,6 +186,10 @@
   color: var(--color-info);
 }
 
+/* ==========================================================================
+   04   Kontext und Tags
+   ========================================================================== */
+
 .workspace-task-card__context {
   display: inline-flex;
   width: fit-content;
@@ -255,6 +286,10 @@
   font-weight: var(--font-weight-semibold);
 }
 
+/* ==========================================================================
+   05   Metadaten
+   ========================================================================== */
+
 .workspace-task-card__meta {
   min-width: 0;
   justify-content: space-between;
@@ -270,6 +305,10 @@
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+
+/* ==========================================================================
+   06   Zusammenarbeit
+   ========================================================================== */
 
 .workspace-task-card__collaborators {
   display: inline-flex;
@@ -310,6 +349,10 @@
 .workspace-task-card__collaborators strong {
   font-size: 0.58rem;
 }
+
+/* ==========================================================================
+   07   Datum und Zähler
+   ========================================================================== */
 
 .workspace-task-card__date {
   min-width: 0;

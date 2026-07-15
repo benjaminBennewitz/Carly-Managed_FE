@@ -1,13 +1,32 @@
-/* ==========================================================================
-   Datei: src/styles/components/_workspace-controls.scss
-   Projekt: Carly Managed
-   Version: 1.1.0
-   Beschreibung: Definiert wiederverwendbare Auswahl- und Aktionskomponenten.
+/*###############################
+###
+###     _workspace-controls.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Select-Menü
-   2. Personenauswahl
-   3. Close-Buttons
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Auswahlkomponenten
+   02   Menüs und Optionen
+   03   Personenauswahl
+   04   Close-Buttons
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Auswahlkomponenten
    ========================================================================== */
 
 .ui-select,
@@ -143,6 +162,10 @@
   transform: rotate(180deg);
 }
 
+/* ==========================================================================
+   02   Menüs und Optionen
+   ========================================================================== */
+
 .ui-select__menu,
 .member-select__menu {
   position: absolute;
@@ -240,6 +263,10 @@
   font-size: 1rem;
 }
 
+/* ==========================================================================
+   03   Personenauswahl
+   ========================================================================== */
+
 .member-select__avatar {
   display: grid;
   width: 1.85rem;
@@ -273,6 +300,10 @@
   background: var(--color-success);
   box-shadow: 0 0 0 0.18rem var(--color-success-surface);
 }
+
+/* ==========================================================================
+   04   Close-Buttons
+   ========================================================================== */
 
 .ui-close-button {
   display: grid;

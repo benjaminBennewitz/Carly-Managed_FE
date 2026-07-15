@@ -1,20 +1,29 @@
-/* ==========================================================================
-   Datei: src/styles/settings/_design-tokens.scss
-   Projekt: Carly Managed
-   Version: 1.4.0
-   Beschreibung: Definiert globale semantische Tokens außerhalb der Farbthemen.
+/*###############################
+###
+###     _design-tokens.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
 
-   Inhaltsverzeichnis:
-   1. Typografie
-   2. Abstände
-   3. Größen
-   4. Radien
-   5. Rahmen
-   6. Schatten
-   7. Fokus
-   8. Bewegung
-   9. Ebenen
-   10. Layout
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Design Tokens
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Design Tokens
    ========================================================================== */
 
 :root {
