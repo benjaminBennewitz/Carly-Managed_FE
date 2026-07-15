@@ -57,7 +57,6 @@ export class ProjectSettingsPageComponent {
     startedAt: ['', [Validators.required]],
     dueAt: ['', [Validators.required]],
     allowsOnDemandTasks: false,
-    isPinned: false,
   });
   protected readonly selectedManagers = computed(() =>
     this.workspaceService.members().filter((member) => this.managerIds().includes(member.id)),
@@ -230,7 +229,7 @@ export class ProjectSettingsPageComponent {
   }
 
   /** Schaltet eine boolesche Projekteinstellung um. */
-  toggleOption(option: 'allowsOnDemandTasks' | 'isPinned'): void {
+  toggleOption(option: 'allowsOnDemandTasks'): void {
     const control = this.form.controls[option];
     control.setValue(!control.value);
     control.markAsDirty();
@@ -259,7 +258,6 @@ export class ProjectSettingsPageComponent {
       dueAt: value.dueAt,
       color: this.selectedColor(),
       icon: this.selectedIcon(),
-      isPinned: value.isPinned,
       allowsOnDemandTasks: value.allowsOnDemandTasks,
     });
 
@@ -407,7 +405,6 @@ export class ProjectSettingsPageComponent {
       startedAt: project.startedAt,
       dueAt: project.dueAt,
       allowsOnDemandTasks: project.allowsOnDemandTasks,
-      isPinned: project.isPinned,
     });
     this.managerIds.set([
       ...new Set([project.owner.id, ...project.managers.map((item) => item.id)]),

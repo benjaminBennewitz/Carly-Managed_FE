@@ -27,6 +27,7 @@ export class AppShellComponent {
     window.matchMedia(DESKTOP_SIDEBAR_QUERY).matches,
   );
   protected readonly isBoardRoute = signal(false);
+  protected readonly isProjectSettingsRoute = signal(false);
 
   constructor(
     destroyRef: DestroyRef,
@@ -39,6 +40,9 @@ export class AppShellComponent {
     const updateRouteMode = (url: string): void => {
       this.isBoardRoute.set(
         url === '/board' || /^\/projects\/[^/]+\/board(?:[?#].*)?$/.test(url),
+      );
+      this.isProjectSettingsRoute.set(
+        /^\/projects\/[^/]+\/settings(?:[?#].*)?$/.test(url),
       );
     };
 

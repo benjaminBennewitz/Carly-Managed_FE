@@ -1,15 +1,15 @@
 /* ========================================================================== 
    Datei: src/styles/components/_workspace-project-settings.scss
    Projekt: Carly Managed
-   Version: 1.1.0
+   Version: 1.2.0
    Beschreibung: Definiert die vollständige Bearbeitung von Projektdaten.
 
    Inhaltsverzeichnis:
    1. Seitenrahmen
    2. Kopfbereich
    3. Bereichsnavigation
-   4. Inhaltskarten und Felder
-   5. Optionen
+   4. Inhaltsviewport und Felder
+   5. Kompakte Optionen
    6. Personenverwaltung
    7. Darstellungsoptionen
    8. Projektverwaltung
@@ -20,14 +20,21 @@
 
 .project-settings-page {
   display: grid;
+  width: 100%;
+  height: 100%;
   min-width: 0;
-  gap: var(--space-6);
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--space-5);
+  overflow: hidden;
 }
 
 .project-settings-head {
+  position: relative;
+  z-index: 2;
   display: flex;
   min-width: 0;
-  padding-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-5);
@@ -180,21 +187,27 @@
 .project-settings-layout {
   display: grid;
   min-width: 0;
+  min-height: 0;
   grid-template-columns: minmax(14rem, 17rem) minmax(0, 1fr);
-  align-items: start;
+  align-items: stretch;
   gap: var(--space-5);
+  overflow: hidden;
 }
 
 .project-settings-tabs {
-  position: sticky;
-  top: calc(var(--layout-topbar-height) + var(--space-5));
+  position: relative;
+  z-index: 1;
   display: grid;
+  max-height: 100%;
   padding: var(--space-2);
   gap: var(--space-1);
   border: var(--border-width-subtle) solid var(--color-border-subtle);
   border-radius: var(--radius-xl);
   background: var(--color-surface-primary);
   box-shadow: var(--shadow-xs);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .project-settings-tabs button {
@@ -266,7 +279,14 @@
 }
 
 .project-settings-content {
+  height: 100%;
+  min-height: 0;
+  padding-right: var(--space-2);
+  align-content: start;
   gap: var(--space-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .project-settings-section {
@@ -409,93 +429,95 @@
   font-size: 1rem;
 }
 
-.project-settings-options {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+.project-settings-compact-options {
+  display: flex;
+  align-items: center;
 }
 
-.project-settings-option {
-  display: grid;
-  min-height: 6rem;
-  padding: var(--space-4);
-  grid-template-columns: auto minmax(0, 1fr) auto;
+.project-settings-checkbox {
+  display: inline-grid;
+  width: fit-content;
+  max-width: 100%;
+  min-height: var(--size-control-md);
+  padding: var(--space-2) var(--space-3);
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   border: var(--border-width-subtle) solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   background: var(--color-surface-secondary);
   color: var(--color-text-secondary);
   text-align: left;
-}
-
-.project-settings-option:hover {
-  border-color: var(--color-border-strong);
-  background: var(--color-surface-hover);
-}
-
-.project-settings-option.is-active {
-  border-color: color-mix(in srgb, var(--color-action-primary) 42%, var(--color-border-subtle));
-  background: var(--color-brand-subtle);
-}
-
-.project-settings-option__icon {
-  display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
-  place-items: center;
-  border-radius: var(--radius-md);
-  background: var(--color-surface-primary);
-  color: var(--color-action-primary);
-}
-
-.project-settings-option > span:nth-child(2) {
-  display: grid;
-  min-width: 0;
-  gap: var(--space-1);
-}
-
-.project-settings-option small {
-  color: var(--color-text-muted);
-  font-weight: var(--font-weight-regular);
-  line-height: 1.45;
-}
-
-.project-settings-switch {
-  position: relative;
-  display: block;
-  width: 2.7rem;
-  height: 1.5rem;
-  border: var(--border-width-subtle) solid var(--color-border-strong);
-  border-radius: var(--radius-round);
-  background: var(--color-surface-primary);
   transition:
     border-color var(--motion-duration-fast) var(--motion-easing-standard),
-    background var(--motion-duration-fast) var(--motion-easing-standard);
+    background var(--motion-duration-fast) var(--motion-easing-standard),
+    color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
-.project-settings-switch > span {
-  position: absolute;
-  top: 50%;
-  left: 0.2rem;
-  width: 1rem;
-  height: 1rem;
-  border-radius: var(--radius-round);
-  background: var(--color-icon-muted);
-  transform: translateY(-50%);
+.project-settings-checkbox:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.project-settings-checkbox.is-checked {
+  border-color:
+    color-mix(in srgb, var(--color-action-primary) 48%, var(--color-border-subtle));
+  background: var(--color-brand-subtle);
+  color: var(--color-text-primary);
+}
+
+.project-settings-checkbox__control {
+  display: grid;
+  width: 1.2rem;
+  height: 1.2rem;
+  place-items: center;
+  border: var(--border-width-subtle) solid var(--color-border-strong);
+  border-radius: 0.3rem;
+  background: var(--color-surface-primary);
+  color: transparent;
   transition:
-    background var(--motion-duration-normal) var(--motion-easing-standard),
-    transform var(--motion-duration-normal) var(--motion-easing-emphasized);
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    background var(--motion-duration-fast) var(--motion-easing-standard),
+    color var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
-.project-settings-option.is-active .project-settings-switch {
+.project-settings-checkbox__control .material-symbols-outlined {
+  font-size: 0.85rem;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 700,
+    'GRAD' 0,
+    'opsz' 16;
+}
+
+.project-settings-checkbox.is-checked .project-settings-checkbox__control {
   border-color: var(--color-action-primary);
   background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
 }
 
-.project-settings-option.is-active .project-settings-switch > span {
-  background: var(--color-action-primary-text);
-  transform: translate(1.2rem, -50%);
+.project-settings-checkbox:active .project-settings-checkbox__control {
+  transform: scale(0.92);
+}
+
+.project-settings-checkbox > span:last-child {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.2rem var(--space-2);
+}
+
+.project-settings-checkbox strong {
+  font-size: var(--font-size-200);
+}
+
+.project-settings-checkbox small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-regular);
 }
 
 .project-settings-member-block,
@@ -1127,11 +1149,15 @@
 
   .project-settings-layout {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .project-settings-tabs {
-    position: static;
+    display: grid;
+    max-height: none;
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   .project-settings-tabs button {
@@ -1163,11 +1189,15 @@
   }
 
   .project-settings-tabs {
-    grid-template-columns: 1fr;
+    display: flex;
+    padding-bottom: var(--space-2);
+  }
+
+  .project-settings-tabs button {
+    min-width: 10.5rem;
   }
 
   .project-settings-field-grid,
-  .project-settings-options,
   .project-settings-member-block__head {
     grid-template-columns: 1fr;
   }

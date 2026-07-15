@@ -175,49 +175,22 @@
               }
             </div>
 
-            <div class="project-settings-options">
+            <div class="project-settings-compact-options">
               <button
-                class="project-settings-option"
+                class="project-settings-checkbox"
                 type="button"
-                role="switch"
-                [class.is-active]="form.controls.allowsOnDemandTasks.value"
+                role="checkbox"
+                [class.is-checked]="form.controls.allowsOnDemandTasks.value"
                 [attr.aria-checked]="form.controls.allowsOnDemandTasks.value"
                 (click)="toggleOption('allowsOnDemandTasks')"
               >
-                <span
-                  class="project-settings-option__icon material-symbols-outlined"
-                  aria-hidden="true"
-                  >inventory_2</span
-                >
-                <span
-                  ><strong>Abruf-Aufgaben erlauben</strong
-                  ><small
-                    >Unzugewiesene Aufgaben dürfen kontrolliert im Pool vorbereitet werden.</small
-                  ></span
-                >
-                <span class="project-settings-switch" aria-hidden="true"><span></span></span>
-              </button>
-
-              <button
-                class="project-settings-option"
-                type="button"
-                role="switch"
-                [class.is-active]="form.controls.isPinned.value"
-                [attr.aria-checked]="form.controls.isPinned.value"
-                (click)="toggleOption('isPinned')"
-              >
-                <span
-                  class="project-settings-option__icon material-symbols-outlined"
-                  aria-hidden="true"
-                  >keep</span
-                >
-                <span
-                  ><strong>Projekt anpinnen</strong
-                  ><small
-                    >Das Projekt erscheint dauerhaft im Projektbereich der Sidebar.</small
-                  ></span
-                >
-                <span class="project-settings-switch" aria-hidden="true"><span></span></span>
+                <span class="project-settings-checkbox__control" aria-hidden="true">
+                  <span class="material-symbols-outlined">check</span>
+                </span>
+                <span>
+                  <strong>Abruf-Aufgaben erlauben</strong>
+                  <small>Unzugewiesene Aufgaben dürfen im Pool vorbereitet werden.</small>
+                </span>
               </button>
             </div>
           </section>

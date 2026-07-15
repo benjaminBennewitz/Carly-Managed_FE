@@ -1,7 +1,7 @@
 /* ========================================================================== 
    Datei: src/app/features/projects/pages/project-settings-page/project-settings-page.component.scss
    Projekt: Carly Managed
-   Version: 1.0.0
+   Version: 1.1.0
    Beschreibung: Verankert die Seite für Projekteinstellungen.
 
    Inhaltsverzeichnis:
@@ -10,5 +10,7 @@
 
 :host {
   display: block;
+  height: 100%;
   min-width: 0;
+  min-height: 0;
 }
