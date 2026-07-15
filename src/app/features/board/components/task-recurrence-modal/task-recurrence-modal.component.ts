@@ -4,12 +4,14 @@ import { CdkTrapFocus } from '@angular/cdk/a11y';
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   EventEmitter,
   HostListener,
   Input,
   OnChanges,
   Output,
   SimpleChanges,
+  ViewChild,
 } from '@angular/core';
 
 import {
@@ -68,12 +70,15 @@ export class TaskRecurrenceModalComponent implements OnChanges {
   @Output() toggleRuleState = new EventEmitter<TaskRecurrenceStateTogglePayload>();
   @Output() openRuleTask = new EventEmitter<WorkspaceTaskRecurrenceRule>();
 
+  @ViewChild('modalBody') private modalBody?: ElementRef<HTMLElement>;
+
   protected readonly weekdayOptions = WEEKDAY_OPTIONS;
   protected editorDraft: TaskRecurrenceEditorDraft | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
     if ('editorTask' in changes || ('isOpen' in changes && this.isOpen)) {
       this.resetEditorDraft();
+      this.resetBodyScroll();
     }
   }
 
@@ -251,6 +256,13 @@ export class TaskRecurrenceModalComponent implements OnChanges {
       hour: '2-digit',
       minute: '2-digit',
     }).format(new Date(value));
+  }
+
+  /** Setzt die Scrollposition beim Öffnen und beim Wechsel in den Editor zurück. */
+  private resetBodyScroll(): void {
+    window.requestAnimationFrame(() => {
+      this.modalBody?.nativeElement.scrollTo({ top: 0, behavior: 'auto' });
+    });
   }
 
   private resetEditorDraft(): void {

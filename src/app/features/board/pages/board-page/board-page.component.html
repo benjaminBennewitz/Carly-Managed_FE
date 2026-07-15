@@ -88,28 +88,24 @@
           class="head-chip head-chip--button"
           type="button"
           [class.is-active]="automationModalOpen()"
+          [class.has-active-rules]="activeAutomationRuleCount() > 0"
           [attr.aria-pressed]="automationModalOpen()"
           (click)="openAutomationModal()"
         >
           <span class="material-symbols-outlined" aria-hidden="true">automation</span>
           Regeln
-          @if (activeAutomationRuleCount() > 0) {
-            <span class="head-chip__count">{{ activeAutomationRuleCount() }}</span>
-          }
         </button>
 
         <button
           class="head-chip head-chip--button"
           type="button"
           [class.is-active]="recurrenceModalOpen()"
+          [class.has-active-rules]="activeRecurrenceRuleCount() > 0"
           [attr.aria-pressed]="recurrenceModalOpen()"
           (click)="openRecurrenceOverview()"
         >
           <span class="material-symbols-outlined" aria-hidden="true">event_repeat</span>
           Wiederholungen
-          @if (activeRecurrenceRuleCount() > 0) {
-            <span class="head-chip__count">{{ activeRecurrenceRuleCount() }}</span>
-          }
         </button>
 
         <span class="head-chip">

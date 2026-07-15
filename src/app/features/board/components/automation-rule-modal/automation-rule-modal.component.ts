@@ -85,7 +85,7 @@ const DUE_DATE_OPTIONS: readonly SelectMenuOption[] = [
   { value: 'today', label: 'Heute fällig', icon: 'today' },
   { value: 'due_soon', label: 'Bald fällig', icon: 'upcoming' },
   { value: 'overdue', label: 'Überfällig', icon: 'event_busy' },
-  { value: 'without_date', label: 'Ohne Datum', icon: 'event_off' },
+  { value: 'without_date', label: 'Ohne Datum', icon: 'block' },
 ];
 
 const ACTION_OPTIONS: readonly SelectMenuOption[] = [

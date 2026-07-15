@@ -140,32 +140,36 @@
             <article
               class="automation-rule"
               [class.automation-rule--selected]="rule.id === selectedRuleId"
-              tabindex="0"
-              role="button"
-              (click)="loadRule(rule)"
-              (keydown.enter)="loadRule(rule)"
             >
               <div class="automation-rule__content">
                 <div class="automation-rule__title-row">
                   <strong>{{ rule.name }}</strong>
-                  <span [class.is-active]="rule.isActive">
-                    {{ rule.isActive ? 'Aktiv' : 'Pausiert' }}
-                  </span>
                 </div>
                 <p>{{ getRuleSummary(rule) }}</p>
                 <small>{{ getRuleParameters(rule) }}</small>
               </div>
 
-              <div class="automation-rule__actions" (click)="$event.stopPropagation()">
+              <div class="automation-rule__actions">
                 <button
-                  class="automation-rule__toggle"
+                  class="workspace-switch workspace-switch--compact"
                   type="button"
+                  [class.workspace-switch--active]="rule.isActive"
                   [attr.aria-label]="rule.isActive ? 'Regel pausieren' : 'Regel aktivieren'"
                   [attr.aria-pressed]="rule.isActive"
                   [disabled]="isSubmitting"
                   (click)="toggle(rule)"
                 >
                   <span aria-hidden="true"></span>
+                </button>
+
+                <button
+                  class="automation-rule__edit"
+                  type="button"
+                  aria-label="Regel bearbeiten"
+                  [disabled]="isSubmitting"
+                  (click)="loadRule(rule)"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">edit</span>
                 </button>
 
                 <button

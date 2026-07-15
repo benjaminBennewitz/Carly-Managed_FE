@@ -40,11 +40,9 @@ export class SelectMenuComponent {
 
   private readonly menuId = `select-menu-${++selectMenuInstanceId}`;
 
-  protected readonly open = computed(
-    () => this.dropdownCoordinator.activeId() === this.menuId,
-  );
-  protected readonly selectedOption = computed(() =>
-    this.options().find((option) => option.value === this.value()) ?? null,
+  protected readonly open = computed(() => this.dropdownCoordinator.activeId() === this.menuId);
+  protected readonly selectedOption = computed(
+    () => this.options().find((option) => option.value === this.value()) ?? null,
   );
 
   constructor(
@@ -75,9 +73,79 @@ export class SelectMenuComponent {
 
   /** Öffnet oder schließt die Optionsliste. */
   toggle(): void {
-    if (!this.disabled()) {
-      this.dropdownCoordinator.toggle(this.menuId);
+    if (this.disabled()) {
+      return;
     }
+
+    const willOpen = !this.open();
+    this.dropdownCoordinator.toggle(this.menuId);
+
+    if (willOpen) {
+      this.revealOpenMenu();
+    }
+  }
+
+  /**
+   * Scrollt den nächsten begrenzten Container nur so weit, dass das geöffnete
+   * Menü vollständig erreichbar bleibt.
+   */
+  private revealOpenMenu(): void {
+    window.requestAnimationFrame(() => {
+      const host = this.elementRef.nativeElement;
+      const menu = host.querySelector<HTMLElement>('.ui-select__menu');
+      const scrollContainer = this.findScrollContainer(host);
+
+      if (!menu || !scrollContainer) {
+        return;
+      }
+
+      const menuRect = menu.getBoundingClientRect();
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const safeInset = 12;
+      const bottomOverflow = menuRect.bottom - (containerRect.bottom - safeInset);
+      const topOverflow = containerRect.top + safeInset - menuRect.top;
+
+      if (bottomOverflow > 0) {
+        scrollContainer.scrollBy({
+          top: bottomOverflow + safeInset,
+          behavior: this.prefersReducedMotion() ? 'auto' : 'smooth',
+        });
+        return;
+      }
+
+      if (topOverflow > 0) {
+        scrollContainer.scrollBy({
+          top: -(topOverflow + safeInset),
+          behavior: this.prefersReducedMotion() ? 'auto' : 'smooth',
+        });
+      }
+    });
+  }
+
+  /** Ermittelt den nächsten tatsächlich scrollbaren Vorfahren. */
+  private findScrollContainer(element: HTMLElement): HTMLElement | null {
+    let parent = element.parentElement;
+
+    while (parent) {
+      const style = window.getComputedStyle(parent);
+      const overflowY = style.overflowY;
+      const canScroll =
+        (overflowY === 'auto' || overflowY === 'scroll') &&
+        parent.scrollHeight > parent.clientHeight;
+
+      if (canScroll) {
+        return parent;
+      }
+
+      parent = parent.parentElement;
+    }
+
+    return null;
+  }
+
+  /** Prüft die systemweite Einstellung für reduzierte Bewegung. */
+  private prefersReducedMotion(): boolean {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   /** Übernimmt eine Auswahl und schließt die Optionsliste. */
