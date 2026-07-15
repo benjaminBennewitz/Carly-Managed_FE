@@ -6,6 +6,14 @@ export type ProjectDueState =
 export type TaskPriority = 'hoch' | 'mittel' | 'niedrig';
 export type BoardViewMode = 'board' | 'list';
 export type WorkspaceColumnSortMode = 'title' | 'date' | null;
+export type WorkspaceAutomationTrigger =
+  'task.completed' | 'task.reopened' | 'task.created' | 'task.assigned' | 'column.entered';
+export type WorkspaceAutomationTaskScope = 'main_task' | 'any_task';
+export type WorkspaceAutomationDueDateMode =
+  'any' | 'today' | 'due_soon' | 'overdue' | 'without_date';
+export type WorkspaceAutomationActionType = 'move_task_tree';
+export type WorkspaceRecurrenceScheduleType = 'weekly_days' | 'interval_days' | 'monthly_day';
+export type WorkspaceRecurrenceWeekday = 'MO' | 'TU' | 'WE' | 'TH' | 'FR' | 'SA' | 'SU';
 
 export interface WorkspaceMember {
   id: string;
@@ -49,6 +57,70 @@ export interface WorkspaceHistoryEntry {
   createdAt: string;
 }
 
+export interface WorkspaceTaskRecurrenceRule {
+  id: string;
+  taskId: string;
+  taskTitle: string;
+  taskIsDone: boolean;
+  boardId: string;
+  scheduleType: WorkspaceRecurrenceScheduleType;
+  startDate: string;
+  intervalValue: number;
+  weekdays: WorkspaceRecurrenceWeekday[];
+  dayOfMonth: number | null;
+  summary: string;
+  nextRunOn: string | null;
+  lastRunAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspaceTaskRecurrenceSavePayload {
+  taskId: string;
+  scheduleType: WorkspaceRecurrenceScheduleType;
+  startDate: string;
+  intervalValue: number;
+  weekdays: WorkspaceRecurrenceWeekday[];
+  dayOfMonth: number | null;
+  isActive: boolean;
+}
+
+export interface WorkspaceAutomationRuleConditions {
+  taskScope: WorkspaceAutomationTaskScope;
+  sourceColumnId: string | null;
+  searchTerm: string;
+  dueDateMode: WorkspaceAutomationDueDateMode;
+}
+
+export interface WorkspaceAutomationRuleAction {
+  type: WorkspaceAutomationActionType;
+  targetColumnId: string;
+}
+
+export interface WorkspaceAutomationRule {
+  id: string;
+  boardId: string;
+  name: string;
+  trigger: WorkspaceAutomationTrigger;
+  conditions: WorkspaceAutomationRuleConditions;
+  actions: WorkspaceAutomationRuleAction[];
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspaceAutomationRuleSavePayload {
+  ruleId: string | null;
+  name: string;
+  trigger: WorkspaceAutomationTrigger;
+  conditions: WorkspaceAutomationRuleConditions;
+  actions: WorkspaceAutomationRuleAction[];
+  isActive: boolean;
+  sortOrder: number;
+}
+
 export interface WorkspaceTask {
   id: string;
   title: string;
@@ -75,6 +147,7 @@ export interface WorkspaceTask {
   attachmentCount: number;
   isRecurring: boolean;
   recurrenceLabel: string | null;
+  recurrenceRule: WorkspaceTaskRecurrenceRule | null;
   isDone: boolean;
   completedAt: string | null;
   isSharedPool: boolean;

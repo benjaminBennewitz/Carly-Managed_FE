@@ -1,0 +1,193 @@
+<!-- src/app/features/board/components/automation-rule-modal/automation-rule-modal.component.html -->
+
+@if (isOpen) {
+  <button
+    class="workspace-modal-backdrop"
+    type="button"
+    aria-label="Regelbaukasten schließen"
+    [disabled]="isSubmitting"
+    (click)="close()"
+  ></button>
+
+  <section
+    class="automation-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="automation-modal-title"
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true"
+  >
+    <header class="workspace-modal-head">
+      <div>
+        <p>Regelbaukasten</p>
+        <h2 id="automation-modal-title">{{ title }}</h2>
+      </div>
+
+      <button
+        class="ui-close-button"
+        type="button"
+        aria-label="Regelbaukasten schließen"
+        [disabled]="isSubmitting"
+        (click)="close()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <div class="automation-modal__body">
+      <section class="automation-builder">
+        <div class="automation-builder__head">
+          <div>
+            <p>{{ selectedRuleId ? 'Regel bearbeiten' : 'Neue Regel' }}</p>
+            <h3>{{ selectedRule?.name || 'Baukasten-Regel definieren' }}</h3>
+          </div>
+
+          <button
+            class="workspace-button workspace-button--secondary"
+            type="button"
+            [disabled]="isSubmitting"
+            (click)="startNewRule()"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">add</span>
+            Neue Regel
+          </button>
+        </div>
+
+        <div class="automation-builder__grid">
+          <cm-select-menu
+            label="Wenn"
+            [value]="selectedTrigger"
+            [options]="triggerOptions"
+            [disabled]="isSubmitting"
+            (valueChange)="selectTrigger($event)"
+          />
+
+          <cm-select-menu
+            label="Task"
+            [value]="selectedTaskScope"
+            [options]="taskScopeOptions"
+            [disabled]="isSubmitting"
+            (valueChange)="selectTaskScope($event)"
+          />
+
+          <cm-select-menu
+            label="Optional in Spalte"
+            [value]="sourceColumnValue"
+            [options]="sourceColumnOptions"
+            [disabled]="isSubmitting"
+            (valueChange)="selectSourceColumn($event)"
+          />
+
+          <cm-select-menu
+            label="Dann"
+            value="move_task_tree"
+            [options]="actionOptions"
+            [disabled]="true"
+          />
+
+          <label class="automation-builder__field">
+            <span>Suchbegriff</span>
+            <input
+              type="text"
+              maxlength="120"
+              placeholder="z. B. Etikett"
+              [disabled]="isSubmitting"
+              [value]="selectedSearchTerm"
+              (input)="selectedSearchTerm = $any($event.target).value"
+            />
+          </label>
+
+          <cm-select-menu
+            label="Datum"
+            [value]="selectedDueDateMode"
+            [options]="dueDateOptions"
+            [disabled]="isSubmitting"
+            (valueChange)="selectDueDateMode($event)"
+          />
+        </div>
+
+        <cm-select-menu
+          label="Zielspalte"
+          [value]="selectedTargetColumnId"
+          [options]="targetColumnOptions"
+          placeholder="Zielspalte auswählen"
+          [disabled]="isSubmitting"
+          (valueChange)="selectTargetColumn($event)"
+        />
+
+        <button
+          class="workspace-button workspace-button--primary automation-builder__save"
+          type="button"
+          [disabled]="!canSave"
+          (click)="save()"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">save</span>
+          {{ saveButtonLabel }}
+        </button>
+      </section>
+
+      <section class="automation-list">
+        <header>
+          <div>
+            <p>Board-Kontext</p>
+            <h3>Definierte Regeln</h3>
+          </div>
+          <span>{{ rules.length }}</span>
+        </header>
+
+        <div class="automation-list__scroll">
+          @for (rule of rules; track rule.id) {
+            <article
+              class="automation-rule"
+              [class.automation-rule--selected]="rule.id === selectedRuleId"
+              tabindex="0"
+              role="button"
+              (click)="loadRule(rule)"
+              (keydown.enter)="loadRule(rule)"
+            >
+              <div class="automation-rule__content">
+                <div class="automation-rule__title-row">
+                  <strong>{{ rule.name }}</strong>
+                  <span [class.is-active]="rule.isActive">
+                    {{ rule.isActive ? 'Aktiv' : 'Pausiert' }}
+                  </span>
+                </div>
+                <p>{{ getRuleSummary(rule) }}</p>
+                <small>{{ getRuleParameters(rule) }}</small>
+              </div>
+
+              <div class="automation-rule__actions" (click)="$event.stopPropagation()">
+                <button
+                  class="automation-rule__toggle"
+                  type="button"
+                  [attr.aria-label]="rule.isActive ? 'Regel pausieren' : 'Regel aktivieren'"
+                  [attr.aria-pressed]="rule.isActive"
+                  [disabled]="isSubmitting"
+                  (click)="toggle(rule)"
+                >
+                  <span aria-hidden="true"></span>
+                </button>
+
+                <button
+                  class="automation-rule__delete"
+                  type="button"
+                  aria-label="Regel löschen"
+                  [disabled]="isSubmitting"
+                  (click)="remove(rule)"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                </button>
+              </div>
+            </article>
+          } @empty {
+            <div class="workspace-modal-empty">
+              <span class="material-symbols-outlined" aria-hidden="true">automation</span>
+              <strong>Noch keine Regeln</strong>
+              <p>Definiere oben den ersten Ablauf für dieses Board.</p>
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+  </section>
+}

@@ -6,13 +6,17 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { canReleaseTaskToPool, isOnDemandReadyTask } from '../../../../core/workspace/task-rules';
+import { WorkspaceAutomationService } from '../../../../core/workspace/workspace-automation.service';
 import {
   BoardViewMode,
   TaskPriority,
+  WorkspaceAutomationRuleSavePayload,
   WorkspaceColumn,
   WorkspaceColumnSortMode,
   WorkspaceMember,
   WorkspaceTask,
+  WorkspaceTaskRecurrenceRule,
+  WorkspaceTaskRecurrenceSavePayload,
 } from '../../../../core/workspace/workspace.models';
 import { WorkspaceDisplayPreferencesService } from '../../../../core/workspace/workspace-display-preferences.service';
 import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
@@ -22,7 +26,15 @@ import {
   SelectMenuOption,
 } from '../../../../shared/ui/select-menu/select-menu.component';
 import { WorkspaceTaskCardComponent } from '../../../../shared/ui/workspace-task-card/workspace-task-card.component';
+import {
+  AutomationRuleModalComponent,
+  AutomationRuleStateTogglePayload,
+} from '../../components/automation-rule-modal/automation-rule-modal.component';
 import { BoardColumnComponent } from '../../components/board-column/board-column.component';
+import {
+  TaskRecurrenceModalComponent,
+  TaskRecurrenceStateTogglePayload,
+} from '../../components/task-recurrence-modal/task-recurrence-modal.component';
 
 const COLUMN_COLOR_OPTIONS: readonly SelectMenuOption[] = [
   { value: '#7752B3', label: 'Violett', color: '#7752B3' },
@@ -46,11 +58,13 @@ type TaskDrawerTab = 'details' | 'subtasks' | 'comments' | 'attachments' | 'hist
 @Component({
   selector: 'cm-board-page',
   imports: [
+    AutomationRuleModalComponent,
     BoardColumnComponent,
     CdkDropList,
     MemberSelectComponent,
     RouterLink,
     SelectMenuComponent,
+    TaskRecurrenceModalComponent,
     WorkspaceTaskCardComponent,
   ],
   templateUrl: './board-page.component.html',
@@ -63,6 +77,7 @@ type TaskDrawerTab = 'details' | 'subtasks' | 'comments' | 'attachments' | 'hist
 export class BoardPageComponent {
   protected readonly workspaceService: WorkspacePreviewService;
   protected readonly displayPreferences: WorkspaceDisplayPreferencesService;
+  protected readonly automationService: WorkspaceAutomationService;
   protected readonly columnColorOptions = COLUMN_COLOR_OPTIONS;
   protected readonly priorityOptions = PRIORITY_OPTIONS;
 
@@ -81,7 +96,9 @@ export class BoardPageComponent {
   protected readonly collaboratorSelection = signal<string | null>(null);
   protected readonly attachmentDragActive = signal(false);
   protected readonly projectActionsOpen = signal(false);
-  protected readonly activeUtilityPanel = signal<'rules' | 'recurrence' | null>(null);
+  protected readonly automationModalOpen = signal(false);
+  protected readonly recurrenceModalOpen = signal(false);
+  protected readonly recurrenceEditorTaskId = signal<string | null>(null);
 
   protected readonly project = computed(() =>
     this.projectId() === 'personal' ? null : this.workspaceService.getProject(this.projectId()),
@@ -103,6 +120,30 @@ export class BoardPageComponent {
   protected readonly listRows = computed(() =>
     this.columns().flatMap((column) => column.tasks.map((task) => ({ column, task }))),
   );
+  protected readonly automationRules = computed(() =>
+    this.automationService.getRules(this.projectId()),
+  );
+  protected readonly activeAutomationRuleCount = computed(() =>
+    this.automationService.getActiveRuleCount(this.projectId()),
+  );
+  protected readonly recurrenceRules = computed(() =>
+    this.workspaceService.getRecurrenceRules(this.projectId()),
+  );
+  protected readonly activeRecurrenceRuleCount = computed(
+    () => this.recurrenceRules().filter((rule) => rule.isActive).length,
+  );
+  protected readonly recurrenceEditorTask = computed(() => {
+    const taskId = this.recurrenceEditorTaskId();
+    if (!taskId) {
+      return null;
+    }
+
+    return (
+      this.columns()
+        .flatMap((column) => column.tasks)
+        .find((task) => task.id === taskId) ?? null
+    );
+  });
   protected readonly scheduleLabel = computed(() => {
     const project = this.project();
     if (!project) {
@@ -144,17 +185,19 @@ export class BoardPageComponent {
     route: ActivatedRoute,
     workspaceService: WorkspacePreviewService,
     displayPreferences: WorkspaceDisplayPreferencesService,
+    automationService: WorkspaceAutomationService,
     destroyRef: DestroyRef,
   ) {
     this.workspaceService = workspaceService;
     this.displayPreferences = displayPreferences;
+    this.automationService = automationService;
 
     route.paramMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const projectId = params.get('projectId') ?? 'personal';
       this.projectId.set(projectId);
       this.columns.set(this.workspaceService.getBoard(projectId));
       this.resetDrawerImmediately();
-      this.activeUtilityPanel.set(null);
+      this.closeWorkspaceModals();
 
       if (projectId !== 'personal') {
         this.workspaceService.markProjectOpened(projectId);
@@ -665,9 +708,108 @@ export class BoardPageComponent {
     this.closeTask();
   }
 
-  /** Öffnet oder schließt einen Board-Hilfsbereich. */
-  toggleUtilityPanel(panel: 'rules' | 'recurrence'): void {
-    this.activeUtilityPanel.update((activePanel) => (activePanel === panel ? null : panel));
+  /** Öffnet den Regelbaukasten für das aktuelle Board. */
+  openAutomationModal(): void {
+    this.recurrenceModalOpen.set(false);
+    this.recurrenceEditorTaskId.set(null);
+    this.automationModalOpen.set(true);
+  }
+
+  /** Schließt den Regelbaukasten. */
+  closeAutomationModal(): void {
+    this.automationModalOpen.set(false);
+  }
+
+  /** Erstellt oder aktualisiert eine Boardregel. */
+  saveAutomationRule(payload: WorkspaceAutomationRuleSavePayload): void {
+    this.automationService.saveRule(this.projectId(), payload);
+  }
+
+  /** Schaltet eine Boardregel aktiv oder inaktiv. */
+  toggleAutomationRule(payload: AutomationRuleStateTogglePayload): void {
+    this.automationService.toggleRule(this.projectId(), payload.ruleId, payload.isActive);
+  }
+
+  /** Entfernt eine Boardregel. */
+  deleteAutomationRule(ruleId: string): void {
+    this.automationService.deleteRule(this.projectId(), ruleId);
+  }
+
+  /** Öffnet die Übersicht aller Wiederholungen des aktuellen Boards. */
+  openRecurrenceOverview(): void {
+    this.automationModalOpen.set(false);
+    this.recurrenceEditorTaskId.set(null);
+    this.recurrenceModalOpen.set(true);
+  }
+
+  /** Öffnet die Wiederholungsregel einer konkreten Aufgabe. */
+  openTaskRecurrence(task: WorkspaceTask): void {
+    if (!task.isRecurring || !task.recurrenceRule) {
+      return;
+    }
+
+    this.automationModalOpen.set(false);
+    this.recurrenceEditorTaskId.set(task.id);
+    this.recurrenceModalOpen.set(true);
+  }
+
+  /** Öffnet aus der Übersicht den Editor einer Wiederholungsregel. */
+  openRecurrenceRule(rule: WorkspaceTaskRecurrenceRule): void {
+    this.recurrenceEditorTaskId.set(rule.taskId);
+  }
+
+  /** Schließt die Wiederholungsverwaltung. */
+  closeRecurrenceModal(): void {
+    this.recurrenceModalOpen.set(false);
+    this.recurrenceEditorTaskId.set(null);
+  }
+
+  /** Reserviert oder entfernt die Wiederholung der geöffneten Aufgabe. */
+  toggleSelectedTaskRecurrence(enabled: boolean): void {
+    const task = this.selectedTask();
+    if (!task || this.taskEditingDisabled()) {
+      return;
+    }
+
+    this.applyTaskColumns(
+      this.workspaceService.reserveTaskRecurrence(this.projectId(), task.id, enabled),
+      task.id,
+    );
+  }
+
+  /** Speichert die Parameter einer Task-Wiederholung. */
+  saveRecurrenceRule(payload: WorkspaceTaskRecurrenceSavePayload): void {
+    this.applyTaskColumns(
+      this.workspaceService.saveTaskRecurrence(this.projectId(), payload),
+      payload.taskId,
+    );
+    this.closeRecurrenceModal();
+  }
+
+  /** Schaltet eine Task-Wiederholung aktiv oder inaktiv. */
+  toggleRecurrenceRule(payload: TaskRecurrenceStateTogglePayload): void {
+    const nextColumns = this.workspaceService.toggleTaskRecurrence(
+      this.projectId(),
+      payload.taskId,
+      payload.isActive,
+    );
+    this.columns.set(nextColumns);
+    if (this.selectedTask()?.id === payload.taskId) {
+      this.syncSelectedTask(payload.taskId);
+    }
+  }
+
+  /** Entfernt eine Task-Wiederholung. */
+  deleteRecurrenceRule(taskId: string): void {
+    const editorWasOpen = this.recurrenceEditorTaskId() === taskId;
+    const nextColumns = this.workspaceService.deleteTaskRecurrence(this.projectId(), taskId);
+    this.columns.set(nextColumns);
+    if (this.selectedTask()?.id === taskId) {
+      this.syncSelectedTask(taskId);
+    }
+    if (editorWasOpen) {
+      this.closeRecurrenceModal();
+    }
   }
 
   /** Liefert den sichtbaren Projektstatus. */
@@ -772,6 +914,13 @@ export class BoardPageComponent {
     this.collaboratorSelection.set(null);
     this.attachmentDragActive.set(false);
   }
+  /** Schließt alle boardbezogenen Modals beim Kontextwechsel. */
+  private closeWorkspaceModals(): void {
+    this.automationModalOpen.set(false);
+    this.recurrenceModalOpen.set(false);
+    this.recurrenceEditorTaskId.set(null);
+  }
+
   /** Ermittelt ein gültiges Standarddatum für einen neu aktivierten Zeitraum. */
   private getDefaultStartDate(dueDate: string | null): string {
     const now = new Date();

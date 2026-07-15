@@ -1,0 +1,340 @@
+<!-- src/app/features/board/components/task-recurrence-modal/task-recurrence-modal.component.html -->
+
+@if (isOpen) {
+  <button
+    class="workspace-modal-backdrop workspace-modal-backdrop--sheet"
+    type="button"
+    aria-label="Wiederholungen schließen"
+    [disabled]="isSubmitting"
+    (click)="close()"
+  ></button>
+
+  <aside
+    class="task-recurrence-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="task-recurrence-modal-title"
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true"
+  >
+    <header class="workspace-modal-head task-recurrence-modal__head">
+      <div>
+        <p>{{ isEditorMode ? 'Task-Regel' : 'Board-Kontext' }}</p>
+        <h2 id="task-recurrence-modal-title">
+          {{ isEditorMode ? editorTask?.title : title }}
+        </h2>
+      </div>
+
+      <button
+        class="ui-close-button"
+        type="button"
+        aria-label="Wiederholungen schließen"
+        [disabled]="isSubmitting"
+        (click)="close()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <div class="task-recurrence-modal__body">
+      @if (isEditorMode && editorDraft; as draft) {
+        <section class="task-recurrence-editor">
+          <div class="task-recurrence-editor__hero">
+            <span class="material-symbols-outlined" aria-hidden="true">event_repeat</span>
+            <div>
+              <span>Wiederkehrende Aufgabe</span>
+              <strong>{{ editorTask?.title }}</strong>
+            </div>
+            <span
+              class="task-recurrence-state"
+              [class.task-recurrence-state--active]="draft.isActive"
+            >
+              {{ draft.isActive ? 'Aktiv' : 'Vorbereitet' }}
+            </span>
+          </div>
+
+          @if (editorTask?.isDone) {
+            <div class="task-recurrence-editor__locked" role="status">
+              <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+              <div>
+                <strong>Aufgabe abgeschlossen</strong>
+                <span>Die Regel kann nach dem Wiederöffnen der Aufgabe bearbeitet werden.</span>
+              </div>
+            </div>
+          }
+
+          <div class="task-recurrence-editor__switch-card">
+            <div>
+              <strong>Regelstatus</strong>
+              <span>Aktive Regeln erzeugen den nächsten geplanten Durchlauf.</span>
+            </div>
+            <button
+              class="workspace-switch"
+              type="button"
+              [class.workspace-switch--active]="draft.isActive"
+              [attr.aria-pressed]="draft.isActive"
+              [attr.aria-label]="
+                draft.isActive ? 'Wiederholung pausieren' : 'Wiederholung aktivieren'
+              "
+              [disabled]="editorLocked"
+              (click)="toggleEditorState()"
+            >
+              <span aria-hidden="true"></span>
+            </button>
+          </div>
+
+          <section class="task-recurrence-editor__section">
+            <header>
+              <span>01</span>
+              <div>
+                <strong>Rhythmus</strong>
+                <p>Lege fest, nach welchem Muster die Aufgabe erneut bereitsteht.</p>
+              </div>
+            </header>
+
+            <div
+              class="task-recurrence-editor__type-grid"
+              role="group"
+              aria-label="Wiederholungstyp"
+            >
+              <button
+                type="button"
+                [class.is-active]="draft.scheduleType === 'weekly_days'"
+                [attr.aria-pressed]="draft.scheduleType === 'weekly_days'"
+                [disabled]="editorLocked"
+                (click)="setScheduleType('weekly_days')"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">date_range</span>
+                Wochentage
+              </button>
+              <button
+                type="button"
+                [class.is-active]="draft.scheduleType === 'interval_days'"
+                [attr.aria-pressed]="draft.scheduleType === 'interval_days'"
+                [disabled]="editorLocked"
+                (click)="setScheduleType('interval_days')"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">timer</span>
+                Tagesintervall
+              </button>
+              <button
+                type="button"
+                [class.is-active]="draft.scheduleType === 'monthly_day'"
+                [attr.aria-pressed]="draft.scheduleType === 'monthly_day'"
+                [disabled]="editorLocked"
+                (click)="setScheduleType('monthly_day')"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+                Monatlich
+              </button>
+            </div>
+          </section>
+
+          <section class="task-recurrence-editor__section">
+            <header>
+              <span>02</span>
+              <div>
+                <strong>Zeitplan</strong>
+                <p>Startdatum und konkrete Ausführungstage bestimmen.</p>
+              </div>
+            </header>
+
+            <label class="task-recurrence-editor__field">
+              <span>Startdatum</span>
+              <input
+                type="date"
+                [disabled]="editorLocked"
+                [value]="draft.startDate"
+                (input)="updateStartDate($any($event.target).value)"
+              />
+            </label>
+
+            @if (draft.scheduleType === 'weekly_days') {
+              <div
+                class="task-recurrence-editor__weekday-grid"
+                role="group"
+                aria-label="Wochentage"
+              >
+                @for (weekday of weekdayOptions; track weekday.value) {
+                  <button
+                    type="button"
+                    [class.is-active]="isWeekdaySelected(weekday.value)"
+                    [attr.aria-pressed]="isWeekdaySelected(weekday.value)"
+                    [disabled]="editorLocked"
+                    (click)="toggleWeekday(weekday.value)"
+                  >
+                    {{ weekday.label }}
+                  </button>
+                }
+              </div>
+            }
+
+            @if (draft.scheduleType === 'interval_days') {
+              <label class="task-recurrence-editor__field">
+                <span>Alle wie viele Tage?</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="365"
+                  inputmode="numeric"
+                  [disabled]="editorLocked"
+                  [value]="draft.intervalValue"
+                  (input)="updateIntervalValue($any($event.target).value)"
+                />
+              </label>
+            }
+
+            @if (draft.scheduleType === 'monthly_day') {
+              <div class="task-recurrence-editor__inline-grid">
+                <label class="task-recurrence-editor__field">
+                  <span>Alle wie viele Monate?</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="24"
+                    inputmode="numeric"
+                    [disabled]="editorLocked"
+                    [value]="draft.intervalValue"
+                    (input)="updateIntervalValue($any($event.target).value)"
+                  />
+                </label>
+                <label class="task-recurrence-editor__field">
+                  <span>Tag im Monat</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="31"
+                    inputmode="numeric"
+                    [disabled]="editorLocked"
+                    [value]="draft.dayOfMonth"
+                    (input)="updateDayOfMonth($any($event.target).value)"
+                  />
+                </label>
+              </div>
+            }
+          </section>
+
+          @if (editorTask?.recurrenceRule; as currentRule) {
+            <section class="task-recurrence-editor__meta">
+              <div>
+                <span>Nächster Durchlauf</span>
+                <strong>{{ formatDate(currentRule.nextRunOn) }}</strong>
+              </div>
+              <div>
+                <span>Zuletzt ausgeführt</span>
+                <strong>{{ formatDateTime(currentRule.lastRunAt) }}</strong>
+              </div>
+            </section>
+          }
+        </section>
+      } @else {
+        <section class="task-recurrence-list">
+          <header class="task-recurrence-list__intro">
+            <div>
+              <p>Geplante Abläufe</p>
+              <h3>Wiederkehrende Aufgaben</h3>
+            </div>
+            <span>{{ rules.length }}</span>
+          </header>
+
+          @for (rule of rules; track rule.id) {
+            <article
+              class="task-recurrence-rule"
+              tabindex="0"
+              role="button"
+              [class.task-recurrence-rule--locked]="rule.taskIsDone"
+              (click)="openTask(rule)"
+              (keydown.enter)="openTask(rule)"
+            >
+              <div class="task-recurrence-rule__main">
+                <header>
+                  <strong>{{ rule.taskTitle }}</strong>
+                  <span
+                    class="task-recurrence-state"
+                    [class.task-recurrence-state--active]="rule.isActive"
+                  >
+                    {{ rule.isActive ? 'Aktiv' : 'Vorbereitet' }}
+                  </span>
+                </header>
+                <p>{{ rule.summary }}</p>
+                <div class="task-recurrence-rule__meta">
+                  <span>
+                    <span class="material-symbols-outlined" aria-hidden="true">event_upcoming</span>
+                    {{ formatDate(rule.nextRunOn) }}
+                  </span>
+                  <span>
+                    <span class="material-symbols-outlined" aria-hidden="true">history</span>
+                    {{ formatDateTime(rule.lastRunAt) }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="task-recurrence-rule__actions" (click)="$event.stopPropagation()">
+                <button
+                  class="workspace-switch"
+                  type="button"
+                  [class.workspace-switch--active]="rule.isActive"
+                  [attr.aria-pressed]="rule.isActive"
+                  [attr.aria-label]="
+                    rule.isActive ? 'Wiederholung pausieren' : 'Wiederholung aktivieren'
+                  "
+                  [disabled]="isSubmitting || rule.taskIsDone"
+                  (click)="toggleRule(rule, $event)"
+                >
+                  <span aria-hidden="true"></span>
+                </button>
+                <button
+                  class="task-recurrence-rule__delete"
+                  type="button"
+                  aria-label="Wiederholung löschen"
+                  [disabled]="isSubmitting || rule.taskIsDone"
+                  (click)="deleteListRule(rule, $event)"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                </button>
+              </div>
+            </article>
+          } @empty {
+            <div class="workspace-modal-empty">
+              <span class="material-symbols-outlined" aria-hidden="true">event_repeat</span>
+              <strong>Keine Wiederholungen</strong>
+              <p>Reservierte Task-Regeln erscheinen gesammelt in dieser Übersicht.</p>
+            </div>
+          }
+        </section>
+      }
+    </div>
+
+    @if (isEditorMode && editorDraft; as draft) {
+      <footer class="task-recurrence-modal__foot">
+        <button
+          class="workspace-button workspace-button--danger"
+          type="button"
+          [disabled]="editorLocked"
+          (click)="requestDelete(draft.taskId)"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+          Regel löschen
+        </button>
+        <span></span>
+        <button
+          class="workspace-button workspace-button--secondary"
+          type="button"
+          [disabled]="isSubmitting"
+          (click)="close()"
+        >
+          Schließen
+        </button>
+        <button
+          class="workspace-button workspace-button--primary"
+          type="button"
+          [disabled]="!canSave"
+          (click)="save()"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">save</span>
+          Regel speichern
+        </button>
+      </footer>
+    }
+  </aside>
+}

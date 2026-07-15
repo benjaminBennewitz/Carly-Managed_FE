@@ -80,6 +80,8 @@ Carly-Managed_FE/
 │   │   │       ├── task-rules.spec.ts
 │   │   │       ├── task-rules.ts
 │   │   │       ├── workspace.models.ts
+│   │   │       ├── workspace-automation.service.spec.ts
+│   │   │       ├── workspace-automation.service.ts
 │   │   │       ├── workspace-display-preferences.service.spec.ts
 │   │   │       ├── workspace-display-preferences.service.ts
 │   │   │       ├── workspace-preview.service.spec.ts
@@ -103,10 +105,18 @@ Carly-Managed_FE/
 │   │   │   │           └── register-page.component.ts
 │   │   │   ├── board/
 │   │   │   │   ├── components/
-│   │   │   │   │   └── board-column/
-│   │   │   │   │       ├── board-column.component.html
-│   │   │   │   │       ├── board-column.component.scss
-│   │   │   │   │       └── board-column.component.ts
+│   │   │   │   │   ├── automation-rule-modal/
+│   │   │   │   │   │   ├── automation-rule-modal.component.html
+│   │   │   │   │   │   ├── automation-rule-modal.component.scss
+│   │   │   │   │   │   └── automation-rule-modal.component.ts
+│   │   │   │   │   ├── board-column/
+│   │   │   │   │   │   ├── board-column.component.html
+│   │   │   │   │   │   ├── board-column.component.scss
+│   │   │   │   │   │   └── board-column.component.ts
+│   │   │   │   │   └── task-recurrence-modal/
+│   │   │   │   │       ├── task-recurrence-modal.component.html
+│   │   │   │   │       ├── task-recurrence-modal.component.scss
+│   │   │   │   │       └── task-recurrence-modal.component.ts
 │   │   │   │   └── pages/
 │   │   │   │       └── board-page/
 │   │   │   │           ├── board-page.component.html
@@ -220,6 +230,7 @@ Carly-Managed_FE/
 │   │   │   ├── _workspace-archive.scss
 │   │   │   ├── _workspace-board.scss
 │   │   │   ├── _workspace-controls.scss
+│   │   │   ├── _workspace-modals.scss
 │   │   │   ├── _workspace-projects.scss
 │   │   │   └── _workspace-task-card.scss
 │   │   ├── settings/

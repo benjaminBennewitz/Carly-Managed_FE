@@ -3,18 +3,24 @@
 import { computed, Injectable, signal } from '@angular/core';
 
 import { releaseTaskToPool } from './task-rules';
+import { WorkspaceAutomationService } from './workspace-automation.service';
 import {
   ArchivedTaskEntry,
   TaskPriority,
   WorkspaceAttachment,
+  WorkspaceAutomationTrigger,
   WorkspaceColumn,
   WorkspaceColumnSortMode,
   WorkspaceComment,
   WorkspaceHistoryEntry,
   WorkspaceMember,
   WorkspaceProject,
+  WorkspaceRecurrenceScheduleType,
+  WorkspaceRecurrenceWeekday,
   WorkspaceSubtask,
   WorkspaceTask,
+  WorkspaceTaskRecurrenceRule,
+  WorkspaceTaskRecurrenceSavePayload,
 } from './workspace.models';
 
 const day = 86_400_000;
@@ -40,6 +46,190 @@ function isoDateTime(offsetDays: number, hour = 10): string {
   const date = new Date(Date.now() + offsetDays * day);
   date.setHours(hour, 0, 0, 0);
   return date.toISOString();
+}
+
+const RECURRENCE_WEEKDAY_LABELS: Record<WorkspaceRecurrenceWeekday, string> = {
+  MO: 'Mo',
+  TU: 'Di',
+  WE: 'Mi',
+  TH: 'Do',
+  FR: 'Fr',
+  SA: 'Sa',
+  SU: 'So',
+};
+
+const RECURRENCE_WEEKDAY_INDEX: Record<WorkspaceRecurrenceWeekday, number> = {
+  SU: 0,
+  MO: 1,
+  TU: 2,
+  WE: 3,
+  TH: 4,
+  FR: 5,
+  SA: 6,
+};
+
+function parseIsoDate(value: string): Date {
+  return new Date(`${value}T12:00:00`);
+}
+
+function dateToIso(value: Date): string {
+  return value.toISOString().slice(0, 10);
+}
+
+function getWeekdayCode(value: string): WorkspaceRecurrenceWeekday {
+  const dayIndex = parseIsoDate(value).getDay();
+  return (Object.entries(RECURRENCE_WEEKDAY_INDEX).find(([, index]) => index === dayIndex)?.[0] ??
+    'MO') as WorkspaceRecurrenceWeekday;
+}
+
+function getDaysInMonth(year: number, monthIndex: number): number {
+  return new Date(year, monthIndex + 1, 0).getDate();
+}
+
+function buildRecurrenceSummary(
+  scheduleType: WorkspaceRecurrenceScheduleType,
+  intervalValue: number,
+  weekdays: WorkspaceRecurrenceWeekday[],
+  dayOfMonth: number | null,
+): string {
+  const interval = Math.max(1, Number(intervalValue || 1));
+
+  if (scheduleType === 'weekly_days') {
+    const labels = weekdays.map((weekday) => RECURRENCE_WEEKDAY_LABELS[weekday]).join(', ');
+    return labels ? `Wöchentlich · ${labels}` : 'Wöchentlich';
+  }
+
+  if (scheduleType === 'monthly_day') {
+    const monthLabel = interval === 1 ? 'Monatlich' : `Alle ${interval} Monate`;
+    return `${monthLabel} · Tag ${dayOfMonth ?? 1}`;
+  }
+
+  return interval === 1 ? 'Täglich' : `Alle ${interval} Tage`;
+}
+
+function calculateNextRecurrenceDate(rule: WorkspaceTaskRecurrenceRule): string | null {
+  if (!rule.startDate) {
+    return null;
+  }
+
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+  const startDate = parseIsoDate(rule.startDate);
+  const cursor = startDate > today ? new Date(startDate) : new Date(today);
+
+  if (rule.scheduleType === 'weekly_days') {
+    const weekdays = rule.weekdays.length > 0 ? rule.weekdays : [getWeekdayCode(rule.startDate)];
+    for (let offset = 0; offset <= 14; offset += 1) {
+      const candidate = new Date(cursor);
+      candidate.setDate(candidate.getDate() + offset);
+      const matches = weekdays.some(
+        (weekday) => RECURRENCE_WEEKDAY_INDEX[weekday] === candidate.getDay(),
+      );
+      if (matches && candidate >= startDate) {
+        return dateToIso(candidate);
+      }
+    }
+    return rule.startDate;
+  }
+
+  if (rule.scheduleType === 'interval_days') {
+    const interval = Math.max(1, rule.intervalValue);
+    if (cursor <= startDate) {
+      return rule.startDate;
+    }
+    const elapsedDays = Math.floor((cursor.getTime() - startDate.getTime()) / day);
+    const nextStep = Math.ceil(elapsedDays / interval) * interval;
+    const candidate = new Date(startDate);
+    candidate.setDate(candidate.getDate() + nextStep);
+    return dateToIso(candidate);
+  }
+
+  const interval = Math.max(1, rule.intervalValue);
+  const targetDay = Math.max(1, Math.min(31, rule.dayOfMonth ?? startDate.getDate()));
+  const startMonthIndex = startDate.getFullYear() * 12 + startDate.getMonth();
+  const cursorMonthIndex = cursor.getFullYear() * 12 + cursor.getMonth();
+  let offsetMonths = Math.max(0, cursorMonthIndex - startMonthIndex);
+  offsetMonths = Math.ceil(offsetMonths / interval) * interval;
+
+  for (let step = 0; step < 3; step += 1) {
+    const absoluteMonth = startMonthIndex + offsetMonths + step * interval;
+    const year = Math.floor(absoluteMonth / 12);
+    const month = absoluteMonth % 12;
+    const candidate = new Date(year, month, Math.min(targetDay, getDaysInMonth(year, month)), 12);
+    if (candidate >= cursor && candidate >= startDate) {
+      return dateToIso(candidate);
+    }
+  }
+
+  return rule.startDate;
+}
+
+function createDefaultRecurrenceRule(
+  taskId: string,
+  taskTitle: string,
+  boardId: string,
+  startDate: string,
+): WorkspaceTaskRecurrenceRule {
+  const now = new Date().toISOString();
+  const weekdays = [getWeekdayCode(startDate)];
+  const rule: WorkspaceTaskRecurrenceRule = {
+    id: `recurrence-${taskId}`,
+    taskId,
+    taskTitle,
+    taskIsDone: false,
+    boardId,
+    scheduleType: 'weekly_days',
+    startDate,
+    intervalValue: 1,
+    weekdays,
+    dayOfMonth: null,
+    summary: buildRecurrenceSummary('weekly_days', 1, weekdays, null),
+    nextRunOn: null,
+    lastRunAt: null,
+    isActive: false,
+    createdAt: now,
+    updatedAt: now,
+  };
+  return { ...rule, nextRunOn: calculateNextRecurrenceDate(rule) };
+}
+
+function normalizeRecurrenceRule(source: WorkspaceTask): WorkspaceTaskRecurrenceRule | null {
+  if (source.recurrenceRule) {
+    const rule = {
+      ...source.recurrenceRule,
+      weekdays: [...(source.recurrenceRule.weekdays ?? [])],
+      taskTitle: source.title,
+      taskIsDone: source.isDone,
+      boardId: source.recurrenceRule.boardId || source.projectId || PERSONAL_BOARD_ID,
+    };
+    return {
+      ...rule,
+      summary: buildRecurrenceSummary(
+        rule.scheduleType,
+        rule.intervalValue,
+        rule.weekdays,
+        rule.dayOfMonth,
+      ),
+      nextRunOn: calculateNextRecurrenceDate(rule),
+    };
+  }
+
+  if (!source.isRecurring) {
+    return null;
+  }
+
+  const startDate = source.startDate ?? source.dueDate ?? isoDate(0);
+  const legacyRule = createDefaultRecurrenceRule(
+    source.id,
+    source.title,
+    source.projectId ?? PERSONAL_BOARD_ID,
+    startDate,
+  );
+  return {
+    ...legacyRule,
+    isActive: true,
+    summary: source.recurrenceLabel ?? legacyRule.summary,
+  };
 }
 
 const BEN: WorkspaceMember = {
@@ -115,6 +305,7 @@ function task(id: string, title: string, overrides: Partial<WorkspaceTask> = {})
     attachmentCount: 0,
     isRecurring: false,
     recurrenceLabel: null,
+    recurrenceRule: null,
     isDone: false,
     completedAt: null,
     isSharedPool: false,
@@ -601,6 +792,8 @@ function normalizeTaskCounters(source: WorkspaceTask): WorkspaceTask {
   const comments = source.comments ?? [];
   const attachments = source.attachments ?? [];
 
+  const recurrenceRule = normalizeRecurrenceRule(source);
+
   return {
     ...source,
     subtasks,
@@ -608,6 +801,9 @@ function normalizeTaskCounters(source: WorkspaceTask): WorkspaceTask {
     attachments,
     history: source.history ?? [],
     collaborators: source.collaborators ?? [],
+    isRecurring: recurrenceRule !== null,
+    recurrenceLabel: recurrenceRule?.summary ?? null,
+    recurrenceRule,
     requiresReview: source.requiresReview ?? false,
     reviewHint: source.reviewHint ?? null,
     createdOutsideColumn: source.createdOutsideColumn ?? false,
@@ -638,6 +834,9 @@ function cloneTask(source: WorkspaceTask): WorkspaceTask {
       ...item,
       actor: cloneMember(item.actor),
     })),
+    recurrenceRule: source.recurrenceRule
+      ? { ...source.recurrenceRule, weekdays: [...source.recurrenceRule.weekdays] }
+      : null,
   });
 }
 
@@ -767,7 +966,7 @@ export class WorkspacePreviewService {
       );
   });
 
-  constructor() {
+  constructor(private readonly automationService: WorkspaceAutomationService) {
     this.reconcileWorkspaceIntake();
     this.persistBoards();
   }
@@ -926,6 +1125,7 @@ export class WorkspacePreviewService {
    */
   toggleTaskCompleted(projectId: string, taskId: string): WorkspaceColumn[] {
     const currentTask = this.findTask(taskId);
+    const sourceColumnId = this.findTaskColumnId(projectId, taskId);
     if (!currentTask) {
       return this.getBoard(projectId);
     }
@@ -942,6 +1142,12 @@ export class WorkspacePreviewService {
       completed ? 'task_alt' : 'restart_alt',
     );
     this.replaceTaskEverywhere(taskId, updatedTask);
+    this.applyAutomationMove(
+      projectId,
+      completed ? 'task.completed' : 'task.reopened',
+      taskId,
+      sourceColumnId,
+    );
     this.reconcileWorkspaceIntake();
     this.persistBoards();
     this.touchProject(projectId);
@@ -1011,6 +1217,9 @@ export class WorkspacePreviewService {
       [projectId]: this.normalizeDynamicColumns(projectId, cloneColumns(columns)),
     }));
     this.replaceTaskEverywhere(taskId, taskWithHistory);
+    if (sourceColumnId !== targetColumnId) {
+      this.applyAutomationMove(projectId, 'column.entered', taskId, targetColumnId);
+    }
     this.reconcileWorkspaceIntake();
     this.persistBoards();
     this.touchProject(projectId);
@@ -1077,6 +1286,9 @@ export class WorkspacePreviewService {
         : column,
     );
     this.saveBoard(projectId, columns);
+    this.applyAutomationMove(projectId, 'task.created', newTask.id, columnId);
+    this.reconcileWorkspaceIntake();
+    this.persistBoards();
     return this.getBoard(projectId);
   }
 
@@ -1159,6 +1371,147 @@ export class WorkspacePreviewService {
     return nextColumns;
   }
 
+  /** Liefert alle Wiederholungsregeln des aktuellen Boardkontexts. */
+  getRecurrenceRules(projectId: string): WorkspaceTaskRecurrenceRule[] {
+    const uniqueRules = new Map<string, WorkspaceTaskRecurrenceRule>();
+
+    this.getBoard(projectId)
+      .flatMap((column) => column.tasks)
+      .forEach((currentTask) => {
+        if (currentTask.recurrenceRule && !uniqueRules.has(currentTask.id)) {
+          uniqueRules.set(currentTask.id, {
+            ...currentTask.recurrenceRule,
+            taskTitle: currentTask.title,
+            taskIsDone: currentTask.isDone,
+            weekdays: [...currentTask.recurrenceRule.weekdays],
+          });
+        }
+      });
+
+    return [...uniqueRules.values()].sort((left, right) =>
+      (left.nextRunOn ?? '9999-12-31').localeCompare(right.nextRunOn ?? '9999-12-31'),
+    );
+  }
+
+  /** Reserviert oder entfernt eine Wiederholung für eine Aufgabe. */
+  reserveTaskRecurrence(projectId: string, taskId: string, enabled: boolean): WorkspaceColumn[] {
+    return this.mutateTask(projectId, taskId, (currentTask) => {
+      if (!enabled) {
+        return this.addHistory(
+          {
+            ...currentTask,
+            isRecurring: false,
+            recurrenceLabel: null,
+            recurrenceRule: null,
+            updatedAt: new Date().toISOString(),
+          },
+          'Wiederholung entfernt',
+          'repeat_on',
+        );
+      }
+
+      const startDate = currentTask.startDate ?? currentTask.dueDate ?? isoDate(0);
+      const recurrenceRule =
+        currentTask.recurrenceRule ??
+        createDefaultRecurrenceRule(currentTask.id, currentTask.title, projectId, startDate);
+
+      return this.addHistory(
+        {
+          ...currentTask,
+          isRecurring: true,
+          recurrenceLabel: recurrenceRule.summary,
+          recurrenceRule,
+          updatedAt: new Date().toISOString(),
+        },
+        'Wiederholung vorbereitet',
+        'repeat',
+      );
+    });
+  }
+
+  /** Speichert die Regelparameter einer wiederkehrenden Aufgabe. */
+  saveTaskRecurrence(
+    projectId: string,
+    payload: WorkspaceTaskRecurrenceSavePayload,
+  ): WorkspaceColumn[] {
+    return this.mutateTask(projectId, payload.taskId, (currentTask) => {
+      const now = new Date().toISOString();
+      const intervalValue = Math.max(1, Number(payload.intervalValue || 1));
+      const weekdays = [...payload.weekdays];
+      const summary = buildRecurrenceSummary(
+        payload.scheduleType,
+        intervalValue,
+        weekdays,
+        payload.dayOfMonth,
+      );
+      const recurrenceRule: WorkspaceTaskRecurrenceRule = {
+        id: currentTask.recurrenceRule?.id ?? `recurrence-${currentTask.id}`,
+        taskId: currentTask.id,
+        taskTitle: currentTask.title,
+        taskIsDone: currentTask.isDone,
+        boardId: projectId,
+        scheduleType: payload.scheduleType,
+        startDate: payload.startDate,
+        intervalValue,
+        weekdays,
+        dayOfMonth: payload.scheduleType === 'monthly_day' ? payload.dayOfMonth : null,
+        summary,
+        nextRunOn: null,
+        lastRunAt: currentTask.recurrenceRule?.lastRunAt ?? null,
+        isActive: payload.isActive,
+        createdAt: currentTask.recurrenceRule?.createdAt ?? now,
+        updatedAt: now,
+      };
+      recurrenceRule.nextRunOn = calculateNextRecurrenceDate(recurrenceRule);
+
+      return this.addHistory(
+        {
+          ...currentTask,
+          isRecurring: true,
+          recurrenceLabel: summary,
+          recurrenceRule,
+          updatedAt: now,
+        },
+        'Wiederholungsregel gespeichert',
+        'event_repeat',
+      );
+    });
+  }
+
+  /** Schaltet eine bestehende Wiederholungsregel aktiv oder inaktiv. */
+  toggleTaskRecurrence(projectId: string, taskId: string, isActive: boolean): WorkspaceColumn[] {
+    return this.mutateTask(projectId, taskId, (currentTask) => {
+      if (!currentTask.recurrenceRule) {
+        return currentTask;
+      }
+
+      const recurrenceRule = {
+        ...currentTask.recurrenceRule,
+        taskTitle: currentTask.title,
+        taskIsDone: currentTask.isDone,
+        isActive,
+        updatedAt: new Date().toISOString(),
+      };
+      recurrenceRule.nextRunOn = calculateNextRecurrenceDate(recurrenceRule);
+
+      return this.addHistory(
+        {
+          ...currentTask,
+          recurrenceRule,
+          recurrenceLabel: recurrenceRule.summary,
+          updatedAt: recurrenceRule.updatedAt,
+        },
+        isActive ? 'Wiederholung aktiviert' : 'Wiederholung pausiert',
+        isActive ? 'play_circle' : 'pause_circle',
+      );
+    });
+  }
+
+  /** Entfernt eine Wiederholungsregel vollständig. */
+  deleteTaskRecurrence(projectId: string, taskId: string): WorkspaceColumn[] {
+    return this.reserveTaskRecurrence(projectId, taskId, false);
+  }
+
   /**
    * Aktualisiert die bearbeitbaren Kerndaten einer Aufgabe.
    */
@@ -1174,7 +1527,7 @@ export class WorkspacePreviewService {
     historyAction = 'Aufgabe aktualisiert',
     historyIcon = 'edit_note',
   ): WorkspaceColumn[] {
-    return this.mutateTask(projectId, taskId, (currentTask) => {
+    const updatedColumns = this.mutateTask(projectId, taskId, (currentTask) => {
       const nextTitle = changes.title?.trim().slice(0, MAX_TASK_TITLE_LENGTH);
       const nextDescription = changes.description?.trim().slice(0, MAX_TASK_DESCRIPTION_LENGTH);
       const nextTask = {
@@ -1187,6 +1540,20 @@ export class WorkspacePreviewService {
 
       return this.addHistory(nextTask, historyAction, historyIcon);
     });
+
+    if ('assignee' in changes && changes.assignee) {
+      this.applyAutomationMove(
+        projectId,
+        'task.assigned',
+        taskId,
+        this.findTaskColumnId(projectId, taskId),
+      );
+      this.reconcileWorkspaceIntake();
+      this.persistBoards();
+      return this.getBoard(projectId);
+    }
+
+    return updatedColumns;
   }
 
   /**
@@ -1383,6 +1750,59 @@ export class WorkspacePreviewService {
       `Priorität auf ${priority} gesetzt`,
       'flag',
     );
+  }
+
+  /** Liefert die aktuelle Spalte einer Aufgabe in einem konkreten Board. */
+  private findTaskColumnId(boardId: string, taskId: string): string | null {
+    return (
+      (this.boardsState()[boardId] ?? []).find((column) =>
+        column.tasks.some((item) => item.id === taskId),
+      )?.id ?? null
+    );
+  }
+
+  /** Wendet eine passende lokale Verschieberegel auf ein Task-Ereignis an. */
+  private applyAutomationMove(
+    boardId: string,
+    trigger: WorkspaceAutomationTrigger,
+    taskId: string,
+    sourceColumnId: string | null,
+  ): void {
+    const columns = this.getBoard(boardId);
+    const currentColumn = columns.find((column) => column.tasks.some((item) => item.id === taskId));
+    const currentTask = currentColumn?.tasks.find((item) => item.id === taskId);
+
+    if (!currentColumn || !currentTask) {
+      return;
+    }
+
+    const targetColumnId = this.automationService.resolveMoveTarget({
+      boardId,
+      trigger,
+      task: currentTask,
+      sourceColumnId,
+    });
+    const targetColumn = columns.find((column) => column.id === targetColumnId);
+
+    if (!targetColumn || targetColumn.id === currentColumn.id) {
+      return;
+    }
+
+    currentColumn.tasks = currentColumn.tasks.filter((item) => item.id !== taskId);
+    const automatedTask = this.addHistory(
+      { ...currentTask, updatedAt: new Date().toISOString() },
+      `Automatisch nach „${targetColumn.title}“ verschoben`,
+      'automation',
+    );
+    targetColumn.tasks = [automatedTask, ...targetColumn.tasks];
+    currentColumn.sortMode = null;
+    targetColumn.sortMode = null;
+
+    this.boardsState.update((boards) => ({
+      ...boards,
+      [boardId]: this.normalizeDynamicColumns(boardId, cloneColumns(columns)),
+    }));
+    this.replaceTaskEverywhere(taskId, automatedTask);
   }
 
   /** Wendet eine immutable Mutation auf alle Spiegelungen einer Aufgabe an. */

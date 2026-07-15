@@ -87,22 +87,29 @@
         <button
           class="head-chip head-chip--button"
           type="button"
-          [class.is-active]="activeUtilityPanel() === 'rules'"
-          (click)="toggleUtilityPanel('rules')"
+          [class.is-active]="automationModalOpen()"
+          [attr.aria-pressed]="automationModalOpen()"
+          (click)="openAutomationModal()"
         >
           <span class="material-symbols-outlined" aria-hidden="true">automation</span>
           Regeln
-          <span class="head-chip__count">2</span>
+          @if (activeAutomationRuleCount() > 0) {
+            <span class="head-chip__count">{{ activeAutomationRuleCount() }}</span>
+          }
         </button>
 
         <button
           class="head-chip head-chip--button"
           type="button"
-          [class.is-active]="activeUtilityPanel() === 'recurrence'"
-          (click)="toggleUtilityPanel('recurrence')"
+          [class.is-active]="recurrenceModalOpen()"
+          [attr.aria-pressed]="recurrenceModalOpen()"
+          (click)="openRecurrenceOverview()"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">rule_settings</span>
+          <span class="material-symbols-outlined" aria-hidden="true">event_repeat</span>
           Wiederholungen
+          @if (activeRecurrenceRuleCount() > 0) {
+            <span class="head-chip__count">{{ activeRecurrenceRuleCount() }}</span>
+          }
         </button>
 
         <span class="head-chip">
@@ -120,38 +127,6 @@
       </div>
     </div>
   </header>
-
-  @if (activeUtilityPanel(); as panel) {
-    <section
-      class="board-utility-panel"
-      [attr.aria-label]="panel === 'rules' ? 'Aktive Regeln' : 'Wiederholungen'"
-    >
-      @if (panel === 'rules') {
-        <article>
-          <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
-          <div>
-            <strong>Review automatisch zuweisen</strong>
-            <p>Neue Aufgaben in „Review“ werden der Projektleitung zugewiesen.</p>
-          </div>
-        </article>
-        <article>
-          <span class="material-symbols-outlined" aria-hidden="true">notifications_active</span>
-          <div>
-            <strong>Fälligkeit beobachten</strong>
-            <p>24 Stunden vor Ablauf erscheint eine Inbox-Benachrichtigung.</p>
-          </div>
-        </article>
-      } @else {
-        <article>
-          <span class="material-symbols-outlined" aria-hidden="true">repeat</span>
-          <div>
-            <strong>Wöchentliche Abstimmung</strong>
-            <p>Jeden Montag wird eine neue Team-Abstimmung vorbereitet.</p>
-          </div>
-        </article>
-      }
-    </section>
-  }
 
   @if (viewMode() === 'board') {
     <section class="board-wrapper" [attr.aria-label]="title() + ' Board'">
@@ -478,6 +453,59 @@
           </div>
         </div>
 
+        <section class="task-drawer__section task-drawer__recurrence">
+          <div class="task-drawer__section-head">
+            <div>
+              <span class="task-drawer__section-label">Wiederholung</span>
+              <p>Die Aufgabe nach einem festen Rhythmus erneut bereitstellen.</p>
+            </div>
+          </div>
+
+          <label class="task-recurrence-reservation">
+            <input
+              type="checkbox"
+              [disabled]="taskEditingDisabled()"
+              [checked]="task.isRecurring"
+              (change)="toggleSelectedTaskRecurrence($any($event.target).checked)"
+            />
+            <span class="task-recurrence-reservation__control" aria-hidden="true">
+              <span class="material-symbols-outlined">check</span>
+            </span>
+            <span>
+              <strong>Wiederholung reservieren</strong>
+              <small>Eine Regel für diese Aufgabe vorbereiten.</small>
+            </span>
+          </label>
+
+          @if (task.isRecurring && task.recurrenceRule; as recurrenceRule) {
+            <div class="task-recurrence-summary">
+              <div class="task-recurrence-summary__head">
+                <span
+                  class="task-recurrence-state"
+                  [class.task-recurrence-state--active]="recurrenceRule.isActive"
+                >
+                  {{ recurrenceRule.isActive ? 'Aktiv' : 'Vorbereitet' }}
+                </span>
+                <button
+                  type="button"
+                  [disabled]="task.isDone || isReadOnly()"
+                  (click)="openTaskRecurrence(task)"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">event_repeat</span>
+                  Regel öffnen
+                </button>
+              </div>
+              <strong>{{ recurrenceRule.summary }}</strong>
+              <span>
+                Nächster Durchlauf:
+                {{
+                  recurrenceRule.nextRunOn ? formatDate(recurrenceRule.nextRunOn) : 'nicht geplant'
+                }}
+              </span>
+            </div>
+          }
+        </section>
+
         <section class="task-drawer__section task-drawer__collaboration">
           <span class="task-drawer__section-label">Mitwirkende</span>
 
@@ -790,3 +818,26 @@
     </footer>
   </aside>
 }
+
+<cm-automation-rule-modal
+  [isOpen]="automationModalOpen()"
+  [title]="title() + ' · Regeln'"
+  [rules]="automationRules()"
+  [columns]="columns()"
+  (closeModal)="closeAutomationModal()"
+  (saveRule)="saveAutomationRule($event)"
+  (toggleRuleState)="toggleAutomationRule($event)"
+  (deleteRule)="deleteAutomationRule($event)"
+/>
+
+<cm-task-recurrence-modal
+  [isOpen]="recurrenceModalOpen()"
+  [title]="title() + ' · Wiederholungen'"
+  [rules]="recurrenceRules()"
+  [editorTask]="recurrenceEditorTask()"
+  (closeModal)="closeRecurrenceModal()"
+  (saveRule)="saveRecurrenceRule($event)"
+  (toggleRuleState)="toggleRecurrenceRule($event)"
+  (deleteRule)="deleteRecurrenceRule($event)"
+  (openRuleTask)="openRecurrenceRule($event)"
+/>

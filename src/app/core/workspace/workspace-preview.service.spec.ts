@@ -150,6 +150,34 @@ describe('WorkspacePreviewService', () => {
     expect(reopenedTask?.priority).toBe('niedrig');
   });
 
+  it('verschiebt erledigte Aufgaben über eine aktive Regel in die Zielspalte', () => {
+    const columns = service.toggleTaskCompleted('carly-managed', 'task-106');
+    const reviewColumn = columns.find((column) => column.id === 'review');
+
+    expect(reviewColumn?.tasks.some((task) => task.id === 'task-106')).toBe(true);
+  });
+
+  it('reserviert und speichert Wiederholungsregeln pro Aufgabe', () => {
+    service.reserveTaskRecurrence('carly-managed', 'task-101', true);
+    const columns = service.saveTaskRecurrence('carly-managed', {
+      taskId: 'task-101',
+      scheduleType: 'weekly_days',
+      startDate: '2026-07-20',
+      intervalValue: 1,
+      weekdays: ['MO', 'WE'],
+      dayOfMonth: null,
+      isActive: true,
+    });
+    const task = columns.flatMap((column) => column.tasks).find((item) => item.id === 'task-101');
+
+    expect(task?.isRecurring).toBe(true);
+    expect(task?.recurrenceRule?.isActive).toBe(true);
+    expect(task?.recurrenceRule?.weekdays).toEqual(['MO', 'WE']);
+    expect(service.getRecurrenceRules('carly-managed')).toContainEqual(
+      expect.objectContaining({ taskId: 'task-101', isActive: true }),
+    );
+  });
+
   it('spiegelt neue Projektzuweisungen in die dynamische Neu-Spalte', () => {
     const personalBoard = service.getBoard('personal');
     const newColumn = personalBoard.find((column) => column.systemRole === 'new-assigned');

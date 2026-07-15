@@ -49,6 +49,7 @@ function createTask(overrides: Partial<WorkspaceTask> = {}): WorkspaceTask {
     attachmentCount: 0,
     isRecurring: false,
     recurrenceLabel: null,
+    recurrenceRule: null,
     isDone: false,
     completedAt: null,
     isSharedPool: false,
