@@ -228,20 +228,56 @@ export class WorkspaceInboxService {
     return cloneConversation(conversation);
   }
 
-  /** Sendet eine Nachricht in eine bestehende Unterhaltung. */
+  /** Sendet eine Nachricht und fügt vorgemerkte Personen erst dabei zum Chat hinzu. */
   sendMessage(
     conversationId: string,
     body: string,
     members: readonly WorkspaceMember[],
+    invitedMemberIds: readonly string[] = [],
   ): WorkspaceConversation | null {
     const sender = this.getCurrentMember(members);
     const cleanBody = normalizeMultilineInput(body, MAX_MESSAGE_LENGTH);
+    const conversation = this.conversationsState().find((item) => item.id === conversationId);
 
-    if (!sender || !cleanBody) {
+    if (!sender || !cleanBody || !conversation) {
       return null;
     }
 
-    return this.appendOwnMessage(conversationId, '', cleanBody, sender);
+    const existingIds = new Set(conversation.participants.map((participant) => participant.id));
+    const invitationIds = new Set(invitedMemberIds);
+    const additions = members.filter(
+      (member) => invitationIds.has(member.id) && !existingIds.has(member.id),
+    );
+    const now = new Date().toISOString();
+    const message: WorkspaceChatMessage = {
+      id: createId('chat-message'),
+      kind: 'message',
+      sender: cloneMember(sender),
+      subject: null,
+      body: cleanBody,
+      createdAt: now,
+    };
+    const participantEvent = this.createParticipantEvent(additions, 'added', now);
+    let updatedConversation: WorkspaceConversation | null = null;
+
+    this.conversationsState.update((conversations) =>
+      conversations.map((item) => {
+        if (item.id !== conversationId) {
+          return item;
+        }
+
+        updatedConversation = {
+          ...item,
+          participants: [...item.participants, ...additions.map(cloneMember)],
+          messages: [...item.messages, ...(participantEvent ? [participantEvent] : []), message],
+          updatedAt: now,
+          unreadCount: 0,
+        };
+        return updatedConversation;
+      }),
+    );
+    this.persistConversations();
+    return updatedConversation ? cloneConversation(updatedConversation) : null;
   }
 
   /** Fügt einer laufenden Unterhaltung weitere Personen hinzu. */
@@ -263,15 +299,7 @@ export class WorkspaceInboxService {
     }
 
     const now = new Date().toISOString();
-    const names = additions.map((member) => member.fullName).join(', ');
-    const systemMessage: WorkspaceChatMessage = {
-      id: createId('chat-event'),
-      kind: 'system',
-      sender: null,
-      subject: null,
-      body: `${names} ${additions.length === 1 ? 'wurde' : 'wurden'} zum Chat hinzugefügt.`,
-      createdAt: now,
-    };
+    const systemMessage = this.createParticipantEvent(additions, 'added', now);
     let updatedConversation: WorkspaceConversation | null = null;
 
     this.conversationsState.update((conversations) =>
@@ -283,7 +311,50 @@ export class WorkspaceInboxService {
         updatedConversation = {
           ...item,
           participants: [...item.participants, ...additions.map(cloneMember)],
-          messages: [...item.messages, systemMessage],
+          messages: systemMessage ? [...item.messages, systemMessage] : item.messages,
+          updatedAt: now,
+        };
+        return updatedConversation;
+      }),
+    );
+    this.persistConversations();
+    return updatedConversation ? cloneConversation(updatedConversation) : null;
+  }
+
+  /** Entfernt ausgewählte Personen aus einem Gruppenchat. */
+  removeParticipants(
+    conversationId: string,
+    memberIds: readonly string[],
+  ): WorkspaceConversation | null {
+    const conversation = this.conversationsState().find((item) => item.id === conversationId);
+    if (!conversation) {
+      return null;
+    }
+
+    const removalIds = new Set(memberIds.filter((memberId) => memberId !== CURRENT_MEMBER_ID));
+    const removals = conversation.participants.filter((member) => removalIds.has(member.id));
+    const remainingParticipants = conversation.participants.filter(
+      (member) => !removalIds.has(member.id),
+    );
+
+    if (removals.length === 0 || remainingParticipants.length < 2) {
+      return cloneConversation(conversation);
+    }
+
+    const now = new Date().toISOString();
+    const systemMessage = this.createParticipantEvent(removals, 'removed', now);
+    let updatedConversation: WorkspaceConversation | null = null;
+
+    this.conversationsState.update((conversations) =>
+      conversations.map((item) => {
+        if (item.id !== conversationId) {
+          return item;
+        }
+
+        updatedConversation = {
+          ...item,
+          participants: remainingParticipants.map(cloneMember),
+          messages: systemMessage ? [...item.messages, systemMessage] : item.messages,
           updatedAt: now,
         };
         return updatedConversation;
@@ -355,6 +426,32 @@ export class WorkspaceInboxService {
   getConversation(conversationId: string): WorkspaceConversation | null {
     const conversation = this.conversationsState().find((item) => item.id === conversationId);
     return conversation ? cloneConversation(conversation) : null;
+  }
+
+  /** Erstellt ein Systemereignis für hinzugefügte oder entfernte Chatteilnehmende. */
+  private createParticipantEvent(
+    members: readonly WorkspaceMember[],
+    action: 'added' | 'removed',
+    createdAt: string,
+  ): WorkspaceChatMessage | null {
+    if (members.length === 0) {
+      return null;
+    }
+
+    const names = members.map((member) => member.fullName).join(', ');
+    const body =
+      action === 'added'
+        ? `${names} ${members.length === 1 ? 'wurde' : 'wurden'} zum Chat hinzugefügt.`
+        : `${names} ${members.length === 1 ? 'wurde' : 'wurden'} aus dem Chat entfernt.`;
+
+    return {
+      id: createId('chat-event'),
+      kind: 'system',
+      sender: null,
+      subject: null,
+      body,
+      createdAt,
+    };
   }
 
   /** Ergänzt eine eigene Nachricht in einer bestehenden Unterhaltung. */

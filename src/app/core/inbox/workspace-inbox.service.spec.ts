@@ -47,6 +47,51 @@ describe('WorkspaceInboxService', () => {
     expect(groupConversation?.messages.at(-1)?.kind).toBe('system');
   });
 
+  it('fügt vorgemerkte Personen erst gemeinsam mit der Nachricht hinzu', () => {
+    const directConversation = inboxService.createConversation(
+      {
+        participantIds: ['member-mira'],
+        subject: '',
+        body: 'Direktchat starten.',
+      },
+      workspaceService.members(),
+    );
+
+    expect(directConversation?.participants.map((member) => member.id)).not.toContain('member-lea');
+
+    const updatedConversation = inboxService.sendMessage(
+      directConversation?.id ?? '',
+      '@Lea Willkommen im Chat.',
+      workspaceService.members(),
+      ['member-lea'],
+    );
+
+    expect(updatedConversation?.participants.map((member) => member.id)).toContain('member-lea');
+    expect(updatedConversation?.messages.at(-2)?.kind).toBe('system');
+    expect(updatedConversation?.messages.at(-1)?.body).toContain('Willkommen');
+  });
+
+  it('entfernt Personen aus Gruppenchats und protokolliert die Änderung', () => {
+    const conversation = inboxService.createConversation(
+      {
+        participantIds: ['member-mira', 'member-lea'],
+        subject: 'Gruppe',
+        body: 'Gruppenchat starten.',
+      },
+      workspaceService.members(),
+    );
+
+    const updatedConversation = inboxService.removeParticipants(conversation?.id ?? '', [
+      'member-lea',
+    ]);
+
+    expect(updatedConversation?.participants.map((member) => member.id)).not.toContain(
+      'member-lea',
+    );
+    expect(updatedConversation?.participants.length).toBe(2);
+    expect(updatedConversation?.messages.at(-1)?.body).toContain('entfernt');
+  });
+
   it('erstellt Systemnachrichten aus Workspace-Aktionen', () => {
     const countBefore = inboxService.systemNotifications().length;
 

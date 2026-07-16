@@ -268,12 +268,11 @@
             <button
               type="button"
               class="inbox-panel__icon-button"
-              aria-label="Personen zum Chat hinzufügen"
-              title="Personen hinzufügen"
-              [disabled]="availableParticipantAdditions().length === 0"
-              (click)="openAddParticipantsDialog()"
+              aria-label="Chatteilnehmende verwalten"
+              title="Teilnehmende verwalten"
+              (click)="openManageParticipantsDialog()"
             >
-              <span class="material-symbols-outlined" aria-hidden="true">group_add</span>
+              <span class="material-symbols-outlined" aria-hidden="true">group</span>
             </button>
             <button
               type="button"
@@ -291,7 +290,7 @@
           @for (message of conversation.messages; track message.id) {
             @if (message.kind === 'system') {
               <div class="inbox-thread__event">
-                <span class="material-symbols-outlined" aria-hidden="true">group_add</span>
+                <span class="material-symbols-outlined" aria-hidden="true">group</span>
                 <span>{{ message.body }}</span>
                 <time [attr.datetime]="message.createdAt">{{
                   formatDateTime(message.createdAt)
@@ -342,7 +341,7 @@
                 formControlName="body"
                 rows="3"
                 maxlength="2000"
-                placeholder="Nachricht schreiben · Emoji wählen · @ tippen, um Personen hinzuzufügen"
+                placeholder="Nachricht schreiben · Emoji wählen · @ tippen, um Personen beim Senden einzuladen"
                 [attr.aria-invalid]="
                   submittedMessage() && messageForm.controls.body.invalid ? 'true' : null
                 "
@@ -362,7 +361,7 @@
                 >
                   <span class="material-symbols-outlined" aria-hidden="true">mood</span>
                 </button>
-                <span>Mit <strong>@</strong> weitere Personen zum Chat hinzufügen</span>
+                <span>Mit <strong>@</strong> Personen vormerken – Einladung erst beim Senden</span>
               </div>
 
               @if (emojiPickerOpen()) {
@@ -392,7 +391,7 @@
                     <span class="material-symbols-outlined" aria-hidden="true">group_add</span>
                     <div>
                       <strong>Person hinzufügen</strong>
-                      <small>Wird direkt Teil dieser Unterhaltung</small>
+                      <small>Wird erst beim Absenden Teil dieser Unterhaltung</small>
                     </div>
                   </header>
 
@@ -415,6 +414,24 @@
                       </button>
                     } @empty {
                       <p>Keine weiteren passenden Teammitglieder verfügbar.</p>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (pendingMentionMembers().length > 0) {
+                <div class="inbox-composer__pending" aria-label="Vorgemerkte Chat-Einladungen">
+                  <span>Wird beim Senden eingeladen:</span>
+                  <div>
+                    @for (member of pendingMentionMembers(); track member.id) {
+                      <button
+                        type="button"
+                        [attr.aria-label]="member.fullName + ' nicht einladen'"
+                        (click)="removePendingMentionParticipant(member)"
+                      >
+                        {{ member.fullName }}
+                        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                      </button>
                     }
                   </div>
                 </div>
@@ -467,8 +484,8 @@
         <span class="inbox-dialog__icon material-symbols-outlined" aria-hidden="true">
           @if (activeDialog === 'new-chat') {
             add_comment
-          } @else if (activeDialog === 'add-participants') {
-            group_add
+          } @else if (activeDialog === 'manage-participants') {
+            group
           } @else {
             delete
           }
@@ -478,8 +495,8 @@
           <h2 id="inbox-dialog-title">
             @if (activeDialog === 'new-chat') {
               Neue Unterhaltung
-            } @else if (activeDialog === 'add-participants') {
-              Personen hinzufügen
+            } @else if (activeDialog === 'manage-participants') {
+              Teilnehmende verwalten
             } @else {
               Unterhaltung entfernen
             }
@@ -573,35 +590,93 @@
             </button>
           </footer>
         </form>
-      } @else if (activeDialog === 'add-participants') {
+      } @else if (activeDialog === 'manage-participants') {
         <div class="inbox-dialog__form">
-          <div class="inbox-dialog__members">
-            <p>Aus dem bestehenden Direktchat wird automatisch ein Gruppenchat.</p>
-            <div class="inbox-dialog__member-list">
-              @for (member of availableParticipantAdditions(); track member.id) {
-                <label class="inbox-dialog__member">
-                  <input
-                    type="checkbox"
-                    [checked]="isSelected(member.id, selectedAdditionalParticipantIds())"
-                    (change)="toggleAdditionalParticipant(member.id)"
-                  />
-                  <span
-                    class="inbox-avatar"
-                    [style.background]="member.avatarColor"
-                    [style.color]="member.avatarTextColor"
-                    aria-hidden="true"
+          @if (activeConversation(); as conversation) {
+            <section class="inbox-dialog__members" aria-labelledby="current-participants-title">
+              <div class="inbox-dialog__section-heading">
+                <div>
+                  <strong id="current-participants-title">Im Chat</strong>
+                  <small>Bestehende Personen können aus Gruppenchats entfernt werden.</small>
+                </div>
+                <span>
+                  {{ getOtherParticipants(conversation).length }}
+                  {{ getOtherParticipants(conversation).length === 1 ? 'Person' : 'Personen' }}
+                </span>
+              </div>
+
+              <div class="inbox-dialog__member-list">
+                @for (member of getOtherParticipants(conversation); track member.id) {
+                  <label
+                    class="inbox-dialog__member inbox-dialog__member--removal"
+                    [class.is-disabled]="!canRemoveParticipant(conversation)"
                   >
-                    {{ member.initials }}
-                  </span>
-                  <span>
-                    <strong>{{ member.fullName }}</strong>
-                    <small>{{ member.email }}</small>
-                  </span>
-                  <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
-                </label>
+                    <input
+                      type="checkbox"
+                      [disabled]="!canRemoveParticipant(conversation)"
+                      [checked]="isSelected(member.id, selectedRemovalParticipantIds())"
+                      (change)="toggleRemovalParticipant(member.id)"
+                    />
+                    <span
+                      class="inbox-avatar"
+                      [style.background]="member.avatarColor"
+                      [style.color]="member.avatarTextColor"
+                      aria-hidden="true"
+                    >
+                      {{ member.initials }}
+                    </span>
+                    <span>
+                      <strong>{{ member.fullName }}</strong>
+                      <small>{{ member.email }}</small>
+                    </span>
+                    <span class="material-symbols-outlined" aria-hidden="true">person_remove</span>
+                  </label>
+                }
+              </div>
+
+              @if (!canRemoveParticipant(conversation)) {
+                <small class="inbox-dialog__hint">
+                  In einem Direktchat muss mindestens eine weitere Person verbleiben.
+                </small>
               }
-            </div>
-          </div>
+            </section>
+
+            @if (availableParticipantAdditions().length > 0) {
+              <section class="inbox-dialog__members" aria-labelledby="new-participants-title">
+                <div class="inbox-dialog__section-heading">
+                  <div>
+                    <strong id="new-participants-title">Weitere Personen</strong>
+                    <small>Aus einem Direktchat wird automatisch ein Gruppenchat.</small>
+                  </div>
+                </div>
+
+                <div class="inbox-dialog__member-list">
+                  @for (member of availableParticipantAdditions(); track member.id) {
+                    <label class="inbox-dialog__member">
+                      <input
+                        type="checkbox"
+                        [checked]="isSelected(member.id, selectedAdditionalParticipantIds())"
+                        (change)="toggleAdditionalParticipant(member.id)"
+                      />
+                      <span
+                        class="inbox-avatar"
+                        [style.background]="member.avatarColor"
+                        [style.color]="member.avatarTextColor"
+                        aria-hidden="true"
+                      >
+                        {{ member.initials }}
+                      </span>
+                      <span>
+                        <strong>{{ member.fullName }}</strong>
+                        <small>{{ member.email }}</small>
+                      </span>
+                      <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
+                    </label>
+                  }
+                </div>
+              </section>
+            }
+          }
 
           <footer class="inbox-dialog__actions">
             <button type="button" class="inbox-dialog__button" (click)="closeDialog()">
@@ -610,11 +685,14 @@
             <button
               type="button"
               class="inbox-dialog__button inbox-dialog__button--primary"
-              [disabled]="selectedAdditionalParticipantIds().length === 0"
-              (click)="addParticipants()"
+              [disabled]="
+                selectedAdditionalParticipantIds().length === 0 &&
+                selectedRemovalParticipantIds().length === 0
+              "
+              (click)="saveParticipantChanges()"
             >
-              <span class="material-symbols-outlined" aria-hidden="true">group_add</span>
-              Hinzufügen
+              <span class="material-symbols-outlined" aria-hidden="true">group</span>
+              Änderungen speichern
             </button>
           </footer>
         </div>

@@ -24,7 +24,7 @@ import { WorkspacePreviewService } from '../../../../core/workspace/workspace-pr
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 
 type SystemMessageFilter = 'all' | 'unread';
-type InboxDialogState = 'new-chat' | 'add-participants' | 'delete-conversation' | null;
+type InboxDialogState = 'new-chat' | 'manage-participants' | 'delete-conversation' | null;
 
 @Component({
   selector: 'cm-inbox-page',
@@ -44,6 +44,8 @@ export class InboxPageComponent {
   protected readonly dialogState = signal<InboxDialogState>(null);
   protected readonly selectedNewParticipantIds = signal<string[]>([]);
   protected readonly selectedAdditionalParticipantIds = signal<string[]>([]);
+  protected readonly selectedRemovalParticipantIds = signal<string[]>([]);
+  protected readonly pendingMentionParticipantIds = signal<string[]>([]);
   protected readonly submittedNewConversation = signal(false);
   protected readonly submittedMessage = signal(false);
   protected readonly feedback = signal('');
@@ -103,9 +105,19 @@ export class InboxPageComponent {
     const participantIds = new Set(
       this.activeConversation()?.participants.map((participant) => participant.id) ?? [],
     );
+    const pendingIds = new Set(this.pendingMentionParticipantIds());
     return this.workspaceService
       .members()
-      .filter((member) => member.id !== this.currentMemberId && !participantIds.has(member.id));
+      .filter(
+        (member) =>
+          member.id !== this.currentMemberId &&
+          !participantIds.has(member.id) &&
+          !pendingIds.has(member.id),
+      );
+  });
+  protected readonly pendingMentionMembers = computed(() => {
+    const pendingIds = new Set(this.pendingMentionParticipantIds());
+    return this.workspaceService.members().filter((member) => pendingIds.has(member.id));
   });
   protected readonly mentionSuggestionsVisible = computed(() => this.mentionQuery() !== null);
   protected readonly filteredMentionMembers = computed(() => {
@@ -180,6 +192,9 @@ export class InboxPageComponent {
   selectConversation(conversationId: string): void {
     this.selectedConversationId.set(conversationId);
     this.inboxService.markConversationRead(conversationId);
+    this.messageForm.reset({ body: '' });
+    this.submittedMessage.set(false);
+    this.pendingMentionParticipantIds.set([]);
     this.closeComposerMenus();
     this.scrollThreadToEnd();
   }
@@ -193,15 +208,16 @@ export class InboxPageComponent {
     this.dialogState.set('new-chat');
   }
 
-  /** Öffnet die Teilnehmerauswahl für den aktiven Chat. */
-  openAddParticipantsDialog(): void {
+  /** Öffnet die Verwaltung für bestehende und neue Chatteilnehmende. */
+  openManageParticipantsDialog(): void {
     this.closeComposerMenus();
-    if (!this.activeConversation() || this.availableParticipantAdditions().length === 0) {
+    if (!this.activeConversation()) {
       return;
     }
 
     this.selectedAdditionalParticipantIds.set([]);
-    this.dialogState.set('add-participants');
+    this.selectedRemovalParticipantIds.set([]);
+    this.dialogState.set('manage-participants');
   }
 
   /** Öffnet die Bestätigung zum Entfernen der aktiven Konversation. */
@@ -216,6 +232,7 @@ export class InboxPageComponent {
     this.dialogState.set(null);
     this.selectedNewParticipantIds.set([]);
     this.selectedAdditionalParticipantIds.set([]);
+    this.selectedRemovalParticipantIds.set([]);
   }
 
   /** Wählt eine Person für eine neue Unterhaltung aus oder ab. */
@@ -234,6 +251,23 @@ export class InboxPageComponent {
         ? selectedIds.filter((id) => id !== memberId)
         : [...selectedIds, memberId],
     );
+  }
+
+  /** Wählt eine bestehende Person zum Entfernen aus dem Gruppenchat aus oder ab. */
+  toggleRemovalParticipant(memberId: string): void {
+    const conversation = this.activeConversation();
+    if (!conversation || this.getOtherParticipants(conversation).length <= 1) {
+      return;
+    }
+
+    this.selectedRemovalParticipantIds.update((selectedIds) => {
+      if (selectedIds.includes(memberId)) {
+        return selectedIds.filter((id) => id !== memberId);
+      }
+
+      const maximumRemovals = this.getOtherParticipants(conversation).length - 1;
+      return selectedIds.length < maximumRemovals ? [...selectedIds, memberId] : selectedIds;
+    });
   }
 
   /** Erstellt eine neue Direkt- oder Gruppenunterhaltung. */
@@ -277,6 +311,7 @@ export class InboxPageComponent {
       conversation.id,
       this.messageForm.controls.body.value,
       this.workspaceService.members(),
+      this.pendingMentionParticipantIds(),
     );
 
     if (!updatedConversation) {
@@ -285,6 +320,7 @@ export class InboxPageComponent {
 
     this.messageForm.reset({ body: '' });
     this.submittedMessage.set(false);
+    this.pendingMentionParticipantIds.set([]);
     this.closeComposerMenus();
     this.scrollThreadToEnd();
   }
@@ -317,6 +353,7 @@ export class InboxPageComponent {
   /** Prüft die aktuelle Eingabe auf eine @-Suche nach weiteren Teammitgliedern. */
   handleMessageInput(event: Event): void {
     const textarea = event.currentTarget as HTMLTextAreaElement;
+    this.syncPendingMentionParticipants(textarea.value);
     const cursorPosition = textarea.selectionStart ?? textarea.value.length;
     const textBeforeCursor = textarea.value.slice(0, cursorPosition);
     const match = textBeforeCursor.match(/(?:^|\s)@([^\s@]*)$/u);
@@ -334,7 +371,7 @@ export class InboxPageComponent {
     this.mentionQuery.set(match[1] ?? '');
   }
 
-  /** Fügt eine gefundene Person zum Chat hinzu und ergänzt ihre Erwähnung im Text. */
+  /** Merkt eine gefundene Person vor und ergänzt ihre Erwähnung im Text. */
   addMentionedParticipant(member: WorkspaceMember): void {
     const conversation = this.activeConversation();
     const textarea = this.messageTextarea?.nativeElement;
@@ -343,19 +380,9 @@ export class InboxPageComponent {
       return;
     }
 
-    const updatedConversation = this.inboxService.addParticipants(
-      conversation.id,
-      [member.id],
-      this.workspaceService.members(),
-    );
-    if (!updatedConversation) {
-      return;
-    }
-
     const currentValue = this.messageForm.controls.body.value;
     const selectionEnd = textarea?.selectionStart ?? currentValue.length;
-    const mentionName = member.fullName.split(/\s+/u)[0] ?? member.fullName;
-    const replacement = `@${mentionName} `;
+    const replacement = `${this.getMentionToken(member)} `;
     const nextValue =
       `${currentValue.slice(0, mentionStart)}${replacement}${currentValue.slice(selectionEnd)}`.slice(
         0,
@@ -363,34 +390,58 @@ export class InboxPageComponent {
       );
     const nextCursorPosition = Math.min(mentionStart + replacement.length, nextValue.length);
 
+    this.pendingMentionParticipantIds.update((participantIds) =>
+      participantIds.includes(member.id) ? participantIds : [...participantIds, member.id],
+    );
     this.messageForm.controls.body.setValue(nextValue);
     this.mentionQuery.set(null);
     this.mentionStartIndex.set(null);
-    this.showFeedback(`${member.fullName} wurde zum Chat hinzugefügt.`);
+    this.showFeedback(`${member.fullName} wird beim Senden zum Chat eingeladen.`);
     this.focusMessageTextarea(nextCursorPosition);
-    this.scrollThreadToEnd();
   }
 
-  /** Ergänzt die ausgewählten Personen im laufenden Chat. */
-  addParticipants(): void {
+  /** Entfernt eine vorgemerkte Einladung und ihre Erwähnung aus dem Entwurf. */
+  removePendingMentionParticipant(member: WorkspaceMember): void {
+    const mentionToken = this.getMentionToken(member);
+    const currentValue = this.messageForm.controls.body.value;
+    const nextValue = currentValue
+      .replace(`${mentionToken} `, '')
+      .replace(mentionToken, '')
+      .replace(/ {2,}/gu, ' ');
+
+    this.pendingMentionParticipantIds.update((participantIds) =>
+      participantIds.filter((participantId) => participantId !== member.id),
+    );
+    this.messageForm.controls.body.setValue(nextValue);
+  }
+
+  /** Speichert neue und entfernte Personen für den laufenden Chat. */
+  saveParticipantChanges(): void {
     const conversation = this.activeConversation();
-    const participantIds = this.selectedAdditionalParticipantIds();
-    if (!conversation || participantIds.length === 0) {
+    if (!conversation) {
       return;
     }
 
-    const updatedConversation = this.inboxService.addParticipants(
-      conversation.id,
-      participantIds,
-      this.workspaceService.members(),
-    );
-
-    if (!updatedConversation) {
+    const removalIds = this.selectedRemovalParticipantIds();
+    const additionIds = this.selectedAdditionalParticipantIds();
+    if (removalIds.length === 0 && additionIds.length === 0) {
       return;
+    }
+
+    if (removalIds.length > 0) {
+      this.inboxService.removeParticipants(conversation.id, removalIds);
+    }
+
+    if (additionIds.length > 0) {
+      this.inboxService.addParticipants(
+        conversation.id,
+        additionIds,
+        this.workspaceService.members(),
+      );
     }
 
     this.closeDialog();
-    this.showFeedback('Teilnehmende wurden zum Chat hinzugefügt.');
+    this.showFeedback('Chatteilnehmende wurden aktualisiert.');
     this.scrollThreadToEnd();
   }
 
@@ -462,6 +513,27 @@ export class InboxPageComponent {
   /** Prüft, ob eine Person in der übergebenen Auswahlliste enthalten ist. */
   isSelected(memberId: string, selectedIds: readonly string[]): boolean {
     return selectedIds.includes(memberId);
+  }
+
+  /** Prüft, ob eine Person aus dem aktuellen Chat entfernt werden darf. */
+  canRemoveParticipant(conversation: WorkspaceConversation): boolean {
+    return this.getOtherParticipants(conversation).length > 1;
+  }
+
+  /** Entfernt nicht mehr vorhandene Erwähnungen aus den vorgemerkten Einladungen. */
+  private syncPendingMentionParticipants(messageBody: string): void {
+    this.pendingMentionParticipantIds.update((participantIds) =>
+      participantIds.filter((participantId) => {
+        const member = this.workspaceService.members().find((item) => item.id === participantId);
+        return member ? messageBody.includes(this.getMentionToken(member)) : false;
+      }),
+    );
+  }
+
+  /** Erstellt das sichtbare Erwähnungs-Token für ein Teammitglied. */
+  private getMentionToken(member: WorkspaceMember): string {
+    const mentionName = member.fullName.split(/\s+/u)[0] ?? member.fullName;
+    return `@${mentionName}`;
   }
 
   /** Schließt Emoji- und Erwähnungsauswahl im Nachrichteneditor. */
