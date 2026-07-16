@@ -8,16 +8,16 @@
     [style.left.px]="carlyService.progress().positionX"
     aria-label="Carly Maskottchen"
   >
-    @if (carlyService.settings().messagesEnabled) {
+    @if (carlyService.settings().messagesEnabled && messageVisible()) {
       <p class="carly-mascot__message">{{ carlyService.progress().lastMessage }}</p>
     }
 
     <div class="carly-mascot__actions" [class.carly-mascot__actions--open]="menuOpen()">
       <button type="button" aria-label="Carly streicheln" (click)="pet()"><span class="material-symbols-outlined">waving_hand</span></button>
       @if (carlyService.progress().isSleeping) {
-        <button type="button" aria-label="Carly aufwecken" (click)="carlyService.wake()"><span class="material-symbols-outlined">bedtime_off</span></button>
+        <button type="button" aria-label="Carly aufwecken" (click)="wake()"><span class="material-symbols-outlined">bedtime_off</span></button>
       } @else {
-        <button type="button" aria-label="Carly schlafen legen" (click)="carlyService.sleep()"><span class="material-symbols-outlined">bedtime</span></button>
+        <button type="button" aria-label="Carly schlafen legen" (click)="sleep()"><span class="material-symbols-outlined">bedtime</span></button>
       }
       <button class="carly-mascot__drag" type="button" aria-label="Carly verschieben" (pointerdown)="startDrag($event)"><span class="material-symbols-outlined">open_with</span></button>
     </div>

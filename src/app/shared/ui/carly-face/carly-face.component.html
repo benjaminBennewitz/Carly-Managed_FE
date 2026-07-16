@@ -8,18 +8,21 @@
   [attr.data-reduced]="reduced()"
   aria-hidden="true"
 >
-  <span class="carly-face__ear carly-face__ear--left"></span>
-  <span class="carly-face__ear carly-face__ear--right"></span>
-  <span class="carly-face__head">
-    <span class="carly-face__eye carly-face__eye--left"><i></i></span>
-    <span class="carly-face__eye carly-face__eye--right"><i></i></span>
-    <span class="carly-face__muzzle"></span>
-    <span class="carly-face__nose"></span>
-  </span>
+  <div class="cat">
+    <span class="ear ear--left"></span>
+    <span class="ear ear--right"></span>
+    <div class="face">
+      <span class="eye eye--left"><i class="eye-pupil"></i></span>
+      <span class="eye eye--right"><i class="eye-pupil"></i></span>
+      <span class="muzzle"></span>
+    </div>
+  </div>
+
   @if (sleeping()) {
-    <span class="carly-face__sleep">Z<span>Z</span><span>Z</span></span>
+    <span class="sleeping-zs"><span>Z</span><span>Z</span><span>Z</span></span>
   }
+
   @if (petted()) {
-    <span class="carly-face__hearts">♥ <span>♥</span> <span>♥</span></span>
+    <span class="heart-container"><span>❤️</span><span>❤️</span><span>❤️</span></span>
   }
 </div>

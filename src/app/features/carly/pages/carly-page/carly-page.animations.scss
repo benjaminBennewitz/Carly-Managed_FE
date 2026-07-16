@@ -1,0 +1,66 @@
+/*###############################
+###
+###     carly-page.animations.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
+
+/* ========================================================================== 
+   INHALTSVERZEICHNIS
+
+   01   Animationen und reduzierte Bewegung
+   ========================================================================== */
+
+/* ========================================================================== 
+   01   Animationen und reduzierte Bewegung
+   ========================================================================== */
+
+@keyframes carly-stage-idle {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-0.7rem) rotate(1deg); }
+}
+
+@keyframes carly-stage-blink {
+  0%, 88%, 94%, 100% { height: 0; }
+  91% { height: 100%; }
+}
+
+@keyframes carly-stage-look {
+  0%, 55%, 100% { transform: translate(0); }
+  10%, 30% { transform: translate(50%, -22%); }
+  38%, 50% { transform: translate(-95%, -22%); }
+}
+
+@keyframes carly-stage-orbit { to { transform: rotate(360deg); } }
+
+@keyframes carly-stage-spark {
+  0%, 100% { opacity: 0.32; transform: scale(0.72) rotate(0); }
+  50% { opacity: 1; transform: scale(1.2) rotate(45deg); }
+}
+
+:host-context(:root[data-motion='off']) .carly-stage__mascot,
+:host-context(:root[data-motion='reduced']) .carly-stage__mascot,
+:host-context(:root[data-motion='off']) .carly-stage__mascot::before,
+:host-context(:root[data-motion='reduced']) .carly-stage__mascot::before,
+:host-context(:root[data-motion='off']) .carly-stage__eye::after,
+:host-context(:root[data-motion='reduced']) .carly-stage__eye::after,
+:host-context(:root[data-motion='off']) .carly-stage__eye i,
+:host-context(:root[data-motion='reduced']) .carly-stage__eye i,
+:host-context(:root[data-motion='off']) .carly-stage__spark,
+:host-context(:root[data-motion='reduced']) .carly-stage__spark,
+:host-context(:root[data-neuro='true']) .carly-stage__mascot,
+:host-context(:root[data-neuro='true']) .carly-stage__mascot::before,
+:host-context(:root[data-neuro='true']) .carly-stage__eye::after,
+:host-context(:root[data-neuro='true']) .carly-stage__eye i,
+:host-context(:root[data-neuro='true']) .carly-stage__spark { animation: none; }

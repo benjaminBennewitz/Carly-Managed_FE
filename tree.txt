@@ -153,10 +153,13 @@ Carly-Managed_FE/
 │   │   │   ├── carly/
 │   │   │   │   └── pages/
 │   │   │   │       └── carly-page/
+│   │   │   │           ├── carly-page.animations.scss
 │   │   │   │           ├── carly-page.cards.scss
 │   │   │   │           ├── carly-page.component.html
 │   │   │   │           ├── carly-page.component.scss
 │   │   │   │           ├── carly-page.component.ts
+│   │   │   │           ├── carly-page.mascot.scss
+│   │   │   │           ├── carly-page.stage.scss
 │   │   │   │           └── carly-page.stats.scss
 │   │   │   ├── dashboard/
 │   │   │   │   └── pages/

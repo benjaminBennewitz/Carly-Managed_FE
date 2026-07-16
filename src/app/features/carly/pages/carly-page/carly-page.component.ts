@@ -4,17 +4,19 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 
 import { CarlyFoodId } from '../../../../core/carly/carly.models';
 import { CarlyService } from '../../../../core/carly/carly.service';
-import { CarlyFaceComponent } from '../../../../shared/ui/carly-face/carly-face.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 
 @Component({
   selector: 'cm-carly-page',
-  imports: [CarlyFaceComponent, PageHeaderComponent],
+  imports: [PageHeaderComponent],
   templateUrl: './carly-page.component.html',
   styleUrls: [
     './carly-page.component.scss',
     './carly-page.stats.scss',
     './carly-page.cards.scss',
+    './carly-page.stage.scss',
+    './carly-page.mascot.scss',
+    './carly-page.animations.scss',
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

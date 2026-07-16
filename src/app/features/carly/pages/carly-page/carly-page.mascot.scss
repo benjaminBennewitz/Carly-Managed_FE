@@ -1,0 +1,175 @@
+/*###############################
+###
+###     carly-page.mascot.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
+
+/* ========================================================================== 
+   INHALTSVERZEICHNIS
+
+   01   Carly
+   ========================================================================== */
+
+/* ========================================================================== 
+   01   Carly
+   ========================================================================== */
+
+.carly-stage__mascot {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: clamp(12.5rem, 25vw, 20.625rem);
+  aspect-ratio: 1.08;
+  place-items: center;
+  animation: carly-stage-idle 2600ms ease-in-out infinite;
+}
+
+.carly-stage__mascot::before {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  border: 0.0625rem solid color-mix(in srgb, var(--carly-stage-accent), transparent 38%);
+  border-radius: 50%;
+  box-shadow: 0 0 2.625rem color-mix(in srgb, var(--carly-stage-accent), transparent 68%);
+  animation: carly-stage-orbit 8200ms linear infinite;
+}
+
+.carly-stage__cat {
+  position: relative;
+  width: 62%;
+  aspect-ratio: 1.13;
+}
+
+.carly-stage__ear {
+  position: absolute;
+  top: -26%;
+  z-index: 1;
+  width: 36%;
+  height: 78%;
+  border-top: 0.34rem solid var(--carly-stage-face);
+  background: color-mix(in srgb, var(--carly-stage-accent), white 8%);
+}
+
+.carly-stage__ear::before,
+.carly-stage__ear::after {
+  content: '';
+  position: absolute;
+  bottom: 29%;
+  width: 7%;
+  height: 35%;
+  background: var(--carly-stage-face);
+}
+
+.carly-stage__ear--left {
+  left: -5%;
+  border-radius: 70% 30% 0 0 / 100% 100% 0 0;
+  transform: rotate(-15deg);
+}
+
+.carly-stage__ear--left::before,
+.carly-stage__ear--left::after { right: 20%; }
+.carly-stage__ear--left::after { transform: rotate(-45deg); transform-origin: 40% 80%; }
+
+.carly-stage__ear--right {
+  right: -5%;
+  border-radius: 30% 70% 0 0 / 100% 100% 0 0;
+  transform: rotate(15deg);
+}
+
+.carly-stage__ear--right::before,
+.carly-stage__ear--right::after { left: 20%; }
+.carly-stage__ear--right::after { transform: rotate(45deg); transform-origin: 40% 80%; }
+
+.carly-stage__face {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border: 0.34rem solid var(--carly-stage-face);
+  border-radius: 45%;
+  background: var(--carly-stage-face);
+  box-shadow: inset 0 -1rem 0 color-mix(in srgb, var(--carly-stage-face), black 18%);
+}
+
+.carly-stage__eye {
+  position: absolute;
+  top: 34%;
+  width: 31%;
+  height: 31%;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.carly-stage__eye::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0;
+  border-radius: 0 0 50% 50%;
+  background: var(--carly-stage-face);
+  animation: carly-stage-blink 4200ms infinite ease-in;
+}
+
+.carly-stage__eye--left { left: 2%; }
+.carly-stage__eye--right { right: 2%; }
+
+.carly-stage__eye i {
+  position: absolute;
+  top: 25%;
+  width: 30%;
+  height: 50%;
+  border-radius: 50%;
+  background: #09080a;
+  animation: carly-stage-look 4800ms infinite ease-in-out;
+}
+
+.carly-stage__eye i::after {
+  content: '';
+  position: absolute;
+  top: 28%;
+  right: -8%;
+  width: 45%;
+  height: 30%;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.carly-stage__eye--left i { right: 30%; }
+.carly-stage__eye--right i { left: 30%; }
+
+.carly-stage__muzzle {
+  position: absolute;
+  top: 61%;
+  left: 50%;
+  width: 11%;
+  height: 7%;
+  border-radius: 50%;
+  background: #050405;
+  transform: translateX(-50%);
+}
+
+.carly-stage__spark {
+  position: absolute;
+  width: 0.72rem;
+  aspect-ratio: 1;
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+  background: var(--carly-stage-soft);
+  animation: carly-stage-spark 2100ms ease-in-out infinite;
+}
+
+.carly-stage__spark--one { top: 14%; right: 6%; }
+.carly-stage__spark--two { bottom: 18%; left: 2%; animation-delay: -700ms; }
+.carly-stage__spark--three { right: 15%; bottom: 4%; animation-delay: -1350ms; }
+

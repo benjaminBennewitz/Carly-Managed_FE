@@ -12,9 +12,23 @@
   } @else {
     <div class="carly-dashboard">
       <article class="carly-habitat">
-        <div class="carly-habitat__sky"><span>✦</span><span>✧</span><span>⋆</span></div>
+        <div class="carly-stage" aria-hidden="true">
+          <div class="carly-stage__mascot">
+            <div class="carly-stage__cat">
+              <span class="carly-stage__ear carly-stage__ear--left"></span>
+              <span class="carly-stage__ear carly-stage__ear--right"></span>
+              <div class="carly-stage__face">
+                <span class="carly-stage__eye carly-stage__eye--left"><i></i></span>
+                <span class="carly-stage__eye carly-stage__eye--right"><i></i></span>
+                <span class="carly-stage__muzzle"></span>
+              </div>
+            </div>
+            <span class="carly-stage__spark carly-stage__spark--one"></span>
+            <span class="carly-stage__spark carly-stage__spark--two"></span>
+            <span class="carly-stage__spark carly-stage__spark--three"></span>
+          </div>
+        </div>
         <div class="carly-habitat__level">Level {{ carlyService.progress().level }}</div>
-        <cm-carly-face [large]="true" [sleeping]="carlyService.progress().isSleeping" [petted]="petted()" [reduced]="carlyService.settings().reduceAnimations" />
         <p class="carly-habitat__message">{{ carlyService.progress().lastMessage }}</p>
       </article>
 
