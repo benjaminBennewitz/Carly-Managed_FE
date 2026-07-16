@@ -29,19 +29,64 @@
    ========================================================================== */
 
 :host { position: fixed; inset: auto 0 0; z-index: var(--z-index-sticky); pointer-events: none; }
-.carly-mascot { position: fixed; bottom: -1.65rem; width: 8rem; pointer-events: auto; user-select: none; }
+.carly-mascot {
+  --carly-mascot-size: calc(5rem * 1.13);
+  position: fixed;
+  bottom: -1.65rem;
+  width: var(--carly-mascot-size);
+  pointer-events: auto;
+  user-select: none;
+}
 .carly-mascot__message { position: absolute; left: 5.5rem; bottom: 5.6rem; width: max-content; max-width: 17rem; padding: var(--space-3) var(--space-4); border: var(--border-width-subtle) solid var(--color-border-subtle); border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 0; margin: 0; background: var(--color-surface-elevated); box-shadow: var(--shadow-md); color: var(--color-text-secondary); font-size: var(--font-size-200); }
 
 /* ==========================================================================
    02   Carly und Aktionsmenü
    ========================================================================== */
 
-.carly-mascot__face-button { padding: 0; border: 0; background: transparent; cursor: pointer; }
+.carly-mascot__face-button {
+  display: grid;
+  width: var(--carly-mascot-size);
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  appearance: none;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit;
+  filter: drop-shadow(0 0.2rem 0.25rem rgb(20 14 28 / 0.12));
+  cursor: pointer;
+  transition: filter var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+
+.carly-mascot__face-button cm-carly-face {
+  display: block;
+  width: calc(5rem * 1.13);
+}
+
+.carly-mascot__face-button:hover,
+.carly-mascot__face-button:focus-visible,
+.carly-mascot__face-button:active {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit;
+}
+
+.carly-mascot__face-button:hover {
+  filter: drop-shadow(0 0.45rem 0.55rem rgb(20 14 28 / 0.28));
+}
+
+.carly-mascot__face-button:active {
+  filter: drop-shadow(0 0.28rem 0.36rem rgb(20 14 28 / 0.2));
+}
 .carly-mascot__actions {
   position: absolute;
   left: 50%;
   bottom: calc(6.15rem + 50px);
+  width: max-content;
   display: flex;
+  justify-content: center;
   align-items: flex-end;
   gap: 0.3rem;
   opacity: 0;

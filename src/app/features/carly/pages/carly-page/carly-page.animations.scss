@@ -43,6 +43,15 @@
 }
 
 @keyframes carly-stage-orbit { to { transform: rotate(360deg); } }
+@keyframes carly-stage-orbit-reverse { to { transform: rotate(-360deg); } }
+@keyframes carly-stage-stars {
+  0% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.018); }
+}
+@keyframes carly-stage-glow {
+  0% { opacity: 0.45; transform: scaleX(0.92); }
+  100% { opacity: 0.9; transform: scaleX(1.08); }
+}
 
 @keyframes carly-stage-spark {
   0%, 100% { opacity: 0.32; transform: scale(0.72) rotate(0); }
@@ -53,6 +62,8 @@
 :host-context(:root[data-motion='reduced']) .carly-stage__mascot,
 :host-context(:root[data-motion='off']) .carly-stage__mascot::before,
 :host-context(:root[data-motion='reduced']) .carly-stage__mascot::before,
+:host-context(:root[data-motion='off']) .carly-stage__mascot::after,
+:host-context(:root[data-motion='reduced']) .carly-stage__mascot::after,
 :host-context(:root[data-motion='off']) .carly-stage__eye::after,
 :host-context(:root[data-motion='reduced']) .carly-stage__eye::after,
 :host-context(:root[data-motion='off']) .carly-stage__eye i,
@@ -61,6 +72,22 @@
 :host-context(:root[data-motion='reduced']) .carly-stage__spark,
 :host-context(:root[data-neuro='true']) .carly-stage__mascot,
 :host-context(:root[data-neuro='true']) .carly-stage__mascot::before,
+:host-context(:root[data-neuro='true']) .carly-stage__mascot::after,
 :host-context(:root[data-neuro='true']) .carly-stage__eye::after,
 :host-context(:root[data-neuro='true']) .carly-stage__eye i,
-:host-context(:root[data-neuro='true']) .carly-stage__spark { animation: none; }
+:host-context(:root[data-neuro='true']) .carly-stage__spark,
+:host-context(:root[data-motion='off']) .carly-habitat::before,
+:host-context(:root[data-motion='reduced']) .carly-habitat::before,
+:host-context(:root[data-neuro='true']) .carly-habitat::before,
+:host-context(:root[data-motion='off']) .carly-habitat::after,
+:host-context(:root[data-motion='reduced']) .carly-habitat::after,
+:host-context(:root[data-neuro='true']) .carly-habitat::after { animation: none; }
+
+:host-context(:root[data-motion='reduced']) .carly-stage__glow,
+:host-context(:root[data-motion='reduced']) .carly-stage__stars,
+:host-context(:root[data-motion='reduced']) .carly-stage__orbit,
+:host-context(:root[data-neuro='true']) .carly-stage__glow,
+:host-context(:root[data-neuro='true']) .carly-stage__stars,
+:host-context(:root[data-neuro='true']) .carly-stage__orbit {
+  animation: none;
+}

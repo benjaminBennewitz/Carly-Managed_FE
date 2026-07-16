@@ -44,12 +44,12 @@
   position: absolute;
   width: calc(var(--carly-size) * 1.13);
   height: var(--carly-size);
-  filter: drop-shadow(0 -0.375rem 0.25rem rgb(185 185 185 / 0.5));
-  transition: filter 250ms;
+  filter: drop-shadow(0 0.32rem 0.28rem rgb(18 12 24 / 0.22));
+  transition: filter 220ms var(--motion-easing-standard);
 }
 
 .cat:hover {
-  filter: drop-shadow(0 -0.375rem 0.25rem color-mix(in srgb, var(--color-accent) 50%, transparent));
+  filter: drop-shadow(0 0.5rem 0.5rem rgb(18 12 24 / 0.34));
 }
 
 /* ========================================================================== 

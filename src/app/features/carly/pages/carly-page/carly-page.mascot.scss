@@ -36,14 +36,27 @@
   animation: carly-stage-idle 2600ms ease-in-out infinite;
 }
 
-.carly-stage__mascot::before {
+.carly-stage__mascot::before,
+.carly-stage__mascot::after {
   content: '';
   position: absolute;
-  inset: 8%;
-  border: 0.0625rem solid color-mix(in srgb, var(--carly-stage-accent), transparent 38%);
   border-radius: 50%;
-  box-shadow: 0 0 2.625rem color-mix(in srgb, var(--carly-stage-accent), transparent 68%);
+  pointer-events: none;
+}
+
+.carly-stage__mascot::before {
+  inset: 8%;
+  border: 0.11rem dashed color-mix(in srgb, var(--carly-stage-accent), transparent 28%);
+  box-shadow:
+    0 0 2.625rem color-mix(in srgb, var(--carly-stage-accent), transparent 62%),
+    inset 0 0 1.5rem color-mix(in srgb, var(--carly-stage-accent), transparent 78%);
   animation: carly-stage-orbit 8200ms linear infinite;
+}
+
+.carly-stage__mascot::after {
+  inset: 15%;
+  border: 0.0625rem solid color-mix(in srgb, var(--carly-stage-soft), transparent 66%);
+  animation: carly-stage-orbit-reverse 12000ms linear infinite;
 }
 
 .carly-stage__cat {
@@ -173,3 +186,45 @@
 .carly-stage__spark--two { bottom: 18%; left: 2%; animation-delay: -700ms; }
 .carly-stage__spark--three { right: 15%; bottom: 4%; animation-delay: -1350ms; }
 
+
+/* ========================================================================== 
+   02   Sichtbare Umlaufbahnen
+   ========================================================================== */
+
+.carly-stage__mascot::before,
+.carly-stage__mascot::after {
+  content: none;
+}
+
+.carly-stage__orbit {
+  position: absolute;
+  z-index: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.carly-stage__orbit--outer {
+  inset: 3%;
+  border: 0.14rem dashed color-mix(in srgb, var(--carly-stage-accent), transparent 24%);
+  box-shadow:
+    0 0 1rem color-mix(in srgb, var(--carly-stage-accent), transparent 55%),
+    inset 0 0 1rem color-mix(in srgb, var(--carly-stage-accent), transparent 72%);
+  animation: carly-stage-orbit-visible 14000ms linear infinite;
+}
+
+.carly-stage__orbit--inner {
+  inset: 14%;
+  border: 0.08rem dotted color-mix(in srgb, var(--carly-stage-soft), transparent 34%);
+  transform: rotate(24deg);
+  animation: carly-stage-orbit-visible-reverse 18000ms linear infinite;
+}
+
+@keyframes carly-stage-orbit-visible {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes carly-stage-orbit-visible-reverse {
+  from { transform: rotate(24deg); }
+  to { transform: rotate(-336deg); }
+}
