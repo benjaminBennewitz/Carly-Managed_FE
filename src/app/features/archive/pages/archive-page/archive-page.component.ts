@@ -3,7 +3,12 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { ArchivedTaskEntry, WorkspaceProject } from '../../../../core/workspace/workspace.models';
+import {
+  ArchivedTaskEntry,
+  WorkspaceMember,
+  WorkspaceProject,
+  WorkspaceTask,
+} from '../../../../core/workspace/workspace.models';
 import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
 
 type ArchiveViewMode = 'cards' | 'list';
@@ -18,17 +23,20 @@ export class ArchivePageComponent {
   protected readonly workspaceService: WorkspacePreviewService;
   protected readonly projectViewMode = signal<ArchiveViewMode>('cards');
   protected readonly taskViewMode = signal<ArchiveViewMode>('cards');
-  protected readonly newestFirst = signal(true);
+  protected readonly projectsNewestFirst = signal(true);
+  protected readonly tasksNewestFirst = signal(true);
   protected readonly sortedProjects = computed(() =>
     [...this.workspaceService.archivedProjects()].sort((left, right) =>
-      this.compareDates(this.getProjectLifecycleDate(left), this.getProjectLifecycleDate(right)),
+      this.compareDates(
+        this.getProjectLifecycleDate(left),
+        this.getProjectLifecycleDate(right),
+        this.projectsNewestFirst(),
+      ),
     ),
   );
   protected readonly sortedTasks = computed(() =>
     [...this.workspaceService.archivedTasks()].sort((left, right) =>
-      this.newestFirst()
-        ? new Date(right.archivedAt).getTime() - new Date(left.archivedAt).getTime()
-        : new Date(left.archivedAt).getTime() - new Date(right.archivedAt).getTime(),
+      this.compareDates(left.archivedAt, right.archivedAt, this.tasksNewestFirst()),
     ),
   );
 
@@ -39,37 +47,43 @@ export class ArchivePageComponent {
     this.workspaceService = workspaceService;
   }
 
-  /**
-   * Wechselt die Darstellung der archivierten Projekte.
-   */
+  /** Wechselt die Darstellung der archivierten Projekte. */
   setProjectViewMode(mode: ArchiveViewMode): void {
     this.projectViewMode.set(mode);
   }
 
-  /**
-   * Wechselt die Darstellung des Aufgabenverlaufs.
-   */
+  /** Wechselt die Darstellung des Aufgabenverlaufs. */
   setTaskViewMode(mode: ArchiveViewMode): void {
     this.taskViewMode.set(mode);
   }
 
-  /**
-   * Dreht die Sortierung des Aufgabenverlaufs um.
-   */
-  toggleTaskSort(): void {
-    this.newestFirst.update((current) => !current);
+  /** Dreht die Sortierung der Projekte nach ihrem Statusdatum um. */
+  toggleProjectSort(): void {
+    this.projectsNewestFirst.update((current) => !current);
   }
 
-  /**
-   * Öffnet ein archiviertes Projekt schreibgeschützt im bestehenden Board.
-   */
+  /** Dreht die Sortierung der Aufgaben nach ihrem Abschlussdatum um. */
+  toggleTaskSort(): void {
+    this.tasksNewestFirst.update((current) => !current);
+  }
+
+  /** Öffnet ein archiviertes Projekt schreibgeschützt im bestehenden Board. */
   openProject(project: WorkspaceProject): Promise<boolean> {
     return this.router.navigate(['/projects', project.id, 'board']);
   }
 
-  /**
-   * Formatiert einen ISO-Zeitpunkt.
-   */
+  /** Öffnet die vollständige Task-Sidebar im zugehörigen Board. */
+  openTask(entry: ArchivedTaskEntry): Promise<boolean> {
+    const commands = entry.task.projectId
+      ? ['/projects', entry.task.projectId, 'board']
+      : ['/board'];
+
+    return this.router.navigate(commands, {
+      queryParams: { task: entry.task.id },
+    });
+  }
+
+  /** Formatiert einen ISO-Zeitpunkt. */
   formatDate(value: string | null, withTime = false): string {
     if (!value) {
       return '—';
@@ -94,6 +108,11 @@ export class ArchivePageComponent {
     return project.status === 'archived' ? 'Archiviert' : 'Abgeschlossen';
   }
 
+  /** Liefert die Datumsbezeichnung passend zum Projektstatus. */
+  getProjectDateLabel(project: WorkspaceProject): string {
+    return project.status === 'archived' ? 'Archiviert am' : 'Erledigt am';
+  }
+
   /** Liefert das passende Statussymbol eines Projekts. */
   getProjectStatusIcon(project: WorkspaceProject): string {
     return project.status === 'archived' ? 'inventory_2' : 'task_alt';
@@ -106,19 +125,36 @@ export class ArchivePageComponent {
       : project.completedAt;
   }
 
-  /**
-   * Liefert den Aufgabentitel aus einem Archiveintrag.
-   */
-  getTaskTitle(entry: ArchivedTaskEntry): string {
-    return entry.task.title;
+  /** Liefert alle Projektmitglieder ohne den Owner und ohne Duplikate. */
+  getProjectTeam(project: WorkspaceProject): WorkspaceMember[] {
+    return this.uniqueMembers([...project.managers, ...project.collaborators]).filter(
+      (member) => member.id !== project.owner.id,
+    );
   }
 
-  /**
-   * Vergleicht zwei optionale Abschlusszeitpunkte.
-   */
-  private compareDates(left: string | null, right: string | null): number {
-    return this.newestFirst()
-      ? new Date(right ?? 0).getTime() - new Date(left ?? 0).getTime()
-      : new Date(left ?? 0).getTime() - new Date(right ?? 0).getTime();
+  /** Liefert alle an einer Aufgabe beteiligten Personen ohne den Owner. */
+  getTaskTeam(task: WorkspaceTask): WorkspaceMember[] {
+    return this.uniqueMembers([
+      ...(task.assignee ? [task.assignee] : []),
+      ...task.collaborators,
+      ...task.subtasks.flatMap((subtask) => (subtask.assignee ? [subtask.assignee] : [])),
+    ]).filter((member) => member.id !== task.owner.id);
+  }
+
+  /** Liefert eine lesbare Prioritätsbezeichnung. */
+  getPriorityLabel(task: WorkspaceTask): string {
+    return `${task.priority.slice(0, 1).toUpperCase()}${task.priority.slice(1)}`;
+  }
+
+  /** Vergleicht zwei optionale Zeitpunkte in der gewählten Richtung. */
+  private compareDates(left: string | null, right: string | null, newestFirst: boolean): number {
+    const leftTimestamp = new Date(left ?? 0).getTime();
+    const rightTimestamp = new Date(right ?? 0).getTime();
+    return newestFirst ? rightTimestamp - leftTimestamp : leftTimestamp - rightTimestamp;
+  }
+
+  /** Entfernt doppelte Personen anhand ihrer ID. */
+  private uniqueMembers(members: WorkspaceMember[]): WorkspaceMember[] {
+    return [...new Map(members.map((member) => [member.id, member])).values()];
   }
 }

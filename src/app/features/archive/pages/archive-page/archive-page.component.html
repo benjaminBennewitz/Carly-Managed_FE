@@ -4,10 +4,11 @@
   <section class="archive-column" aria-label="Archivierte Projekte">
     <header class="archive-column__head">
       <div>
+        <span class="archive-column__eyebrow">Projektarchiv</span>
         <h1>Archivierte Projekte</h1>
       </div>
 
-      <div class="archive-view-toggle" role="group" aria-label="Projektansicht">
+      <div class="archive-view-toggle" role="group" aria-label="Projektansicht und Sortierung">
         <button
           type="button"
           [class.is-active]="projectViewMode() === 'list'"
@@ -26,6 +27,21 @@
         >
           <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
         </button>
+        <button
+          class="archive-view-toggle__sort"
+          type="button"
+          [attr.aria-label]="
+            projectsNewestFirst()
+              ? 'Projekte älteste zuerst sortieren'
+              : 'Projekte neueste zuerst sortieren'
+          "
+          (click)="toggleProjectSort()"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">
+            {{ projectsNewestFirst() ? 'arrow_downward' : 'arrow_upward' }}
+          </span>
+          Datum
+        </button>
         <span>{{ sortedProjects().length }}</span>
       </div>
     </header>
@@ -34,78 +50,139 @@
       @if (projectViewMode() === 'cards') {
         <div class="archive-card-list">
           @for (project of sortedProjects(); track project.id) {
-            <article class="archive-card">
+            <article
+              class="archive-card"
+              role="button"
+              tabindex="0"
+              (click)="openProject(project)"
+              (keydown.enter)="openProject(project)"
+            >
               <div class="archive-card__top">
                 <div class="archive-card__title-row">
                   <span class="archive-card__dot" [style.background]="project.color"></span>
                   <div>
-                    <h2>{{ project.name }}</h2>
                     <small>{{ project.routeKey }}</small>
+                    <h2>{{ project.name }}</h2>
                   </div>
                 </div>
-                <div class="archive-tags">
-                  <span>Projekt</span>
-                  <span [class.archive-tag--archived]="project.status === 'archived'">
-                    <span class="material-symbols-outlined" aria-hidden="true">
-                      {{ getProjectStatusIcon(project) }}
-                    </span>
-                    {{ getProjectStatusLabel(project) }}
+                <span
+                  class="archive-status-pill"
+                  [class.archive-status-pill--archived]="project.status === 'archived'"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">
+                    {{ getProjectStatusIcon(project) }}
                   </span>
+                  {{ getProjectStatusLabel(project) }}
+                </span>
+              </div>
+
+              <p class="archive-card__description" [attr.title]="project.description">
+                {{ project.description }}
+              </p>
+
+              <div class="archive-project-facts">
+                <div class="archive-project-fact archive-project-fact--date">
+                  <span>{{ getProjectDateLabel(project) }}</span>
+                  <strong>{{ formatDate(getProjectLifecycleDate(project)) }}</strong>
+                </div>
+                <div class="archive-project-fact">
+                  <span>Aufgaben</span>
+                  <strong>{{ workspaceService.getTaskCount(project.id) }}</strong>
+                </div>
+                <div class="archive-project-fact">
+                  <span>Spalten</span>
+                  <strong>{{ workspaceService.getColumnCount(project.id) }}</strong>
                 </div>
               </div>
 
-              <p>{{ project.description }}</p>
-
-              <div class="archive-people-boxes">
-                <div>
-                  <span>Verantwortlich</span>
-                  <strong>{{ project.owner.fullName }}</strong>
+              <div class="archive-people-row">
+                <div class="archive-person-group">
+                  <span>Owner</span>
+                  <span
+                    class="archive-avatar archive-avatar--owner"
+                    [style.background]="project.owner.avatarColor"
+                    [style.color]="project.owner.avatarTextColor"
+                    [attr.title]="project.owner.fullName"
+                    >{{ project.owner.initials }}</span
+                  >
                 </div>
-                <div>
-                  <span>Mitwirkende</span>
-                  <strong>{{ project.collaborators.length + project.managers.length }}</strong>
-                </div>
-              </div>
-
-              <div class="archive-card__grid">
-                <div>
-                  <span>{{ getProjectStatusLabel(project) }}</span>
-                  <strong>{{ formatDate(getProjectLifecycleDate(project), true) }}</strong>
-                </div>
-                <div>
-                  <span>Aufgaben</span
-                  ><strong>{{ workspaceService.getTaskCount(project.id) }}</strong>
-                </div>
-                <div>
-                  <span>Spalten</span
-                  ><strong>{{ workspaceService.getColumnCount(project.id) }}</strong>
+                <div class="archive-person-group archive-person-group--team">
+                  <span>Team</span>
+                  <div class="archive-avatar-stack">
+                    @for (member of getProjectTeam(project).slice(0, 4); track member.id) {
+                      <span
+                        class="archive-avatar"
+                        [style.background]="member.avatarColor"
+                        [style.color]="member.avatarTextColor"
+                        [attr.title]="member.fullName"
+                        >{{ member.initials }}</span
+                      >
+                    }
+                    @if (getProjectTeam(project).length > 4) {
+                      <span class="archive-avatar archive-avatar--more">
+                        +{{ getProjectTeam(project).length - 4 }}
+                      </span>
+                    }
+                    @if (getProjectTeam(project).length === 0) {
+                      <span class="archive-person-group__empty">Nur Owner</span>
+                    }
+                  </div>
                 </div>
               </div>
 
               <footer>
                 <small>Zuletzt geöffnet {{ formatDate(project.lastOpenedAt, true) }}</small>
-                <button type="button" (click)="openProject(project)">Projekt anzeigen</button>
+                <span>
+                  Projekt anzeigen
+                  <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </span>
               </footer>
             </article>
           }
         </div>
       } @else {
-        <div class="archive-list">
+        <div class="archive-list archive-list--projects">
           @for (project of sortedProjects(); track project.id) {
             <article
-              class="archive-list-row"
+              class="archive-list-row archive-list-row--project"
               role="button"
               tabindex="0"
               (click)="openProject(project)"
               (keydown.enter)="openProject(project)"
             >
               <span class="archive-card__dot" [style.background]="project.color"></span>
-              <div>
+              <div class="archive-list-row__main">
                 <h2>{{ project.name }}</h2>
-                <small>{{ project.description }}</small>
+                <small [attr.title]="project.description">{{ project.description }}</small>
               </div>
-              <span>{{ getProjectStatusLabel(project) }}</span>
-              <strong>{{ formatDate(getProjectLifecycleDate(project)) }}</strong>
+              <span
+                class="archive-status-pill"
+                [class.archive-status-pill--archived]="project.status === 'archived'"
+              >
+                {{ getProjectStatusLabel(project) }}
+              </span>
+              <div class="archive-list-row__people" aria-label="Projektbeteiligte">
+                <span
+                  class="archive-avatar archive-avatar--owner"
+                  [style.background]="project.owner.avatarColor"
+                  [style.color]="project.owner.avatarTextColor"
+                  [attr.title]="'Owner: ' + project.owner.fullName"
+                  >{{ project.owner.initials }}</span
+                >
+                @for (member of getProjectTeam(project).slice(0, 2); track member.id) {
+                  <span
+                    class="archive-avatar"
+                    [style.background]="member.avatarColor"
+                    [style.color]="member.avatarTextColor"
+                    [attr.title]="member.fullName"
+                    >{{ member.initials }}</span
+                  >
+                }
+              </div>
+              <strong class="archive-list-row__date">
+                <span>{{ getProjectDateLabel(project) }}</span>
+                {{ formatDate(getProjectLifecycleDate(project)) }}
+              </strong>
             </article>
           }
         </div>
@@ -116,10 +193,11 @@
   <section class="archive-column" aria-label="Aufgabenverlauf">
     <header class="archive-column__head">
       <div>
+        <span class="archive-column__eyebrow">Erledigte Arbeit</span>
         <h1>Aufgabenverlauf</h1>
       </div>
 
-      <div class="archive-view-toggle" role="group" aria-label="Aufgabenansicht">
+      <div class="archive-view-toggle" role="group" aria-label="Aufgabenansicht und Sortierung">
         <button
           type="button"
           [class.is-active]="taskViewMode() === 'list'"
@@ -138,11 +216,20 @@
         >
           <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
         </button>
-        <button class="archive-view-toggle__sort" type="button" (click)="toggleTaskSort()">
+        <button
+          class="archive-view-toggle__sort"
+          type="button"
+          [attr.aria-label]="
+            tasksNewestFirst()
+              ? 'Aufgaben älteste zuerst sortieren'
+              : 'Aufgaben neueste zuerst sortieren'
+          "
+          (click)="toggleTaskSort()"
+        >
           <span class="material-symbols-outlined" aria-hidden="true">
-            {{ newestFirst() ? 'arrow_downward' : 'arrow_upward' }}
+            {{ tasksNewestFirst() ? 'arrow_downward' : 'arrow_upward' }}
           </span>
-          Erledigt
+          Erledigt am
         </button>
         <span>{{ sortedTasks().length }}</span>
       </div>
@@ -152,32 +239,138 @@
       @if (taskViewMode() === 'cards') {
         <div class="archive-task-grid">
           @for (entry of sortedTasks(); track entry.task.id) {
-            <article class="archive-task-card">
+            <article
+              class="archive-task-card"
+              role="button"
+              tabindex="0"
+              (click)="openTask(entry)"
+              (keydown.enter)="openTask(entry)"
+            >
               <div class="archive-task-card__top">
-                <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
-                <span>{{ entry.task.priority }}</span>
+                <span class="archive-task-card__context" [attr.title]="entry.sourceLabel">
+                  <span class="material-symbols-outlined" aria-hidden="true">folder_open</span>
+                  {{ entry.sourceLabel }}
+                </span>
+                <span
+                  class="archive-priority-pill archive-priority-pill--{{ entry.task.priority }}"
+                >
+                  {{ getPriorityLabel(entry.task) }}
+                </span>
               </div>
-              <h2>{{ getTaskTitle(entry) }}</h2>
-              <p>{{ entry.sourceLabel }}</p>
-              <div>
-                <span>{{ entry.task.subtaskCount }} Unteraufgaben</span>
-                <span>{{ entry.task.commentCount }} Kommentare</span>
+
+              <h2>{{ entry.task.title }}</h2>
+
+              <div class="archive-task-bento">
+                <section class="archive-task-bento__item archive-task-bento__item--date">
+                  <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+                  <div>
+                    <span>Erledigt am</span>
+                    <strong>{{ formatDate(entry.archivedAt, true) }}</strong>
+                  </div>
+                </section>
+
+                <section class="archive-task-bento__item archive-task-bento__item--people">
+                  <div>
+                    <span>Owner &amp; Team</span>
+                    <div class="archive-avatar-stack">
+                      <span
+                        class="archive-avatar archive-avatar--owner"
+                        [style.background]="entry.task.owner.avatarColor"
+                        [style.color]="entry.task.owner.avatarTextColor"
+                        [attr.title]="'Owner: ' + entry.task.owner.fullName"
+                        >{{ entry.task.owner.initials }}</span
+                      >
+                      @for (member of getTaskTeam(entry.task).slice(0, 3); track member.id) {
+                        <span
+                          class="archive-avatar"
+                          [style.background]="member.avatarColor"
+                          [style.color]="member.avatarTextColor"
+                          [attr.title]="member.fullName"
+                          >{{ member.initials }}</span
+                        >
+                      }
+                      @if (getTaskTeam(entry.task).length > 3) {
+                        <span class="archive-avatar archive-avatar--more">
+                          +{{ getTaskTeam(entry.task).length - 3 }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </section>
+
+                <section class="archive-task-bento__item archive-task-bento__item--activity">
+                  <span>
+                    <span class="material-symbols-outlined" aria-hidden="true">checklist</span>
+                    {{ entry.task.subtaskCount }}
+                  </span>
+                  <span>
+                    <span class="material-symbols-outlined" aria-hidden="true">comment</span>
+                    {{ entry.task.commentCount }}
+                  </span>
+                  <span>
+                    <span class="material-symbols-outlined" aria-hidden="true">attach_file</span>
+                    {{ entry.task.attachmentCount }}
+                  </span>
+                </section>
               </div>
-              <footer>Abgeschlossen {{ formatDate(entry.archivedAt, true) }}</footer>
+
+              @if (entry.task.tags.length > 0) {
+                <div class="archive-task-card__tags" aria-label="Tags">
+                  @for (tag of entry.task.tags.slice(0, 4); track tag) {
+                    <span>{{ tag }}</span>
+                  }
+                </div>
+              }
+
+              <footer>
+                Details öffnen
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+              </footer>
             </article>
           }
         </div>
       } @else {
-        <div class="archive-list">
+        <div class="archive-list archive-list--tasks">
           @for (entry of sortedTasks(); track entry.task.id) {
-            <article class="archive-list-row archive-list-row--task">
-              <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
-              <div>
+            <article
+              class="archive-list-row archive-list-row--task"
+              role="button"
+              tabindex="0"
+              (click)="openTask(entry)"
+              (keydown.enter)="openTask(entry)"
+            >
+              <span class="material-symbols-outlined archive-list-row__status" aria-hidden="true">
+                task_alt
+              </span>
+              <div class="archive-list-row__main">
                 <h2>{{ entry.task.title }}</h2>
                 <small>{{ entry.sourceLabel }}</small>
               </div>
-              <span>{{ entry.task.priority }}</span>
-              <strong>{{ formatDate(entry.archivedAt) }}</strong>
+              <span class="archive-priority-pill archive-priority-pill--{{ entry.task.priority }}">
+                {{ getPriorityLabel(entry.task) }}
+              </span>
+              <div class="archive-list-row__people" aria-label="Owner und Mitwirkende">
+                <span
+                  class="archive-avatar archive-avatar--owner"
+                  [style.background]="entry.task.owner.avatarColor"
+                  [style.color]="entry.task.owner.avatarTextColor"
+                  [attr.title]="'Owner: ' + entry.task.owner.fullName"
+                  >{{ entry.task.owner.initials }}</span
+                >
+                @for (member of getTaskTeam(entry.task).slice(0, 2); track member.id) {
+                  <span
+                    class="archive-avatar"
+                    [style.background]="member.avatarColor"
+                    [style.color]="member.avatarTextColor"
+                    [attr.title]="member.fullName"
+                    >{{ member.initials }}</span
+                  >
+                }
+              </div>
+              <strong class="archive-list-row__date">
+                <span>Erledigt am</span>
+                {{ formatDate(entry.archivedAt) }}
+              </strong>
             </article>
           }
         </div>

@@ -32,7 +32,12 @@
       @for (task of workspaceService.poolTasks(); track task.id) {
         <article
           class="pool-page__task"
+          role="button"
+          tabindex="0"
+          [attr.aria-label]="'Aufgabe ' + task.title + ' öffnen'"
           [style.--board-accent]="task.requiresReview ? '#D5A646' : '#4E82A8'"
+          (click)="openTask(task)"
+          (keydown.enter)="openTask(task)"
         >
           <cm-workspace-task-card
             [task]="task"

@@ -52,6 +52,8 @@ const PRIORITY_OPTIONS: readonly SelectMenuOption[] = [
 ];
 
 const TASK_DRAWER_CLOSE_MS = 280;
+const MAX_TASK_TAGS = 12;
+const MAX_TASK_TAG_LENGTH = 32;
 
 type TaskDrawerTab = 'details' | 'subtasks' | 'comments' | 'attachments' | 'history';
 
@@ -89,6 +91,7 @@ export class BoardPageComponent {
   protected readonly activeTaskTab = signal<TaskDrawerTab>('details');
   protected readonly taskTitleDraft = signal('');
   protected readonly taskDescriptionDraft = signal('');
+  protected readonly taskTagsDraft = signal('');
   protected readonly commentDraft = signal('');
   protected readonly subtaskDraft = signal('');
   protected readonly subtaskAssigneeDraft = signal<string | null>(null);
@@ -274,6 +277,7 @@ export class BoardPageComponent {
     this.selectedTask.set(this.cloneTask(drawerTask));
     this.taskTitleDraft.set(drawerTask.title);
     this.taskDescriptionDraft.set(drawerTask.description);
+    this.taskTagsDraft.set(drawerTask.tags.join(', '));
     this.commentDraft.set('');
     this.subtaskDraft.set('');
     this.subtaskAssigneeDraft.set(null);
@@ -455,6 +459,34 @@ export class BoardPageComponent {
         { description },
         'Beschreibung geändert',
         'description',
+      ),
+      task.id,
+    );
+  }
+
+  /** Speichert mehrere kommagetrennte Tags und entfernt Duplikate. */
+  saveTaskTags(): void {
+    const task = this.selectedTask();
+    if (!task || this.taskEditingDisabled()) {
+      return;
+    }
+
+    const tags = this.parseTaskTags(this.taskTagsDraft());
+    const tagsUnchanged =
+      task.tags.length === tags.length && task.tags.every((tag, index) => tag === tags[index]);
+    this.taskTagsDraft.set(tags.join(', '));
+
+    if (tagsUnchanged) {
+      return;
+    }
+
+    this.applyTaskColumns(
+      this.workspaceService.updateTask(
+        this.projectId(),
+        task.id,
+        { tags },
+        tags.length > 0 ? 'Tags aktualisiert' : 'Tags entfernt',
+        'sell',
       ),
       task.id,
     );
@@ -961,6 +993,7 @@ export class BoardPageComponent {
     this.selectedTask.set(this.cloneTask(task));
     this.taskTitleDraft.set(task.title);
     this.taskDescriptionDraft.set(task.description);
+    this.taskTagsDraft.set(task.tags.join(', '));
   }
 
   /** Öffnet einen über die globale Suche angeforderten Task. */
@@ -969,12 +1002,32 @@ export class BoardPageComponent {
       return;
     }
 
-    const task = this.columns()
-      .flatMap((column) => column.tasks)
-      .find((item) => item.id === this.requestedTaskId);
+    const task =
+      this.columns()
+        .flatMap((column) => column.tasks)
+        .find((item) => item.id === this.requestedTaskId) ??
+      this.workspaceService.getTaskById(this.requestedTaskId);
     if (task && this.selectedTask()?.id !== task.id) {
       this.openTask(task);
     }
+  }
+
+  /** Wandelt eine kommagetrennte Eingabe in eindeutige, begrenzte Tags um. */
+  private parseTaskTags(value: string): string[] {
+    const uniqueTags = new Map<string, string>();
+
+    for (const rawTag of value.split(',')) {
+      const tag = rawTag.trim().replace(/\s+/g, ' ').slice(0, MAX_TASK_TAG_LENGTH);
+      const key = tag.toLocaleLowerCase('de');
+      if (tag && !uniqueTags.has(key)) {
+        uniqueTags.set(key, tag);
+      }
+      if (uniqueTags.size >= MAX_TASK_TAGS) {
+        break;
+      }
+    }
+
+    return [...uniqueTags.values()];
   }
 
   /** Erstellt eine tiefe Task-Kopie für den Drawer. */
@@ -990,6 +1043,9 @@ export class BoardPageComponent {
     }
     this.selectedTask.set(null);
     this.drawerClosing.set(false);
+    this.taskTitleDraft.set('');
+    this.taskDescriptionDraft.set('');
+    this.taskTagsDraft.set('');
     this.commentDraft.set('');
     this.subtaskDraft.set('');
     this.subtaskAssigneeDraft.set(null);

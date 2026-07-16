@@ -16,18 +16,19 @@
 ###
 #################################*/
 
-/* ==========================================================================
+/* ========================================================================== 
    INHALTSVERZEICHNIS
 
    01   Seitenlayout
-   02   Spaltenkopf
-   03   Listen und Raster
-   04   Task- und Listenansicht
-   05   Karten
-   06   Responsive Darstellung
+   02   Spaltenkopf und Ansichtssteuerung
+   03   Projektkarten und Projektliste
+   04   Aufgabenlisten und Prioritäten
+   05   Bento-Aufgabenkarten
+   06   Personen und Avatare
+   07   Responsive Darstellung
    ========================================================================== */
 
-/* ==========================================================================
+/* ========================================================================== 
    01   Seitenlayout
    ========================================================================== */
 
@@ -52,71 +53,12 @@
   overflow: hidden;
 }
 
-/* ==========================================================================
-   02   Spaltenkopf
-   ========================================================================== */
-
-.archive-column__head {
-  display: flex;
-  padding-bottom: var(--space-4);
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
-}
-
-.archive-column__head h1 {
-  margin: 0;
-  font-size: var(--font-size-500);
-}
-
-.archive-view-toggle {
-  display: inline-flex;
-  padding: 0.2rem;
-  align-items: center;
-  gap: 0.15rem;
-  border: var(--border-width-subtle) solid var(--color-border-subtle);
-  border-radius: var(--radius-round);
-  background: var(--color-surface-secondary);
-}
-
-.archive-view-toggle button,
-.archive-view-toggle > span {
-  display: inline-flex;
-  min-width: 2rem;
-  height: 2rem;
-  min-height: 2rem;
-  padding: 0 var(--space-2);
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  border: 0;
-  border-radius: var(--radius-round);
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-100);
-  font-weight: var(--font-weight-bold);
-}
-
-.archive-view-toggle button:hover,
-.archive-view-toggle button.is-active {
-  background: var(--color-surface-primary);
-  color: var(--color-action-primary);
-  box-shadow: var(--shadow-xs);
-}
-
-.archive-view-toggle__sort {
-  width: auto !important;
-}
-
-.archive-view-toggle .material-symbols-outlined {
-  font-size: 1rem;
-}
-
 .archive-column__body {
   flex: 1 1 auto;
+  min-width: 0;
   min-height: 0;
   padding-top: var(--space-4);
+  overflow-x: hidden;
   overflow-y: auto;
   scrollbar-color: var(--color-brand-soft) transparent;
   scrollbar-width: thin;
@@ -131,176 +73,346 @@
   background: var(--color-brand-soft);
 }
 
-/* ==========================================================================
-   03   Listen und Raster
-   ========================================================================== */
-
 .archive-card-list,
 .archive-list,
-
-/* ==========================================================================
-   04   Task- und Listenansicht
-   ========================================================================== */
-
 .archive-task-grid {
   display: grid;
+  min-width: 0;
   gap: var(--space-3);
 }
 
-/* ==========================================================================
-   05   Karten
+/* ========================================================================== 
+   02   Spaltenkopf und Ansichtssteuerung
    ========================================================================== */
 
-.archive-card,
-.archive-task-card {
+.archive-column__head {
+  display: flex;
+  min-width: 0;
+  padding-bottom: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
+}
+
+.archive-column__head > div:first-child {
   display: grid;
-  padding: var(--space-4);
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.archive-column__eyebrow {
+  color: var(--color-action-primary);
+  font-family: var(--font-family-mono);
+  font-size: 0.62rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.archive-column__head h1 {
+  margin: 0;
+  font-size: var(--font-size-400);
+}
+
+.archive-view-toggle {
+  display: inline-flex;
+  min-width: 0;
+  padding: 0.18rem;
+  align-items: center;
+  gap: 0.1rem;
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-secondary);
+}
+
+.archive-view-toggle button,
+.archive-view-toggle > span {
+  display: inline-flex;
+  min-width: 1.85rem;
+  height: 1.85rem;
+  min-height: 1.85rem;
+  padding: 0 var(--space-2);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.62rem;
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.archive-view-toggle button:hover,
+.archive-view-toggle button.is-active {
+  background: var(--color-surface-primary);
+  color: var(--color-action-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.archive-view-toggle__sort {
+  width: auto;
+}
+
+.archive-view-toggle .material-symbols-outlined {
+  font-size: 0.95rem;
+}
+
+/* ========================================================================== 
+   03   Projektkarten und Projektliste
+   ========================================================================== */
+
+.archive-card {
+  display: grid;
+  min-width: 0;
+  padding: var(--space-3);
   gap: var(--space-3);
   border: var(--border-width-subtle) solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   background: var(--color-surface-secondary);
+  cursor: pointer;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.archive-card:hover,
+.archive-card:focus-visible {
+  border-color: color-mix(in srgb, var(--color-action-primary) 32%, var(--color-border-subtle));
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-0.0625rem);
 }
 
 .archive-card__top,
 .archive-card__title-row,
-.archive-tags,
 .archive-card footer,
-.archive-task-card__top,
-.archive-task-card > div,
-.archive-list-row {
+.archive-people-row,
+.archive-person-group,
+.archive-avatar-stack {
   display: flex;
+  min-width: 0;
   align-items: center;
 }
 
 .archive-card__top,
 .archive-card footer,
-.archive-task-card__top {
+.archive-people-row {
   justify-content: space-between;
   gap: var(--space-3);
 }
 
 .archive-card__title-row {
-  min-width: 0;
   align-items: flex-start;
-  gap: var(--space-3);
+  gap: var(--space-2);
+}
+
+.archive-card__title-row > div,
+.archive-list-row__main {
+  min-width: 0;
 }
 
 .archive-card__dot {
-  width: 0.65rem;
-  height: 0.65rem;
-  margin-top: 0.4rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: 0.35rem;
   flex: 0 0 auto;
   border-radius: var(--radius-round);
 }
 
 .archive-card h2,
-.archive-task-card h2,
-.archive-list-row h2 {
+.archive-list-row h2,
+.archive-task-card h2 {
   margin: 0;
+  overflow: hidden;
   font-family: var(--font-family-sans);
   font-size: var(--font-size-300);
-}
-
-.archive-card small,
-.archive-card p,
-.archive-task-card p,
-.archive-list-row small {
-  color: var(--color-text-muted);
-}
-
-.archive-card p,
-.archive-task-card p {
-  margin: 0;
-}
-
-.archive-tags {
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-1);
-}
-
-.archive-tags > span,
-.archive-task-card__top > span:last-child {
-  padding: 0.2rem 0.45rem;
-  border-radius: var(--radius-round);
-  background: var(--color-brand-subtle);
-  color: var(--color-action-primary);
-  font-size: 0.62rem;
-  font-weight: var(--font-weight-bold);
-}
-
-.archive-tags > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-}
-
-.archive-tags .material-symbols-outlined {
-  font-size: 0.8rem;
-}
-
-.archive-tags .archive-tag--archived {
-  background: var(--color-surface-primary);
-  color: var(--color-text-secondary);
-}
-
-.archive-people-boxes,
-.archive-card__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-
-.archive-card__grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.archive-people-boxes > div,
-.archive-card__grid > div {
-  display: grid;
-  min-width: 0;
-  padding: var(--space-3);
-  gap: var(--space-1);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-primary);
-}
-
-.archive-people-boxes span,
-.archive-card__grid span {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-100);
-}
-
-.archive-people-boxes strong,
-.archive-card__grid strong {
-  overflow: hidden;
-  color: var(--color-text-primary);
-  font-size: var(--font-size-200);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.archive-card small,
+.archive-card__description,
+.archive-list-row small {
+  color: var(--color-text-muted);
+}
+
+.archive-card__title-row small {
+  display: block;
+  margin-bottom: 0.1rem;
+  overflow: hidden;
+  font-family: var(--font-family-mono);
+  font-size: 0.6rem;
+  letter-spacing: var(--letter-spacing-label);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.archive-card__description {
+  display: -webkit-box;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--font-size-100);
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.archive-status-pill,
+.archive-priority-pill {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 0.18rem 0.45rem;
+  align-items: center;
+  gap: 0.2rem;
+  border-radius: var(--radius-round);
+  font-size: 0.6rem;
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.archive-status-pill {
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+
+.archive-status-pill--archived {
+  background: var(--color-surface-primary);
+  color: var(--color-text-secondary);
+}
+
+.archive-status-pill .material-symbols-outlined {
+  font-size: 0.75rem;
+}
+
+.archive-project-facts {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(3.5rem, 0.65fr));
+  gap: var(--space-2);
+}
+
+.archive-project-fact {
+  display: grid;
+  min-width: 0;
+  padding: var(--space-2);
+  gap: 0.15rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-primary);
+}
+
+.archive-project-fact--date {
+  background: var(--color-success-surface);
+}
+
+.archive-project-fact span,
+.archive-person-group > span,
+.archive-list-row__date span {
+  color: var(--color-text-muted);
+  font-size: 0.58rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.archive-project-fact strong {
+  overflow: hidden;
+  font-size: var(--font-size-100);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archive-people-row {
+  padding-top: var(--space-1);
+}
+
+.archive-person-group {
+  gap: var(--space-2);
+}
+
+.archive-person-group--team {
+  justify-content: flex-end;
+}
+
+.archive-person-group__empty {
+  color: var(--color-text-muted);
+  font-size: 0.62rem;
+}
+
 .archive-card footer {
-  padding-top: var(--space-3);
+  padding-top: var(--space-2);
   border-top: var(--border-width-subtle) solid var(--color-border-subtle);
 }
 
-.archive-card footer button {
-  min-width: auto;
-  min-height: auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
+.archive-card footer small {
+  overflow: hidden;
+  font-size: 0.6rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archive-card footer > span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-1);
   color: var(--color-action-primary);
+  font-size: var(--font-size-100);
   font-weight: var(--font-weight-bold);
 }
 
-.archive-task-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.archive-card footer .material-symbols-outlined {
+  font-size: 0.9rem;
 }
 
-.archive-task-card__top > .material-symbols-outlined {
+/* ========================================================================== 
+   04   Aufgabenlisten und Prioritäten
+   ========================================================================== */
+
+.archive-list-row {
+  display: grid;
+  min-width: 0;
+  min-height: 4rem;
+  padding: var(--space-3);
+  align-items: center;
+  gap: var(--space-3);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-secondary);
+  cursor: pointer;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    background var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.archive-list-row:hover,
+.archive-list-row:focus-visible {
+  border-color: color-mix(in srgb, var(--color-action-primary) 32%, var(--color-border-subtle));
+  background: var(--color-surface-elevated);
+}
+
+.archive-list-row--project {
+  grid-template-columns: auto minmax(0, 1fr) auto auto minmax(5.5rem, auto);
+}
+
+.archive-list-row--task {
+  grid-template-columns: auto minmax(0, 1fr) auto auto minmax(5.5rem, auto);
+}
+
+.archive-list-row small {
+  display: block;
+  margin-top: 0.2rem;
+  overflow: hidden;
+  font-size: 0.65rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archive-list-row__status {
   color: var(--color-success);
+  font-size: 1.15rem;
   font-variation-settings:
     'FILL' 1,
     'wght' 500,
@@ -308,47 +420,246 @@
     'opsz' 24;
 }
 
-.archive-task-card > div {
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-100);
+.archive-list-row__people {
+  display: flex;
+  min-width: 0;
+  padding-left: 0.35rem;
+  align-items: center;
 }
 
-.archive-task-card footer {
-  color: var(--color-text-muted);
+.archive-list-row__date {
+  display: grid;
+  gap: 0.1rem;
   font-size: var(--font-size-100);
+  text-align: right;
+  white-space: nowrap;
 }
 
-.archive-list-row {
-  min-height: 4.5rem;
+.archive-priority-pill--hoch {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.archive-priority-pill--mittel {
+  background: var(--color-warning-surface);
+  color: var(--color-warning);
+}
+
+.archive-priority-pill--niedrig {
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+
+/* ========================================================================== 
+   05   Bento-Aufgabenkarten
+   ========================================================================== */
+
+.archive-task-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.archive-task-card {
+  display: grid;
+  min-width: 0;
   padding: var(--space-3);
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: var(--space-3);
   border: var(--border-width-subtle) solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-surface-secondary);
+  cursor: pointer;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
-.archive-list-row > div {
+.archive-task-card:hover,
+.archive-task-card:focus-visible {
+  border-color: color-mix(in srgb, var(--color-action-primary) 34%, var(--color-border-subtle));
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-0.0625rem);
+}
+
+.archive-task-card__top,
+.archive-task-card__context,
+.archive-task-card footer,
+.archive-task-bento__item,
+.archive-task-bento__item--activity span,
+.archive-task-card__tags {
+  display: flex;
   min-width: 0;
+  align-items: center;
 }
 
-.archive-list-row small {
-  display: block;
-  margin-top: var(--space-1);
+.archive-task-card__top,
+.archive-task-card footer {
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.archive-task-card__context {
   overflow: hidden;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: 0.65rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.archive-list-row--task > .material-symbols-outlined {
+.archive-task-card__context .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 0.9rem;
+}
+
+.archive-task-bento {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.archive-task-bento__item {
+  min-width: 0;
+  min-height: 4rem;
+  padding: var(--space-2);
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+.archive-task-bento__item--date {
+  background: var(--color-success-surface);
   color: var(--color-success);
 }
 
-/* ==========================================================================
-   06   Responsive Darstellung
+.archive-task-bento__item--date > .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 1.2rem;
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.archive-task-bento__item--date > div,
+.archive-task-bento__item--people > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.archive-task-bento__item--date span:not(.material-symbols-outlined),
+.archive-task-bento__item--people > div > span {
+  font-size: 0.58rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.archive-task-bento__item--date strong {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-100);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archive-task-bento__item--people {
+  background: var(--color-brand-subtle);
+}
+
+.archive-task-bento__item--activity {
+  min-height: auto;
+  grid-column: 1 / -1;
+  justify-content: space-around;
+  background: var(--color-surface-primary);
+  color: var(--color-text-secondary);
+}
+
+.archive-task-bento__item--activity span {
+  gap: var(--space-1);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-semibold);
+}
+
+.archive-task-bento__item--activity .material-symbols-outlined {
+  color: var(--color-icon-muted);
+  font-size: 0.95rem;
+}
+
+.archive-task-card__tags {
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.archive-task-card__tags span {
+  padding: 0.16rem 0.42rem;
+  border-radius: var(--radius-round);
+  background: var(--color-surface-primary);
+  color: var(--color-text-secondary);
+  font-size: 0.58rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.archive-task-card footer {
+  padding-top: var(--space-2);
+  border-top: var(--border-width-subtle) solid var(--color-border-subtle);
+  color: var(--color-action-primary);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+}
+
+.archive-task-card footer .material-symbols-outlined {
+  font-size: 0.9rem;
+}
+
+/* ========================================================================== 
+   06   Personen und Avatare
    ========================================================================== */
+
+.archive-avatar-stack {
+  min-width: 0;
+  padding-left: 0.35rem;
+}
+
+.archive-avatar {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  margin-left: -0.35rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0.1rem solid var(--color-surface-secondary);
+  border-radius: var(--radius-round);
+  font-size: 0.53rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.archive-avatar--owner {
+  box-shadow: 0 0 0 0.08rem var(--color-accent);
+}
+
+.archive-avatar--more {
+  background: var(--color-surface-primary);
+  color: var(--color-text-muted);
+}
+
+/* ========================================================================== 
+   07   Responsive Darstellung
+   ========================================================================== */
+
+@media (max-width: 78rem) {
+  .archive-task-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .archive-list-row--project,
+  .archive-list-row--task {
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(5.5rem, auto);
+  }
+
+  .archive-list-row__people {
+    display: none;
+  }
+}
 
 @media (max-width: 72rem) {
   .archive-page {
@@ -358,21 +669,54 @@
   .archive-column {
     min-height: 32rem;
   }
+
+  .archive-task-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-@media (max-width: 42rem) {
+@media (max-width: 48rem) {
   .archive-column__head {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .archive-task-grid,
-  .archive-card__grid,
-  .archive-people-boxes {
+  .archive-view-toggle {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .archive-task-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .archive-list-row {
-    grid-template-columns: auto minmax(0, 1fr);
+  .archive-list-row--project,
+  .archive-list-row--task {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .archive-list-row__date {
+    grid-column: 2 / -1;
+    text-align: left;
+  }
+}
+
+@media (max-width: 34rem) {
+  .archive-project-facts,
+  .archive-task-bento {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .archive-task-bento__item--activity {
+    grid-column: auto;
+  }
+
+  .archive-people-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .archive-person-group--team {
+    justify-content: flex-start;
   }
 }

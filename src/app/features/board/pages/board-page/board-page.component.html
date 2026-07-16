@@ -63,7 +63,6 @@
           </div>
         }
       </div>
-
     </div>
 
     <div class="board-page-head__side">
@@ -386,6 +385,31 @@
             (input)="taskDescriptionDraft.set($any($event.target).value)"
             (blur)="saveTaskDescription()"
           ></textarea>
+        </section>
+
+        <section class="task-drawer__section task-drawer__tags-editor">
+          <label for="task-tags">Tags</label>
+          <input
+            id="task-tags"
+            type="text"
+            maxlength="420"
+            placeholder="Frontend, Design, Review"
+            [disabled]="taskEditingDisabled()"
+            [value]="taskTagsDraft()"
+            (input)="taskTagsDraft.set($any($event.target).value)"
+            (blur)="saveTaskTags()"
+            (keydown.enter)="$event.preventDefault(); saveTaskTags()"
+          />
+          <small
+            >Mehrere Tags mit Komma trennen. Doppelte Einträge werden automatisch entfernt.</small
+          >
+          @if (task.tags.length > 0) {
+            <div class="task-drawer__tag-preview" aria-label="Aktuelle Tags">
+              @for (tag of task.tags; track tag) {
+                <span>{{ tag }}</span>
+              }
+            </div>
+          }
         </section>
 
         <div class="task-drawer__form-grid">

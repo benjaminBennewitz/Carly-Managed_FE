@@ -85,9 +85,9 @@
 }
 
 .project-kpi-card--action {
-  padding: 0;
-  border-color: color-mix(in srgb, var(--color-action-primary) 45%, var(--color-border-subtle));
-  background: var(--color-brand-subtle);
+  padding: 0.3rem;
+  border-color: color-mix(in srgb, var(--color-action-primary) 32%, var(--color-border-subtle));
+  background: var(--color-surface-primary);
   overflow: hidden;
 }
 
@@ -95,18 +95,47 @@
   display: flex;
   width: 100%;
   height: 100%;
-  padding: var(--space-3);
+  min-height: 3.9rem;
+  padding: var(--space-2) var(--space-3);
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
   border: 0;
-  background: transparent;
+  border-radius: calc(var(--radius-lg) - 0.3rem);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-subtle),
+    color-mix(in srgb, var(--color-brand-subtle) 65%, var(--color-surface-primary))
+  );
   color: var(--color-action-primary);
   font-weight: var(--font-weight-bold);
+  transition:
+    background var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.project-kpi-card--action button .material-symbols-outlined {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-xs);
+  font-size: 1rem;
+  transition: transform var(--motion-duration-fast) var(--motion-easing-emphasized);
 }
 
 .project-kpi-card--action button:hover {
-  background: color-mix(in srgb, var(--color-action-primary) 9%, transparent);
+  background: color-mix(in srgb, var(--color-brand-subtle) 82%, var(--color-surface-primary));
+  box-shadow: inset 0 0 0 var(--border-width-subtle)
+    color-mix(in srgb, var(--color-action-primary) 20%, transparent);
+  transform: translateY(-0.0625rem);
+}
+
+.project-kpi-card--action button:hover .material-symbols-outlined {
+  transform: rotate(90deg);
 }
 
 /* ==========================================================================

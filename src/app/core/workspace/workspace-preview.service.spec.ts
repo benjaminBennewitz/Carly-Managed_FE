@@ -116,6 +116,19 @@ describe('WorkspacePreviewService', () => {
     expect(restored[0].color).toBe('#B9546A');
   });
 
+  it('normalisiert mehrere Tags und entfernt doppelte Einträge', () => {
+    const columns = service.updateTask(
+      'carly-managed',
+      'task-101',
+      { tags: ['Frontend', ' frontend ', 'Review', '<Design>'] },
+      'Tags aktualisiert',
+      'sell',
+    );
+    const task = columns.flatMap((column) => column.tasks).find((item) => item.id === 'task-101');
+
+    expect(task?.tags).toEqual(['Frontend', 'Review', 'Design']);
+  });
+
   it('verwaltet Unteraufgaben, Kommentare und Priorität lokal', () => {
     service.addSubtask('carly-managed', 'task-101', 'Sicherheit prüfen');
     service.addComment('carly-managed', 'task-101', 'Bitte vor dem Merge prüfen.');

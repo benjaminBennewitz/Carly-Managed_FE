@@ -133,6 +133,24 @@
 
 .pool-page__task {
   min-width: 0;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  outline: none;
+  transition:
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.pool-page__task:hover,
+.pool-page__task:focus-visible {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-0.125rem);
+}
+
+.pool-page__task:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  box-shadow: var(--shadow-md);
 }
 
 /* ==========================================================================

@@ -45,6 +45,8 @@ const WORKSPACE_JOIN_REQUESTS_STORAGE_KEY = 'carly-managed-preview-join-requests
 const WORKSPACE_MESSAGES_STORAGE_KEY = 'carly-managed-preview-messages-v1';
 const MAX_TASK_TITLE_LENGTH = 160;
 const MAX_TASK_DESCRIPTION_LENGTH = 5_000;
+const MAX_TASK_TAGS = 12;
+const MAX_TASK_TAG_LENGTH = 32;
 const MAX_COMMENT_LENGTH = 2_000;
 const MAX_SUBTASK_TITLE_LENGTH = 160;
 const PERSONAL_BOARD_ID = 'personal';
@@ -57,6 +59,24 @@ const UNASSIGNED_REVIEW_HINT =
 function isoDate(offsetDays: number): string {
   const date = new Date(Date.now() + offsetDays * day);
   return date.toISOString().slice(0, 10);
+}
+
+/** Normalisiert Tags, entfernt Duplikate und begrenzt Anzahl sowie Länge. */
+function normalizeTaskTags(tags: readonly string[]): string[] {
+  const uniqueTags = new Map<string, string>();
+
+  for (const rawTag of tags) {
+    const tag = normalizeSingleLineInput(rawTag, MAX_TASK_TAG_LENGTH);
+    const key = tag.toLocaleLowerCase('de');
+    if (tag && !uniqueTags.has(key)) {
+      uniqueTags.set(key, tag);
+    }
+    if (uniqueTags.size >= MAX_TASK_TAGS) {
+      break;
+    }
+  }
+
+  return [...uniqueTags.values()];
 }
 
 function isoDateTime(offsetDays: number, hour = 10): string {
@@ -2228,7 +2248,7 @@ export class WorkspacePreviewService {
     changes: Partial<
       Pick<
         WorkspaceTask,
-        'title' | 'description' | 'priority' | 'assignee' | 'startDate' | 'dueDate'
+        'title' | 'description' | 'priority' | 'assignee' | 'startDate' | 'dueDate' | 'tags'
       >
     >,
     historyAction = 'Aufgabe aktualisiert',
@@ -2237,11 +2257,13 @@ export class WorkspacePreviewService {
     const updatedColumns = this.mutateTask(projectId, taskId, (currentTask) => {
       const nextTitle = changes.title?.trim().slice(0, MAX_TASK_TITLE_LENGTH);
       const nextDescription = changes.description?.trim().slice(0, MAX_TASK_DESCRIPTION_LENGTH);
+      const nextTags = 'tags' in changes ? normalizeTaskTags(changes.tags ?? []) : currentTask.tags;
       const nextTask = {
         ...currentTask,
         ...changes,
         title: nextTitle || currentTask.title,
         description: nextDescription === undefined ? currentTask.description : nextDescription,
+        tags: nextTags,
         updatedAt: new Date().toISOString(),
       };
 

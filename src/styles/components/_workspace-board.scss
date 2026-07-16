@@ -1428,6 +1428,28 @@
   border-color: var(--color-border-strong);
 }
 
+.task-drawer__tags-editor > small {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  line-height: var(--line-height-body);
+}
+
+.task-drawer__tag-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.task-drawer__tag-preview span {
+  padding: 0.2rem 0.5rem;
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-round);
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-semibold);
+}
+
 .task-drawer__form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
