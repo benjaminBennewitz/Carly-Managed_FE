@@ -378,3 +378,9 @@
     </div>
   </section>
 </section>
+
+<cm-workspace-task-drawer
+  [task]="selectedTask()"
+  (closed)="closeTask()"
+  (taskUpdated)="updateSelectedTask($event)"
+/>

@@ -94,30 +94,11 @@
   border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
 }
 
-.pool-page__section-head > div {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.pool-page__section-head span {
-  color: var(--color-text-muted);
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-100);
-  letter-spacing: var(--letter-spacing-label);
-}
-
 .pool-page__section-head h2,
 .pool-page__empty h2 {
   margin: 0;
   color: var(--color-text-primary);
   font-family: var(--font-family-display);
-}
-
-.pool-page__section-head p {
-  max-width: 32rem;
-  margin: 0;
-  color: var(--color-text-secondary);
-  text-align: right;
 }
 
 /* ==========================================================================
@@ -203,9 +184,5 @@
 
   .pool-page__metrics > span {
     flex: 1 1 0;
-  }
-
-  .pool-page__section-head p {
-    text-align: left;
   }
 }

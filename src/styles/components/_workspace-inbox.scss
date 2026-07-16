@@ -527,12 +527,17 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-3);
+  width: 100%;
   min-width: 0;
+  min-height: auto;
   padding: var(--space-3);
   border: var(--border-width-subtle) solid transparent;
   border-radius: var(--radius-lg);
+  appearance: none;
   background: transparent;
+  box-shadow: none;
   color: inherit;
+  font: inherit;
   text-align: left;
   cursor: pointer;
   transition:

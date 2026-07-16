@@ -223,10 +223,13 @@ Carly-Managed_FE/
 │   │   │   │   │   ├── select-menu.component.html
 │   │   │   │   │   ├── select-menu.component.scss
 │   │   │   │   │   └── select-menu.component.ts
-│   │   │   │   └── workspace-task-card/
-│   │   │   │       ├── workspace-task-card.component.html
-│   │   │   │       ├── workspace-task-card.component.scss
-│   │   │   │       └── workspace-task-card.component.ts
+│   │   │   │   ├── workspace-task-card/
+│   │   │   │   │   ├── workspace-task-card.component.html
+│   │   │   │   │   ├── workspace-task-card.component.scss
+│   │   │   │   │   └── workspace-task-card.component.ts
+│   │   │   │   └── workspace-task-drawer/
+│   │   │   │       ├── workspace-task-drawer.component.html
+│   │   │   │       └── workspace-task-drawer.component.ts
 │   │   │   └── validation/
 │   │   │       ├── auth.validators.spec.ts
 │   │   │       └── auth.validators.ts

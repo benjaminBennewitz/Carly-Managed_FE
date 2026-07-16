@@ -3,18 +3,15 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
-import {
-  ArchivedTaskEntry,
-  WorkspaceMember,
-  WorkspaceProject,
-  WorkspaceTask,
-} from '../../../../core/workspace/workspace.models';
+import { ArchivedTaskEntry, WorkspaceMember, WorkspaceProject, WorkspaceTask } from '../../../../core/workspace/workspace.models';
 import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
+import { WorkspaceTaskDrawerComponent } from '../../../../shared/ui/workspace-task-drawer/workspace-task-drawer.component';
 
 type ArchiveViewMode = 'cards' | 'list';
 
 @Component({
   selector: 'cm-archive-page',
+  imports: [WorkspaceTaskDrawerComponent],
   templateUrl: './archive-page.component.html',
   styleUrl: './archive-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,6 +22,7 @@ export class ArchivePageComponent {
   protected readonly taskViewMode = signal<ArchiveViewMode>('cards');
   protected readonly projectsNewestFirst = signal(true);
   protected readonly tasksNewestFirst = signal(true);
+  protected readonly selectedTask = signal<WorkspaceTask | null>(null);
   protected readonly sortedProjects = computed(() =>
     [...this.workspaceService.archivedProjects()].sort((left, right) =>
       this.compareDates(
@@ -72,15 +70,19 @@ export class ArchivePageComponent {
     return this.router.navigate(['/projects', project.id, 'board']);
   }
 
-  /** Öffnet die vollständige Task-Sidebar im zugehörigen Board. */
-  openTask(entry: ArchivedTaskEntry): Promise<boolean> {
-    const commands = entry.task.projectId
-      ? ['/projects', entry.task.projectId, 'board']
-      : ['/board'];
+  /** Öffnet die vollständige Task-Sidebar direkt im Archiv. */
+  protected openTask(entry: ArchivedTaskEntry): void {
+    this.selectedTask.set(structuredClone(entry.task));
+  }
 
-    return this.router.navigate(commands, {
-      queryParams: { task: entry.task.id },
-    });
+  /** Schließt die Task-Sidebar im Archiv. */
+  protected closeTask(): void {
+    this.selectedTask.set(null);
+  }
+
+  /** Synchronisiert die lokale Auswahl nach Änderungen in der Sidebar. */
+  protected updateSelectedTask(task: WorkspaceTask): void {
+    this.selectedTask.set(structuredClone(task));
   }
 
   /** Formatiert einen ISO-Zeitpunkt. */
