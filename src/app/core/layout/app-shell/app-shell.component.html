@@ -35,4 +35,7 @@
   @if (settingsService.accessibility().magnifier) {
     <cm-screen-magnifier />
   }
+  @if (carlyService.visibleGlobally()) {
+    <cm-carly-mascot />
+  }
 </div>

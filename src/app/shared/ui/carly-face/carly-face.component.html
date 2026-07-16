@@ -1,0 +1,25 @@
+<!-- src/app/shared/ui/carly-face/carly-face.component.html -->
+
+<div
+  class="carly-face"
+  [class.carly-face--sleeping]="sleeping()"
+  [class.carly-face--petted]="petted()"
+  [class.carly-face--large]="large()"
+  [attr.data-reduced]="reduced()"
+  aria-hidden="true"
+>
+  <span class="carly-face__ear carly-face__ear--left"></span>
+  <span class="carly-face__ear carly-face__ear--right"></span>
+  <span class="carly-face__head">
+    <span class="carly-face__eye carly-face__eye--left"><i></i></span>
+    <span class="carly-face__eye carly-face__eye--right"><i></i></span>
+    <span class="carly-face__muzzle"></span>
+    <span class="carly-face__nose"></span>
+  </span>
+  @if (sleeping()) {
+    <span class="carly-face__sleep">Z<span>Z</span><span>Z</span></span>
+  }
+  @if (petted()) {
+    <span class="carly-face__hearts">♥ <span>♥</span> <span>♥</span></span>
+  }
+</div>

@@ -1,0 +1,160 @@
+/*###############################
+###
+###     carly-face.component.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
+
+/* ========================================================================== 
+   INHALTSVERZEICHNIS
+
+   01   Grundform
+   02   Gesicht und Augen
+   03   Zustände und Animationen
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Grundform
+   ========================================================================== */
+
+:host { display: block; }
+
+.carly-face {
+  --carly-size: 7rem;
+  position: relative;
+  width: var(--carly-size);
+  height: calc(var(--carly-size) * 0.88);
+  filter: drop-shadow(0 0.75rem 1rem rgb(34 20 45 / 0.18));
+}
+
+.carly-face--large { --carly-size: clamp(12rem, 23vw, 19rem); }
+
+.carly-face__head {
+  position: absolute;
+  inset: 16% 8% 0;
+  border: 0.18rem solid color-mix(in srgb, var(--color-text-primary) 82%, transparent);
+  border-radius: 46% 46% 42% 42%;
+  background: linear-gradient(145deg, #352542, #17121f 72%);
+  box-shadow: inset 0.5rem 0.5rem 1rem rgb(255 255 255 / 0.06);
+}
+
+.carly-face__ear {
+  position: absolute;
+  top: 3%;
+  width: 38%;
+  height: 46%;
+  border: 0.18rem solid color-mix(in srgb, var(--color-text-primary) 82%, transparent);
+  background: #291d34;
+  clip-path: polygon(50% 0, 100% 100%, 0 86%);
+}
+
+.carly-face__ear::after {
+  content: '';
+  position: absolute;
+  inset: 24% 25% 20%;
+  background: color-mix(in srgb, var(--color-accent) 38%, #ef9ebf);
+  clip-path: inherit;
+}
+
+.carly-face__ear--left { left: 8%; transform: rotate(-13deg); }
+.carly-face__ear--right { right: 8%; transform: scaleX(-1) rotate(-13deg); }
+
+/* ==========================================================================
+   02   Gesicht und Augen
+   ========================================================================== */
+
+.carly-face__eye {
+  position: absolute;
+  top: 35%;
+  width: 24%;
+  height: 28%;
+  overflow: hidden;
+  border-radius: 52% 52% 48% 48%;
+  background: color-mix(in srgb, var(--color-accent) 75%, #f8e879);
+  box-shadow: 0 0 0.75rem color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+
+.carly-face__eye::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  height: 0;
+  background: #211729;
+  animation: carly-blink 5.4s infinite;
+}
+
+.carly-face__eye i {
+  position: absolute;
+  top: 12%;
+  left: 43%;
+  width: 18%;
+  height: 78%;
+  border-radius: var(--radius-round);
+  background: #151018;
+  animation: carly-look 7s infinite ease-in-out;
+}
+
+.carly-face__eye--left { left: 18%; }
+.carly-face__eye--right { right: 18%; }
+
+.carly-face__muzzle {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  width: 42%;
+  height: 25%;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.08);
+  transform: translateX(-50%);
+}
+
+.carly-face__nose {
+  position: absolute;
+  left: 50%;
+  bottom: 25%;
+  width: 9%;
+  aspect-ratio: 1.2;
+  border-radius: 60% 60% 70% 70%;
+  background: #d68ca9;
+  transform: translateX(-50%);
+}
+
+/* ==========================================================================
+   03   Zustände und Animationen
+   ========================================================================== */
+
+.carly-face--sleeping .carly-face__eye::after { height: 100%; animation: none; }
+.carly-face--petted { animation: carly-pet 0.7s ease-in-out 3; }
+
+.carly-face__sleep, .carly-face__hearts {
+  position: absolute;
+  z-index: 2;
+  color: var(--color-accent);
+  font-family: var(--font-family-highlight);
+  font-weight: var(--font-weight-bold);
+}
+
+.carly-face__sleep { top: -8%; right: -2%; font-size: 1.4rem; animation: carly-float 1.8s infinite; }
+.carly-face__sleep span:first-child { font-size: 0.8em; }
+.carly-face__sleep span:last-child { font-size: 0.62em; }
+.carly-face__hearts { top: -5%; left: 12%; color: #ef77a8; animation: carly-float 0.8s infinite alternate; }
+
+@keyframes carly-blink { 0%, 91%, 96%, 100% { height: 0; } 93%, 95% { height: 100%; } }
+@keyframes carly-look { 0%, 50%, 100% { transform: translateX(0); } 18% { transform: translateX(70%); } 70% { transform: translateX(-70%); } }
+@keyframes carly-pet { 50% { transform: translateY(-0.35rem) rotate(-2deg); } }
+@keyframes carly-float { to { transform: translateY(-0.5rem); opacity: 0.6; } }
+
+:host-context(:root[data-motion='reduced']) .carly-face *,
+:host-context(:root[data-neuro='true']) .carly-face *,
+.carly-face[data-reduced='true'] * { animation: none !important; }

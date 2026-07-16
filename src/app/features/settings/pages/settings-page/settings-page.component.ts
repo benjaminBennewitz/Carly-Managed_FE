@@ -2,6 +2,8 @@
 
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 
+import { CarlySettings } from '../../../../core/carly/carly.models';
+import { CarlyService } from '../../../../core/carly/carly.service';
 import { AccessibilityFontSize, ColorVisionMode, WorkspaceAlarmCategory } from '../../../../core/settings/app-settings.models';
 import { AppSettingsService } from '../../../../core/settings/app-settings.service';
 import { ThemeMode, ThemeName, ThemeService } from '../../../../core/theme/theme.service';
@@ -9,11 +11,12 @@ import { WorkspaceDisplayPreferencesService } from '../../../../core/workspace/w
 import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 
-type SettingsTab = 'accessibility' | 'general' | 'tools' | 'themes';
+type SettingsTab = 'carly' | 'accessibility' | 'general' | 'tools' | 'themes';
 type AccessibilityBooleanKey =
   'neuroMode' | 'reduceMotion' | 'reduceHover' | 'magnifier' | 'highContrast';
 type GeneralBooleanKey = 'dynamicNewColumns' | 'tooltipsEnabled' | 'allowInvites';
 type ToolBooleanKey = 'pomodoro' | 'taskTimer' | 'weather';
+type CarlyBooleanKey = keyof CarlySettings;
 
 interface SettingsTabOption {
   id: SettingsTab;
@@ -55,10 +58,11 @@ interface ThemeOption {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsPageComponent {
+  protected readonly carlyService: CarlyService;
   protected readonly settingsService: AppSettingsService;
   protected readonly themeService: ThemeService;
   protected readonly displayPreferences: WorkspaceDisplayPreferencesService;
-  protected readonly activeTab = signal<SettingsTab>('accessibility');
+  protected readonly activeTab = signal<SettingsTab>('carly');
   protected readonly statusMessage = signal('');
   protected readonly fadeLevels: readonly (15 | 35 | 55)[] = [15, 35, 55];
 
@@ -68,6 +72,12 @@ export class SettingsPageComponent {
   }
 
   protected readonly tabs: readonly SettingsTabOption[] = [
+    {
+      id: 'carly',
+      label: 'Carly',
+      icon: 'pets',
+      description: 'Maskottchen und Reaktionen',
+    },
     {
       id: 'accessibility',
       label: 'Barrierefreiheit',
@@ -254,14 +264,22 @@ export class SettingsPageComponent {
   ];
 
   constructor(
+    carlyService: CarlyService,
     settingsService: AppSettingsService,
     themeService: ThemeService,
     displayPreferences: WorkspaceDisplayPreferencesService,
     private readonly workspaceService: WorkspacePreviewService,
   ) {
+    this.carlyService = carlyService;
     this.settingsService = settingsService;
     this.themeService = themeService;
     this.displayPreferences = displayPreferences;
+  }
+
+  /** Aktualisiert eine Carly-Einstellung. */
+  protected setCarlySetting(key: CarlyBooleanKey, event: Event): void {
+    this.carlyService.updateSettings({ [key]: this.readChecked(event) });
+    this.showSavedState('Carly-Einstellung gespeichert.');
   }
 
   /** Aktiviert einen Einstellungsbereich. */
@@ -388,6 +406,7 @@ export class SettingsPageComponent {
     }
 
     this.settingsService.reset();
+    this.carlyService.reset();
     this.themeService.setTheme('default');
     this.themeService.setMode('light');
     this.displayPreferences.setFadeCompletedTasks(true);

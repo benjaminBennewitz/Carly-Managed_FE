@@ -42,6 +42,48 @@
     }
   </nav>
 
+  @if (activeTab() === 'carly') {
+    <section id="settings-panel-carly" class="settings-panel" role="tabpanel" aria-label="Carly">
+      <article class="settings-section settings-section--wide settings-section--carly">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">pets</span>
+          <div><p>Kernfunktion</p><h2>Carly aktivieren</h2></div>
+        </div>
+        <p class="settings-history-note">Carly bleibt optional. Task-Management, Boards und Zusammenarbeit funktionieren jederzeit vollständig ohne das Maskottchen.</p>
+        <div class="settings-list">
+          <label class="settings-switch-row settings-switch-row--primary">
+            <span><strong>Carly verwenden</strong><small>Aktiviert Dashboard, Fortschritt und Maskottchen-Funktionen.</small></span>
+            <input type="checkbox" [checked]="carlyService.settings().enabled" (change)="setCarlySetting('enabled', $event)" />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+        </div>
+      </article>
+
+      <article class="settings-section" [class.settings-section--disabled]="!carlyService.settings().enabled">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">visibility</span>
+          <div><p>Darstellung</p><h2>Carly im Workspace</h2></div>
+        </div>
+        <div class="settings-list">
+          <label class="settings-switch-row"><span><strong>Auf normalen Routen anzeigen</strong><small>Platziert Carly dezent am unteren Bildschirmrand.</small></span><input type="checkbox" [disabled]="!carlyService.settings().enabled" [checked]="carlyService.settings().showGlobally" (change)="setCarlySetting('showGlobally', $event)" /><span class="settings-switch" aria-hidden="true"></span></label>
+          <label class="settings-switch-row"><span><strong>Carly-Nachrichten</strong><small>Zeigt kurze Hinweise und Reaktionen neben dem Maskottchen.</small></span><input type="checkbox" [disabled]="!carlyService.settings().enabled" [checked]="carlyService.settings().messagesEnabled" (change)="setCarlySetting('messagesEnabled', $event)" /><span class="settings-switch" aria-hidden="true"></span></label>
+          <label class="settings-switch-row"><span><strong>Reaktionen auf Task-Abschlüsse</strong><small>Bereitet spätere produktivitätsbasierte Erfahrungspunkte vor.</small></span><input type="checkbox" [disabled]="!carlyService.settings().enabled" [checked]="carlyService.settings().taskReactionsEnabled" (change)="setCarlySetting('taskReactionsEnabled', $event)" /><span class="settings-switch" aria-hidden="true"></span></label>
+        </div>
+      </article>
+
+      <article class="settings-section" [class.settings-section--disabled]="!carlyService.settings().enabled">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">bedtime</span>
+          <div><p>Verhalten</p><h2>Ruhe und Animation</h2></div>
+        </div>
+        <div class="settings-list">
+          <label class="settings-switch-row"><span><strong>Automatisch schlafen</strong><small>Carly darf bei längerer Inaktivität selbstständig einschlafen.</small></span><input type="checkbox" [disabled]="!carlyService.settings().enabled" [checked]="carlyService.settings().autoSleep" (change)="setCarlySetting('autoSleep', $event)" /><span class="settings-switch" aria-hidden="true"></span></label>
+          <label class="settings-switch-row"><span><strong>Carly-Animationen reduzieren</strong><small>Reduziert Blinzeln, Schweben und Reaktionsbewegungen unabhängig vom globalen Modus.</small></span><input type="checkbox" [disabled]="!carlyService.settings().enabled" [checked]="carlyService.settings().reduceAnimations" (change)="setCarlySetting('reduceAnimations', $event)" /><span class="settings-switch" aria-hidden="true"></span></label>
+        </div>
+      </article>
+    </section>
+  }
+
   @if (activeTab() === 'accessibility') {
     <section
       id="settings-panel-accessibility"

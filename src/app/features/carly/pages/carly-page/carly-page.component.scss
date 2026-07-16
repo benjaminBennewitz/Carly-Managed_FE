@@ -16,17 +16,35 @@
 ###
 #################################*/
 
-/* ==========================================================================
+/* ========================================================================== 
    INHALTSVERZEICHNIS
 
-   01   Seite
+   01   Seite und deaktivierter Zustand
+   02   Dashboard und Habitat
    ========================================================================== */
 
 /* ==========================================================================
-   01   Seite
+   01   Seite und deaktivierter Zustand
    ========================================================================== */
 
-.feature-page {
-  display: grid;
-  gap: var(--space-8);
-}
+.carly-page { display: grid; gap: var(--space-6); padding-bottom: var(--space-12); }
+.carly-disabled { display: flex; align-items: center; gap: var(--space-5); padding: var(--space-8); border: var(--border-width-subtle) solid var(--color-border-subtle); border-radius: var(--radius-2xl); background: var(--color-surface-primary); }
+.carly-disabled > .material-symbols-outlined { font-size: 3rem; color: var(--color-accent); }
+.carly-disabled h2, .carly-disabled p { margin: 0; }
+.carly-disabled p { margin-top: var(--space-2); color: var(--color-text-secondary); }
+.carly-disabled button { margin-left: auto; padding: var(--space-3) var(--space-5); border: 0; border-radius: var(--radius-round); background: var(--color-action-primary); color: var(--color-action-primary-text); font-weight: var(--font-weight-bold); cursor: pointer; }
+
+/* ==========================================================================
+   02   Dashboard und Habitat
+   ========================================================================== */
+
+.carly-dashboard { display: grid; grid-template-columns: minmax(20rem, 1.25fr) repeat(2, minmax(16rem, 0.75fr)); gap: var(--space-5); }
+.carly-habitat, .carly-panel { position: relative; overflow: hidden; border: var(--border-width-subtle) solid var(--color-border-subtle); border-radius: var(--radius-2xl); background: var(--color-surface-primary); box-shadow: var(--shadow-sm); }
+.carly-habitat { grid-row: span 2; min-height: 34rem; display: grid; place-items: center; padding: var(--space-8); background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--color-accent) 25%, transparent), transparent 34%), linear-gradient(145deg, color-mix(in srgb, var(--color-brand-soft) 78%, var(--color-surface-primary)), var(--color-surface-secondary)); }
+.carly-habitat::after { content: ''; position: absolute; inset: auto 8% 5%; height: 17%; border-radius: 50%; background: color-mix(in srgb, var(--color-accent) 15%, var(--color-surface-secondary)); filter: blur(0.2rem); }
+.carly-habitat cm-carly-face { position: relative; z-index: 2; }
+.carly-habitat__sky { position: absolute; inset: var(--space-6); color: var(--color-accent); font-size: 1.5rem; }
+.carly-habitat__sky span:nth-child(2) { position: absolute; right: 12%; top: 18%; }
+.carly-habitat__sky span:nth-child(3) { position: absolute; left: 18%; top: 42%; }
+.carly-habitat__level { position: absolute; top: var(--space-5); right: var(--space-5); padding: var(--space-2) var(--space-3); border-radius: var(--radius-round); background: var(--color-surface-elevated); font-size: var(--font-size-200); font-weight: var(--font-weight-bold); }
+.carly-habitat__message { position: absolute; z-index: 3; right: var(--space-6); bottom: var(--space-6); left: var(--space-6); padding: var(--space-4); border-radius: var(--radius-lg); margin: 0; background: color-mix(in srgb, var(--color-surface-elevated) 92%, transparent); box-shadow: var(--shadow-sm); color: var(--color-text-secondary); text-align: center; }

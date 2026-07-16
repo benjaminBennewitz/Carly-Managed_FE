@@ -5,7 +5,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
+import { CarlyService } from '../../carly/carly.service';
 import { AppSettingsService } from '../../settings/app-settings.service';
+import { CarlyMascotComponent } from '../../../shared/ui/carly-mascot/carly-mascot.component';
 import { ScreenMagnifierComponent } from '../../../shared/ui/screen-magnifier/screen-magnifier.component';
 import { WorkspaceToolsComponent } from '../../../shared/ui/workspace-tools/workspace-tools.component';
 import { PrimaryNavigationComponent } from '../primary-navigation/primary-navigation.component';
@@ -16,6 +18,7 @@ const DESKTOP_SIDEBAR_QUERY = '(min-width: 56.001rem)';
 @Component({
   selector: 'cm-app-shell',
   imports: [
+    CarlyMascotComponent,
     PrimaryNavigationComponent,
     RouterOutlet,
     ScreenMagnifierComponent,
@@ -27,13 +30,20 @@ const DESKTOP_SIDEBAR_QUERY = '(min-width: 56.001rem)';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShellComponent {
+  protected readonly carlyService: CarlyService;
   protected readonly settingsService: AppSettingsService;
   protected readonly sidebarOpen = signal(window.matchMedia(DESKTOP_SIDEBAR_QUERY).matches);
   protected readonly isBoardRoute = signal(false);
   protected readonly isProjectSettingsRoute = signal(false);
   protected readonly isInboxRoute = signal(false);
 
-  constructor(destroyRef: DestroyRef, router: Router, settingsService: AppSettingsService) {
+  constructor(
+    carlyService: CarlyService,
+    destroyRef: DestroyRef,
+    router: Router,
+    settingsService: AppSettingsService,
+  ) {
+    this.carlyService = carlyService;
     this.settingsService = settingsService;
     const desktopMediaQuery = window.matchMedia(DESKTOP_SIDEBAR_QUERY);
     const updateSidebarForViewport = (event: MediaQueryListEvent): void => {

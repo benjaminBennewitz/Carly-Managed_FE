@@ -102,7 +102,7 @@
   display: grid;
   width: fit-content;
   max-width: 100%;
-  grid-template-columns: repeat(4, minmax(8.5rem, 10.5rem));
+  grid-template-columns: repeat(5, minmax(7.5rem, 9.5rem));
   gap: var(--space-1);
   padding: var(--space-2);
   border: var(--border-width-subtle) solid var(--color-border-subtle);
@@ -183,3 +183,7 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-200);
 }
+
+.settings-section--carly { background: linear-gradient(145deg, var(--color-surface-primary), color-mix(in srgb, var(--color-accent-subtle) 55%, var(--color-surface-primary))); }
+.settings-switch-row--primary { border-color: var(--color-accent); }
+.settings-section--disabled { opacity: 0.58; }

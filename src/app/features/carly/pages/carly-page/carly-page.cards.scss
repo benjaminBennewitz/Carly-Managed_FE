@@ -1,0 +1,47 @@
+/*###############################
+###
+###     carly-page.cards.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
+
+/* ========================================================================== 
+   INHALTSVERZEICHNIS
+
+   01   Aktionen und Futter
+   02   Responsive Verhalten
+   ========================================================================== */
+
+/* ========================================================================== 
+   01   Aktionen und Futter
+   ========================================================================== */
+
+.carly-panel--actions { grid-column: span 2; }
+.carly-actions, .carly-food-grid { display: grid; gap: var(--space-3); }
+.carly-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.carly-actions button, .carly-food-grid button { display: grid; gap: var(--space-1); min-height: 6.5rem; place-items: center; padding: var(--space-4); border: var(--border-width-subtle) solid var(--color-border-subtle); border-radius: var(--radius-xl); background: var(--color-surface-secondary); color: var(--color-text-primary); cursor: pointer; }
+.carly-actions button:hover, .carly-food-grid button:hover { border-color: var(--color-accent); background: var(--color-accent-subtle); transform: translateY(-0.15rem); }
+.carly-actions button:disabled, .carly-food-grid button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.carly-actions .material-symbols-outlined { color: var(--color-accent); font-size: 1.8rem; }
+.carly-actions small { color: var(--color-text-muted); }
+.carly-panel--food { grid-column: span 3; }
+.carly-food-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.carly-food-grid button > span { font-size: 2rem; }
+
+/* ==========================================================================
+   02   Responsive Verhalten
+   ========================================================================== */
+
+@media (max-width: 72rem) { .carly-dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } .carly-habitat { grid-column: span 2; grid-row: auto; min-height: 28rem; } .carly-panel--food { grid-column: span 2; } }
+@media (max-width: 46rem) { .carly-dashboard { grid-template-columns: 1fr; } .carly-habitat, .carly-panel--actions, .carly-panel--food { grid-column: auto; } .carly-actions, .carly-food-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .carly-disabled { align-items: flex-start; flex-wrap: wrap; } .carly-disabled button { margin-left: 0; } }
