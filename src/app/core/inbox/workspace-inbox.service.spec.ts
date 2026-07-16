@@ -3,6 +3,7 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { AppSettingsService } from '../settings/app-settings.service';
 import { WorkspacePreviewService } from '../workspace/workspace-preview.service';
 import { WorkspaceInboxService } from './workspace-inbox.service';
 
@@ -108,6 +109,23 @@ describe('WorkspaceInboxService', () => {
         .systemNotifications()
         .some((notification) => notification.queryParams?.['task'] === 'task-101'),
     ).toBe(true);
+  });
+
+  it('unterdrückt deaktivierte Workspace-Systemmeldungen', () => {
+    const settingsService = TestBed.inject(AppSettingsService);
+    settingsService.setAlarm('taskCompleted', false);
+    const historyCountBefore = inboxService.systemNotifications().length;
+    const completedCountBefore = inboxService
+      .systemNotifications()
+      .filter((notification) => notification.title === 'Aufgabe abgeschlossen').length;
+
+    workspaceService.toggleTaskCompleted('carly-managed', 'task-101');
+
+    const completedCountAfter = inboxService
+      .systemNotifications()
+      .filter((notification) => notification.title === 'Aufgabe abgeschlossen').length;
+    expect(completedCountAfter).toBe(completedCountBefore);
+    expect(inboxService.systemNotifications().length).toBe(historyCountBefore);
   });
 
   it('markiert Systemmeldungen und Chats als gelesen', () => {

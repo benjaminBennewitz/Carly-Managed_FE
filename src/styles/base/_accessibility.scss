@@ -24,6 +24,11 @@
    03   Skip-Link
    04   Erhöhter Kontrast
    05   Reduzierte Bewegung
+   06   Reduzierte Hover-Reize
+   07   Farbenblindheitsmodi
+   08   Neuro-Modus
+   09   Bildschirmlupe
+   10   Tooltips
    ========================================================================== */
 
 /* ==========================================================================
@@ -85,6 +90,9 @@
   --border-width-subtle: 0.125rem;
   --color-border-subtle: var(--color-border-strong);
   --focus-ring-width: 0.1875rem;
+  --shadow-xs: 0 0 0 0.0625rem var(--color-border-strong);
+  --shadow-sm: 0 0 0 0.0625rem var(--color-border-strong);
+  --shadow-md: 0 0 0 0.125rem var(--color-border-strong);
 }
 
 @media (prefers-contrast: more) {
@@ -117,4 +125,139 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ==========================================================================
+   06   Reduzierte Hover-Reize
+   ========================================================================== */
+
+:root[data-hover='reduced'] *:hover,
+:root[data-hover='reduced'] *:hover::before,
+:root[data-hover='reduced'] *:hover::after {
+  transform: none !important;
+  filter: none !important;
+}
+
+:root[data-hover='reduced'] * {
+  transition-property: color, background-color, border-color, opacity !important;
+}
+
+/* ==========================================================================
+   07   Farbenblindheitsmodi
+   ========================================================================== */
+
+:root[data-color-vision='protanopia'],
+:root[data-color-vision='deuteranopia'] {
+  --color-success: #2677a8;
+  --color-warning: #c58b25;
+  --color-danger: #8a5aa8;
+  --color-info: #347d91;
+  --color-action-primary: #385fa8;
+  --color-action-primary-hover: #2b4b88;
+  --color-action-primary-active: #203968;
+  --color-focus: #385fa8;
+  --color-accent: #d19b2f;
+}
+
+:root[data-color-vision='tritanopia'] {
+  --color-success: #2f8a68;
+  --color-warning: #b96449;
+  --color-danger: #a23f58;
+  --color-info: #5362ad;
+  --color-action-primary: #6a4ea2;
+  --color-action-primary-hover: #563d86;
+  --color-action-primary-active: #44306a;
+  --color-focus: #6a4ea2;
+  --color-accent: #c5684d;
+}
+
+:root[data-color-vision='monochrome'] {
+  --color-action-primary: #303030;
+  --color-action-primary-hover: #171717;
+  --color-action-primary-active: #000000;
+  --color-action-secondary: #e2e2e2;
+  --color-action-secondary-hover: #d2d2d2;
+  --color-action-secondary-active: #c2c2c2;
+  --color-accent: #707070;
+  --color-success: #4a4a4a;
+  --color-warning: #6b6b6b;
+  --color-danger: #292929;
+  --color-info: #5b5b5b;
+  --color-focus: #000000;
+}
+
+:root[data-color-vision='monochrome'] body {
+  filter: grayscale(1);
+}
+
+/* ==========================================================================
+   08   Neuro-Modus
+   ========================================================================== */
+
+:root[data-neuro='true'] {
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --motion-duration-fast: 0ms;
+  --motion-duration-normal: 0ms;
+  --motion-duration-slow: 0ms;
+  --line-height-body: 1.7;
+  --line-height-card-body: 1.65;
+}
+
+:root[data-neuro='true'] *,
+:root[data-neuro='true'] *::before,
+:root[data-neuro='true'] *::after {
+  background-image: none !important;
+  text-shadow: none !important;
+}
+
+:root[data-neuro='true'] :is(p, li, dd, .workspace-task-card__description) {
+  max-width: 72ch;
+}
+
+/* ==========================================================================
+   09   Bildschirmlupe
+   ========================================================================== */
+
+:root[data-magnifier='false'] cm-screen-magnifier {
+  display: none;
+}
+
+/* ==========================================================================
+   10   Tooltips
+   ========================================================================== */
+
+.cm-global-tooltip {
+  position: fixed;
+  z-index: var(--z-index-tooltip);
+  max-width: min(18rem, calc(100vw - var(--space-6)));
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-subtle) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-text-primary);
+  color: var(--color-surface-primary);
+  box-shadow: var(--shadow-md);
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.25rem);
+  transition:
+    opacity var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.cm-global-tooltip[data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+:root[data-tooltips='off'] [role='tooltip'],
+:root[data-tooltips='off'] [data-tooltip],
+:root[data-tooltips='off'] .tooltip,
+:root[data-tooltips='off'] .cm-global-tooltip {
+  display: none !important;
 }

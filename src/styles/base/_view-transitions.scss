@@ -264,6 +264,23 @@
    08   Reduzierte Bewegung
    ========================================================================== */
 
+:root[data-neuro='true']::view-transition-group(auth-card),
+:root[data-neuro='true']::view-transition-group(app-route),
+:root[data-neuro='true']::view-transition-group(legal-shell),
+:root[data-neuro='true']::view-transition-group(legal-document),
+:root[data-neuro='true']::view-transition-group(legal-title),
+:root[data-neuro='true']::view-transition-old(auth-card),
+:root[data-neuro='true']::view-transition-new(auth-card),
+:root[data-neuro='true']::view-transition-old(app-route),
+:root[data-neuro='true']::view-transition-new(app-route),
+:root[data-neuro='true']::view-transition-old(legal-shell),
+:root[data-neuro='true']::view-transition-new(legal-shell),
+:root[data-neuro='true']::view-transition-old(legal-document),
+:root[data-neuro='true']::view-transition-new(legal-document),
+:root[data-neuro='true']::view-transition-old(legal-title),
+:root[data-neuro='true']::view-transition-new(legal-title),
+:root[data-neuro='true']::view-transition-old(root),
+:root[data-neuro='true']::view-transition-new(root),
 :root[data-motion='reduced']::view-transition-group(auth-card),
 :root[data-motion='reduced']::view-transition-group(app-route),
 :root[data-motion='reduced']::view-transition-group(legal-shell),

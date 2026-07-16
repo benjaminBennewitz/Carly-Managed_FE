@@ -486,4 +486,15 @@ describe('WorkspacePreviewService', () => {
     expect(rejected).toBe(true);
     expect(service.joinRequests()).toEqual([]);
   });
+  it('liefert die Anzahl belegter dynamischer Neu-Spalten', () => {
+    const expectedCount = service
+      .members()
+      .flatMap((member) => service.getBoard(member.id === 'member-ben' ? 'personal' : `personal-${member.id}`))
+      .filter((column) => column.systemRole === 'new-assigned')
+      .reduce((total, column) => total + column.tasks.length, 0);
+
+    expect(service.getDynamicNewColumnTaskCount()).toBe(expectedCount);
+    expect(expectedCount).toBeGreaterThan(0);
+  });
+
 });

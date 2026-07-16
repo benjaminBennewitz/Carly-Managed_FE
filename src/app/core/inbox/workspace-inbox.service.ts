@@ -6,6 +6,7 @@ import {
   normalizeMultilineInput,
   normalizeSingleLineInput,
 } from '../security/frontend-input.utils';
+import { AppSettingsService } from '../settings/app-settings.service';
 import { WorkspaceMember } from '../workspace/workspace.models';
 import {
   WorkspaceChatMessage,
@@ -98,6 +99,8 @@ export class WorkspaceInboxService {
     () => this.unreadSystemCount() + this.unreadConversationCount(),
   );
 
+  constructor(private readonly settingsService: AppSettingsService) {}
+
   /** Initialisiert die lokale Inbox einmalig mit aussagekräftigen Demo-Daten. */
   initialize(members: readonly WorkspaceMember[]): void {
     if (this.initialized) {
@@ -123,7 +126,11 @@ export class WorkspaceInboxService {
   /** Legt eine neue Systemnachricht an und markiert sie als ungelesen. */
   createSystemNotification(
     payload: WorkspaceSystemNotificationCreatePayload,
-  ): WorkspaceSystemNotification {
+  ): WorkspaceSystemNotification | null {
+    if (payload.alarmCategory && !this.settingsService.isAlarmEnabled(payload.alarmCategory)) {
+      return null;
+    }
+
     const notification: WorkspaceSystemNotification = {
       id: createId('notification'),
       kind: payload.kind,

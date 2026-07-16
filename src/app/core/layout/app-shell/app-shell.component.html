@@ -9,15 +9,9 @@
   [class.app-shell--project-settings-route]="isProjectSettingsRoute()"
   [class.app-shell--inbox-route]="isInboxRoute()"
 >
-  <cm-topbar
-    [sidebarOpen]="sidebarOpen()"
-    (sidebarToggle)="toggleSidebar()"
-  />
+  <cm-topbar [sidebarOpen]="sidebarOpen()" (sidebarToggle)="toggleSidebar()" />
 
-  <cm-primary-navigation
-    [open]="sidebarOpen()"
-    (closeRequested)="closeSidebar()"
-  />
+  <cm-primary-navigation [open]="sidebarOpen()" (closeRequested)="closeSidebar()" />
 
   @if (sidebarOpen()) {
     <button
@@ -35,4 +29,10 @@
       </div>
     </main>
   </div>
+  @if (settingsService.hasActiveTools()) {
+    <cm-workspace-tools />
+  }
+  @if (settingsService.accessibility().magnifier) {
+    <cm-screen-magnifier />
+  }
 </div>

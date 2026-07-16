@@ -1,0 +1,238 @@
+/*###############################
+###
+###     settings-page.forms.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
+
+/* ==========================================================================
+   INHALTSVERZEICHNIS
+
+   01   Bereiche und Formulare
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Bereiche und Formulare
+   ========================================================================== */
+
+.settings-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.settings-section,
+.settings-tool-card,
+.settings-theme-card {
+  padding: var(--space-5);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-section {
+  display: grid;
+  align-content: start;
+  gap: var(--space-5);
+}
+
+.settings-section--wide,
+.settings-tool-note {
+  grid-column: 1 / -1;
+}
+
+.settings-section__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.settings-section__head p,
+.settings-section__head h2,
+.settings-tool-card h2,
+.settings-tool-card p,
+.settings-tool-note p {
+  margin: 0;
+}
+
+.settings-section__head p {
+  color: var(--color-action-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.settings-section__head h2,
+.settings-tool-card h2 {
+  font-family: var(--font-family-highlight);
+  font-size: var(--font-size-500);
+}
+
+.settings-section__icon {
+  width: 2.7rem;
+  height: 2.7rem;
+  flex: 0 0 auto;
+}
+
+.settings-list,
+.settings-text-field,
+.settings-segment-field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.settings-switch-row,
+.settings-alarm,
+.settings-tool-card__toggle {
+  position: relative;
+  cursor: pointer;
+}
+
+.settings-switch-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
+}
+
+.settings-switch-row:last-child {
+  border-bottom: 0;
+}
+
+.settings-switch-row input,
+.settings-alarm input,
+.settings-tool-card__toggle input {
+  position: absolute;
+  width: 0.0625rem;
+  height: 0.0625rem;
+  opacity: 0;
+}
+
+.settings-switch {
+  position: relative;
+  width: 2.75rem;
+  height: 1.55rem;
+  flex: 0 0 auto;
+  border: var(--border-width-subtle) solid var(--color-border-strong);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-secondary);
+}
+
+.settings-switch::after {
+  position: absolute;
+  top: 0.1875rem;
+  left: 0.1875rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: var(--radius-round);
+  background: var(--color-text-muted);
+  content: '';
+  transition: transform var(--motion-duration-fast) var(--motion-easing-emphasized);
+}
+
+input:checked + .settings-switch {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+}
+
+input:checked + .settings-switch::after {
+  background: var(--color-action-primary-text);
+  transform: translateX(1.18rem);
+}
+
+input:focus-visible + .settings-switch {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.settings-segment-field {
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+
+.settings-segments,
+.settings-mode-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-secondary);
+}
+
+.settings-mode-buttons {
+  grid-template-columns: repeat(2, minmax(9rem, 1fr));
+}
+
+.settings-segments button,
+.settings-mode-buttons button {
+  min-height: 2.5rem;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.settings-segments__active,
+.settings-mode-buttons__active {
+  background: var(--color-surface-primary) !important;
+  color: var(--color-action-primary) !important;
+  box-shadow: var(--shadow-xs);
+}
+
+.settings-text-field input {
+  min-height: var(--size-control-lg);
+  padding: 0 var(--space-3);
+  border: var(--border-width-subtle) solid var(--color-field-border);
+  border-radius: var(--radius-md);
+  background: var(--color-field-background);
+  color: var(--color-field-text);
+  font: inherit;
+}
+
+.settings-text-field input:focus {
+  border-color: var(--color-field-border-focus);
+  box-shadow: 0 0 0 0.1875rem var(--color-field-focus-ring);
+}
+
+.settings-text-field input:disabled,
+.settings-segment-field:disabled {
+  opacity: 0.55;
+}
+
+.settings-inline-warning {
+  color: var(--color-warning) !important;
+  font-weight: var(--font-weight-semibold);
+}
+
+.settings-history-note {
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-subtle) solid var(--color-info);
+  border-radius: var(--radius-lg);
+  margin: 0;
+  background: var(--color-info-surface);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-body);
+}

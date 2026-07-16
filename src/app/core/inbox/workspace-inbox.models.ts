@@ -1,5 +1,6 @@
 // src/app/core/inbox/workspace-inbox.models.ts
 
+import { WorkspaceAlarmCategory } from '../settings/app-settings.models';
 import { WorkspaceMember } from '../workspace/workspace.models';
 
 export type WorkspaceSystemNotificationKind =
@@ -28,6 +29,7 @@ export interface WorkspaceSystemNotificationCreatePayload {
   actor?: WorkspaceMember | null;
   route?: string | null;
   queryParams?: Record<string, string> | null;
+  alarmCategory?: WorkspaceAlarmCategory;
 }
 
 export interface WorkspaceChatMessage {

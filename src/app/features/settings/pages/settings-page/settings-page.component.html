@@ -1,8 +1,553 @@
 <!-- src/app/features/settings/pages/settings-page/settings-page.component.html -->
 
-<section class="feature-page">
-  <cm-page-header
-    eyebrow="Verwalte Darstellung, Barrierefreiheit, Profil und App-Verhalten."
-    title="Einstellungen"
-  />
+<section class="settings-page">
+  <div class="settings-page__head">
+    <cm-page-header
+      eyebrow="Passe Bedienung, Benachrichtigungen, Tools und Farbsets an deinen Workflow an."
+      title="Einstellungen"
+    />
+
+    <button class="settings-reset" type="button" (click)="resetSettings()">
+      <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+      <span>Zurücksetzen</span>
+    </button>
+  </div>
+
+  @if (statusMessage()) {
+    <p class="settings-status" role="status">
+      <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+      {{ statusMessage() }}
+    </p>
+  }
+
+  <nav class="settings-tabs" aria-label="Einstellungsbereiche">
+    @for (tab of tabs; track tab.id) {
+      <button
+        class="settings-tab"
+        [class.settings-tab--active]="activeTab() === tab.id"
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === tab.id"
+        [attr.aria-controls]="'settings-panel-' + tab.id"
+        (click)="selectTab(tab.id)"
+      >
+        <span class="settings-tab__icon material-symbols-outlined" aria-hidden="true">
+          {{ tab.icon }}
+        </span>
+        <span class="settings-tab__copy">
+          <strong>{{ tab.label }}</strong>
+          <small>{{ tab.description }}</small>
+        </span>
+      </button>
+    }
+  </nav>
+
+  @if (activeTab() === 'accessibility') {
+    <section
+      id="settings-panel-accessibility"
+      class="settings-panel"
+      role="tabpanel"
+      aria-label="Barrierefreiheit"
+    >
+      <article class="settings-section settings-section--wide">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">
+            visibility
+          </span>
+          <div>
+            <p>Farbwahrnehmung</p>
+            <h2>Farbenblindheits- und Schwarzweißmodi</h2>
+          </div>
+        </div>
+
+        <div class="settings-choice-grid settings-choice-grid--vision">
+          @for (option of colorVisionOptions; track option.id) {
+            <button
+              class="settings-choice"
+              [class.settings-choice--active]="
+                settingsService.accessibility().colorVisionMode === option.id
+              "
+              type="button"
+              [attr.aria-pressed]="settingsService.accessibility().colorVisionMode === option.id"
+              (click)="setColorVision(option.id)"
+            >
+              <span class="settings-choice__icon material-symbols-outlined" aria-hidden="true">
+                {{ option.icon }}
+              </span>
+              <strong>{{ option.label }}</strong>
+              <span>{{ option.description }}</span>
+            </button>
+          }
+        </div>
+      </article>
+
+      <article class="settings-section">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">
+            psychology
+          </span>
+          <div>
+            <p>Reizreduktion</p>
+            <h2>Neuro- und Bewegungsoptionen</h2>
+          </div>
+        </div>
+
+        <div class="settings-list">
+          <label class="settings-switch-row">
+            <span>
+              <strong>Neuro-Modus</strong>
+              <small>Entfernt dekorative Verläufe, Schatten und unnötige Bewegung.</small>
+            </span>
+            <input
+              type="checkbox"
+              [checked]="settingsService.accessibility().neuroMode"
+              (change)="setAccessibilityBoolean('neuroMode', $event)"
+            />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+
+          <label class="settings-switch-row">
+            <span>
+              <strong>Animationen reduzieren</strong>
+              <small>Verkürzt Routenwechsel, Drawer und Statusanimationen auf ein Minimum.</small>
+            </span>
+            <input
+              type="checkbox"
+              [checked]="settingsService.accessibility().reduceMotion"
+              (change)="setAccessibilityBoolean('reduceMotion', $event)"
+            />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+
+          <label class="settings-switch-row">
+            <span>
+              <strong>Hover-Reize reduzieren</strong>
+              <small>Unterbindet Sprünge, Drehungen und starke Effekte beim Darüberfahren.</small>
+            </span>
+            <input
+              type="checkbox"
+              [checked]="settingsService.accessibility().reduceHover"
+              (change)="setAccessibilityBoolean('reduceHover', $event)"
+            />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+        </div>
+      </article>
+
+      <article class="settings-section">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">
+            zoom_in
+          </span>
+          <div>
+            <p>Lesbarkeit</p>
+            <h2>Vergrößerung und Kontrast</h2>
+          </div>
+        </div>
+
+        <div class="settings-list">
+          <label class="settings-switch-row">
+            <span>
+              <strong>Bildschirmlupe</strong>
+              <small>Zeigt einen kleinen, mitlaufenden Ausschnitt mit vergrößertem Live-Inhalt.</small>
+            </span>
+            <input
+              type="checkbox"
+              [checked]="settingsService.accessibility().magnifier"
+              (change)="setAccessibilityBoolean('magnifier', $event)"
+            />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+
+          <label class="settings-switch-row">
+            <span>
+              <strong>Kontraste stark erhöhen</strong>
+              <small>Verstärkt Rahmen, Fokuszustände und Trennung der Inhaltsflächen.</small>
+            </span>
+            <input
+              type="checkbox"
+              [checked]="settingsService.accessibility().highContrast"
+              (change)="setAccessibilityBoolean('highContrast', $event)"
+            />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+        </div>
+
+        <fieldset class="settings-segment-field">
+          <legend>Textvergrößerung</legend>
+          <div class="settings-segments">
+            <button
+              type="button"
+              [class.settings-segments__active]="
+                settingsService.accessibility().fontSize === 'normal'
+              "
+              (click)="setFontSize('normal')"
+            >
+              100 %
+            </button>
+            <button
+              type="button"
+              [class.settings-segments__active]="
+                settingsService.accessibility().fontSize === 'large'
+              "
+              (click)="setFontSize('large')"
+            >
+              112 %
+            </button>
+            <button
+              type="button"
+              [class.settings-segments__active]="
+                settingsService.accessibility().fontSize === 'xlarge'
+              "
+              (click)="setFontSize('xlarge')"
+            >
+              125 %
+            </button>
+          </div>
+        </fieldset>
+      </article>
+    </section>
+  }
+
+  @if (activeTab() === 'general') {
+    <section
+      id="settings-panel-general"
+      class="settings-panel"
+      role="tabpanel"
+      aria-label="Allgemein"
+    >
+      <article class="settings-section">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">
+            dashboard_customize
+          </span>
+          <div>
+            <p>Workspace-Verhalten</p>
+            <h2>Boards und Hilfen</h2>
+          </div>
+        </div>
+
+        <div class="settings-list">
+          <label class="settings-switch-row">
+            <span>
+              <strong>Dynamische „Neu“-Spalten</strong>
+              <small>Neue Zuweisungen werden zuerst in einer temporären Eingangsspalte gesammelt.</small>
+              @if (dynamicNewColumnTaskCount() > 0) {
+                <small class="settings-inline-warning">
+                  Vor dem Deaktivieren müssen alle Neu-Spalten leer sein. Aktuell:
+                  {{ dynamicNewColumnTaskCount() }}
+                  {{ dynamicNewColumnTaskCount() === 1 ? 'Aufgabe' : 'Aufgaben' }}.
+                </small>
+              }
+            </span>
+            <input
+              type="checkbox"
+              [checked]="settingsService.general().dynamicNewColumns"
+              (change)="setGeneralBoolean('dynamicNewColumns', $event)"
+            />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+
+          <label class="settings-switch-row">
+            <span>
+              <strong>Tooltips anzeigen</strong>
+              <small>Zeigt ergänzende Kurztexte bei kompakten Icon-Aktionen.</small>
+            </span>
+            <input
+              type="checkbox"
+              [checked]="settingsService.general().tooltipsEnabled"
+              (change)="setGeneralBoolean('tooltipsEnabled', $event)"
+            />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+
+          <label class="settings-switch-row">
+            <span>
+              <strong>Erledigte Tasks abblenden</strong>
+              <small>Reduziert die visuelle Gewichtung abgeschlossener Aufgaben.</small>
+            </span>
+            <input
+              type="checkbox"
+              [checked]="displayPreferences.fadeCompletedTasks()"
+              (change)="setCompletedTaskFade($event)"
+            />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+        </div>
+
+        <fieldset
+          class="settings-segment-field"
+          [disabled]="!displayPreferences.fadeCompletedTasks()"
+        >
+          <legend>Abblendung</legend>
+          <div class="settings-segments">
+            @for (level of fadeLevels; track level) {
+              <button
+                type="button"
+                [class.settings-segments__active]="
+                  displayPreferences.completedTaskFadeLevel() === level
+                "
+                (click)="setCompletedTaskFadeLevel(level)"
+              >
+                {{ level }} %
+              </button>
+            }
+          </div>
+        </fieldset>
+      </article>
+
+      <article class="settings-section">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">
+            shield_person
+          </span>
+          <div>
+            <p>Privatsphäre</p>
+            <h2>Sichtbarkeit und Einladungen</h2>
+          </div>
+        </div>
+
+        <div class="settings-list">
+          <label class="settings-switch-row">
+            <span>
+              <strong>Einladungen durch andere erlauben</strong>
+              <small>Andere Mitglieder dürfen dich in Projekte und Gruppenchats einladen.</small>
+            </span>
+            <input
+              type="checkbox"
+              [checked]="settingsService.general().allowInvites"
+              (change)="setGeneralBoolean('allowInvites', $event)"
+            />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+
+          <label class="settings-switch-row">
+            <span>
+              <strong>Klarnamen verbergen</strong>
+              <small>Verwendet im Workspace deinen Nickname statt des vollständigen Namens.</small>
+            </span>
+            <input
+              type="checkbox"
+              [checked]="settingsService.general().hideRealName"
+              (change)="setHideRealName($event)"
+            />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+        </div>
+
+        <label class="settings-text-field">
+          <span>Nickname</span>
+          <input
+            type="text"
+            maxlength="40"
+            [value]="settingsService.general().nickname"
+            [disabled]="!settingsService.general().hideRealName"
+            (change)="setNickname($event)"
+          />
+          <small>
+            Sichtbarer Name: <strong>{{ settingsService.publicDisplayName() }}</strong>
+          </small>
+        </label>
+      </article>
+
+      <article class="settings-section settings-section--wide">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">
+            notifications_active
+          </span>
+          <div>
+            <p>Aktivitätsalarme</p>
+            <h2>Welche Ereignisse landen in deiner Inbox?</h2>
+          </div>
+        </div>
+
+        <p class="settings-history-note">
+          Änderungen gelten nur für zukünftige Systemmeldungen. Bereits vorhandene Aktivitäten
+          und deine Inbox-Historie bleiben vollständig erhalten.
+        </p>
+
+        <div class="settings-alarm-grid">
+          @for (alarm of alarmOptions; track alarm.id) {
+            <label class="settings-alarm">
+              <span class="settings-alarm__icon material-symbols-outlined" aria-hidden="true">
+                {{ alarm.icon }}
+              </span>
+              <span class="settings-alarm__copy">
+                <strong>{{ alarm.label }}</strong>
+                <small>{{ alarm.description }}</small>
+              </span>
+              <input
+                type="checkbox"
+                [checked]="settingsService.general().alarms[alarm.id]"
+                (change)="setAlarm(alarm.id, $event)"
+              />
+              <span class="settings-switch" aria-hidden="true"></span>
+            </label>
+          }
+        </div>
+      </article>
+    </section>
+  }
+
+  @if (activeTab() === 'tools') {
+    <section
+      id="settings-panel-tools"
+      class="settings-panel settings-panel--tools"
+      role="tabpanel"
+      aria-label="Tools"
+    >
+      <article class="settings-tool-card settings-tool-card--pomodoro">
+        <div class="settings-tool-card__top">
+          <span class="settings-tool-card__icon material-symbols-outlined" aria-hidden="true">
+            timer
+          </span>
+          <span class="settings-tool-card__status">Produktivität</span>
+        </div>
+        <h2>Pomodoro-Timer</h2>
+        <p>Fokusphasen von 25 Minuten mit klarer Pause- und Reset-Steuerung.</p>
+        <label class="settings-tool-card__toggle">
+          <span>{{ settingsService.tools().pomodoro ? 'Aktiv' : 'Deaktiviert' }}</span>
+          <input
+            type="checkbox"
+            [checked]="settingsService.tools().pomodoro"
+            (change)="setTool('pomodoro', $event)"
+          />
+          <span class="settings-switch" aria-hidden="true"></span>
+        </label>
+      </article>
+
+      <article class="settings-tool-card settings-tool-card--timer">
+        <div class="settings-tool-card__top">
+          <span class="settings-tool-card__icon material-symbols-outlined" aria-hidden="true">
+            avg_time
+          </span>
+          <span class="settings-tool-card__status">Zeiterfassung</span>
+        </div>
+        <h2>Task-Timer</h2>
+        <p>Ein kompakter Stoppuhr-Timer für spontane Arbeits- und Recherchephasen.</p>
+        <label class="settings-tool-card__toggle">
+          <span>{{ settingsService.tools().taskTimer ? 'Aktiv' : 'Deaktiviert' }}</span>
+          <input
+            type="checkbox"
+            [checked]="settingsService.tools().taskTimer"
+            (change)="setTool('taskTimer', $event)"
+          />
+          <span class="settings-switch" aria-hidden="true"></span>
+        </label>
+      </article>
+
+      <article class="settings-tool-card settings-tool-card--weather">
+        <div class="settings-tool-card__top">
+          <span class="settings-tool-card__icon material-symbols-outlined" aria-hidden="true">
+            partly_cloudy_day
+          </span>
+          <span class="settings-tool-card__status">API vorbereitet</span>
+        </div>
+        <h2>Wetter</h2>
+        <p>Zeigt später aktuelle Wetterdaten über eine serverseitig angebundene Wetter-API.</p>
+        <label class="settings-text-field settings-text-field--compact">
+          <span>Standort</span>
+          <input
+            type="text"
+            maxlength="80"
+            [value]="settingsService.tools().weatherLocation"
+            (change)="setWeatherLocation($event)"
+          />
+        </label>
+        <label class="settings-tool-card__toggle">
+          <span>{{ settingsService.tools().weather ? 'Aktiv' : 'Deaktiviert' }}</span>
+          <input
+            type="checkbox"
+            [checked]="settingsService.tools().weather"
+            (change)="setTool('weather', $event)"
+          />
+          <span class="settings-switch" aria-hidden="true"></span>
+        </label>
+      </article>
+
+      <aside class="settings-tool-note">
+        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+        <div>
+          <strong>Aktive Tools erscheinen in einer kompakten Werkzeugleiste.</strong>
+          <p>
+            Pomodoro und Task-Timer funktionieren lokal. Wetterdaten werden erst mit einer
+            geschützten API-Anbindung geladen.
+          </p>
+        </div>
+      </aside>
+    </section>
+  }
+
+  @if (activeTab() === 'themes') {
+    <section
+      id="settings-panel-themes"
+      class="settings-panel settings-panel--themes"
+      role="tabpanel"
+      aria-label="Themes"
+    >
+      <article class="settings-section settings-section--wide settings-theme-mode">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">
+            contrast
+          </span>
+          <div>
+            <p>Darstellungsmodus</p>
+            <h2>Hell und Dunkel bleiben vom Farbset getrennt</h2>
+          </div>
+        </div>
+
+        <div class="settings-mode-buttons">
+          <button
+            type="button"
+            [class.settings-mode-buttons__active]="themeService.mode() === 'light'"
+            (click)="setThemeMode('light')"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">light_mode</span>
+            Heller Modus
+          </button>
+          <button
+            type="button"
+            [class.settings-mode-buttons__active]="themeService.mode() === 'dark'"
+            (click)="setThemeMode('dark')"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">dark_mode</span>
+            Dunkler Modus
+          </button>
+        </div>
+      </article>
+
+      <div class="settings-theme-grid">
+        @for (theme of themeOptions; track theme.id) {
+          <button
+            class="settings-theme-card"
+            [class.settings-theme-card--active]="themeService.theme() === theme.id"
+            type="button"
+            [attr.aria-pressed]="themeService.theme() === theme.id"
+            (click)="setTheme(theme.id)"
+          >
+            <span
+              class="settings-theme-card__preview"
+              [style.--theme-preview-primary]="theme.colors[0]"
+              [style.--theme-preview-accent]="theme.colors[1]"
+              [style.--theme-preview-surface]="theme.colors[2]"
+              aria-hidden="true"
+            >
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            <span class="settings-theme-card__copy">
+              <strong>{{ theme.label }}</strong>
+              <small>{{ theme.description }}</small>
+            </span>
+            @if (themeService.theme() === theme.id) {
+              <span class="settings-theme-card__check material-symbols-outlined" aria-hidden="true">
+                check_circle
+              </span>
+            }
+          </button>
+        }
+      </div>
+    </section>
+  }
 </section>

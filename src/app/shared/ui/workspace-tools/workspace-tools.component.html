@@ -1,0 +1,87 @@
+<!-- src/app/shared/ui/workspace-tools/workspace-tools.component.html -->
+
+<div class="workspace-tools" [class.workspace-tools--open]="open()">
+  @if (open()) {
+    <section class="workspace-tools__panel" aria-label="Aktive Produktivitätstools">
+      <header class="workspace-tools__head">
+        <div>
+          <p>Tools</p>
+          <strong>Deine Helfer</strong>
+        </div>
+        <button type="button" aria-label="Werkzeugleiste schließen" (click)="toggleOpen()">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      @if (settingsService.tools().pomodoro) {
+        <article class="workspace-tools__item workspace-tools__item--pomodoro">
+          <span class="material-symbols-outlined" aria-hidden="true">timer</span>
+          <div>
+            <small>Pomodoro</small>
+            <strong aria-live="polite">{{ pomodoroLabel() }}</strong>
+          </div>
+          <div class="workspace-tools__actions">
+            <button
+              type="button"
+              [attr.aria-label]="pomodoroRunning() ? 'Pomodoro pausieren' : 'Pomodoro starten'"
+              (click)="togglePomodoro()"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">
+                {{ pomodoroRunning() ? 'pause' : 'play_arrow' }}
+              </span>
+            </button>
+            <button type="button" aria-label="Pomodoro zurücksetzen" (click)="resetPomodoro()">
+              <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+            </button>
+          </div>
+        </article>
+      }
+
+      @if (settingsService.tools().taskTimer) {
+        <article class="workspace-tools__item workspace-tools__item--timer">
+          <span class="material-symbols-outlined" aria-hidden="true">avg_time</span>
+          <div>
+            <small>Task-Timer</small>
+            <strong aria-live="polite">{{ taskTimerLabel() }}</strong>
+          </div>
+          <div class="workspace-tools__actions">
+            <button
+              type="button"
+              [attr.aria-label]="taskTimerRunning() ? 'Task-Timer pausieren' : 'Task-Timer starten'"
+              (click)="toggleTaskTimer()"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">
+                {{ taskTimerRunning() ? 'pause' : 'play_arrow' }}
+              </span>
+            </button>
+            <button type="button" aria-label="Task-Timer zurücksetzen" (click)="resetTaskTimer()">
+              <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+            </button>
+          </div>
+        </article>
+      }
+
+      @if (settingsService.tools().weather) {
+        <article class="workspace-tools__item workspace-tools__item--weather">
+          <span class="material-symbols-outlined" aria-hidden="true">partly_cloudy_day</span>
+          <div>
+            <small>{{ settingsService.tools().weatherLocation }}</small>
+            <strong>API folgt</strong>
+          </div>
+          <span class="workspace-tools__beta">Beta</span>
+        </article>
+      }
+    </section>
+  }
+
+  <button
+    class="workspace-tools__trigger"
+    type="button"
+    [attr.aria-expanded]="open()"
+    aria-label="Produktivitätstools öffnen"
+    (click)="toggleOpen()"
+  >
+    <span class="material-symbols-outlined" aria-hidden="true">construction</span>
+    <span>Tools</span>
+  </button>
+</div>

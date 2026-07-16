@@ -19,14 +19,167 @@
 /* ==========================================================================
    INHALTSVERZEICHNIS
 
-   01   Seite
+   01   Seite und Tabs
    ========================================================================== */
 
 /* ==========================================================================
-   01   Seite
+   01   Seite und Tabs
    ========================================================================== */
 
-.feature-page {
+:host,
+.settings-page {
+  display: block;
+}
+
+.settings-page {
   display: grid;
-  gap: var(--space-8);
+  gap: var(--space-6);
+  padding-bottom: var(--space-12);
+}
+
+.settings-page__head,
+.settings-tool-card__top,
+.settings-tool-card__toggle,
+.settings-mode-buttons button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.settings-page__head,
+.settings-tool-card__top,
+.settings-tool-card__toggle {
+  justify-content: space-between;
+}
+
+.settings-reset {
+  display: inline-flex;
+  min-height: var(--size-click-target);
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-primary);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.settings-reset:hover,
+.settings-tab:hover,
+.settings-choice:hover,
+.settings-alarm:hover,
+.settings-theme-card:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.settings-status {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: var(--z-index-toast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-subtle) solid var(--color-success);
+  border-radius: var(--radius-round);
+  margin: 0;
+  background: var(--color-success-surface);
+  box-shadow: var(--shadow-md);
+  font-size: var(--font-size-300);
+  font-weight: var(--font-weight-semibold);
+}
+
+.settings-tabs {
+  position: sticky;
+  top: calc(var(--layout-topbar-height) + var(--space-3));
+  z-index: var(--z-index-raised);
+  display: grid;
+  width: fit-content;
+  max-width: 100%;
+  grid-template-columns: repeat(4, minmax(8.5rem, 10.5rem));
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-primary);
+  box-shadow:
+    var(--shadow-xs),
+    0 1rem 1.6rem color-mix(in srgb, var(--color-surface-primary) 92%, transparent);
+  isolation: isolate;
+}
+
+.settings-tab {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-subtle) solid transparent;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-tab--active,
+.settings-choice--active,
+.settings-theme-card--active {
+  border-color: var(--color-action-primary);
+  background: var(--color-brand-subtle);
+}
+
+.settings-tab__icon,
+.settings-section__icon,
+.settings-choice__icon,
+.settings-alarm__icon,
+.settings-tool-card__icon {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+}
+
+.settings-tab__icon,
+.settings-choice__icon,
+.settings-alarm__icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.settings-tab__copy,
+.settings-section__head > div,
+.settings-switch-row > span:first-child,
+.settings-alarm__copy,
+.settings-theme-card__copy {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.settings-tab__copy strong,
+.settings-tab__copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-tab__copy small {
+  display: none;
+}
+
+.settings-switch-row small,
+.settings-alarm small,
+.settings-theme-card small,
+.settings-text-field small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-200);
 }

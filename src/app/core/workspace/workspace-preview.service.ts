@@ -3,6 +3,8 @@
 import { computed, Injectable, signal } from '@angular/core';
 
 import { WorkspaceInboxService } from '../inbox/workspace-inbox.service';
+import { WorkspaceAlarmCategory } from '../settings/app-settings.models';
+import { AppSettingsService } from '../settings/app-settings.service';
 import {
   normalizeMultilineInput,
   normalizeSingleLineInput,
@@ -1116,10 +1118,53 @@ export class WorkspacePreviewService {
   constructor(
     private readonly automationService: WorkspaceAutomationService,
     private readonly inboxService: WorkspaceInboxService,
+    private readonly settingsService: AppSettingsService,
   ) {
     this.inboxService.initialize(this.membersState());
+    this.applyCurrentMemberPrivacy();
     this.reconcileWorkspaceIntake();
     this.persistBoards();
+  }
+
+  /** Liefert die Anzahl aller Tasks in dynamischen Neu-Spalten. */
+  getDynamicNewColumnTaskCount(): number {
+    return Object.entries(this.boardsState())
+      .filter(([boardId]) => this.isPersonalBoardId(boardId))
+      .flatMap(([, columns]) => columns)
+      .filter((column) => column.systemRole === 'new-assigned')
+      .reduce((total, column) => total + column.tasks.length, 0);
+  }
+
+  /** Wendet geänderte Intake-Einstellungen erneut auf persönliche Boards an. */
+  refreshIntakePreferences(): void {
+    this.reconcileWorkspaceIntake();
+    this.persistBoards();
+  }
+
+  /** Überträgt Klarnamen- oder Nickname-Einstellungen auf die lokale Workspace-Identität. */
+  applyCurrentMemberPrivacy(): void {
+    const currentMember = this.membersState().find((member) => member.id === BEN.id);
+    const displayName = this.settingsService.publicDisplayName().trim();
+
+    if (!currentMember || !displayName || currentMember.fullName === displayName) {
+      return;
+    }
+
+    const updatedMember: WorkspaceMember = {
+      ...currentMember,
+      fullName: displayName,
+      initials: createMemberInitials(displayName),
+    };
+
+    this.membersState.update((members) =>
+      members.map((member) => (member.id === updatedMember.id ? updatedMember : member)),
+    );
+    this.replaceMemberReferences(updatedMember);
+    this.persistMembers();
+    this.persistProjects();
+    this.persistBoards();
+    this.persistMessages();
+    this.inboxService.syncMember(updatedMember);
   }
 
   /**
@@ -1521,6 +1566,7 @@ export class WorkspacePreviewService {
     this.persistMembers();
     this.inboxService.createSystemNotification({
       kind: 'member',
+      alarmCategory: 'members',
       title: 'Mitglied hinzugefügt',
       body: `${member.fullName} wurde als ${member.role === 'manager' ? 'Manager' : 'Mitglied'} zum Workspace hinzugefügt.`,
       icon: 'person_add',
@@ -1573,6 +1619,7 @@ export class WorkspacePreviewService {
     this.inboxService.syncMember(updatedMember);
     this.inboxService.createSystemNotification({
       kind: 'member',
+      alarmCategory: 'members',
       title: 'Mitgliedsdaten geändert',
       body: `Name, E-Mail, Rolle oder Iconfarbe von ${updatedMember.fullName} wurden aktualisiert.`,
       icon: 'manage_accounts',
@@ -1663,6 +1710,7 @@ export class WorkspacePreviewService {
     this.inboxService.removeMember(memberId);
     this.inboxService.createSystemNotification({
       kind: 'member',
+      alarmCategory: 'members',
       title: 'Mitglied entfernt',
       body: `${member.fullName} wurde aus dem Workspace entfernt. Aktive Zuweisungen wurden bereinigt.`,
       icon: 'person_remove',
@@ -1701,6 +1749,7 @@ export class WorkspacePreviewService {
     this.persistJoinRequests();
     this.inboxService.createSystemNotification({
       kind: 'member',
+      alarmCategory: 'members',
       title: 'Beitritt freigegeben',
       body: `${member.fullName} wurde für den Workspace zugelassen.`,
       icon: 'how_to_reg',
@@ -1726,6 +1775,7 @@ export class WorkspacePreviewService {
     if (rejectedRequest) {
       this.inboxService.createSystemNotification({
         kind: 'member',
+        alarmCategory: 'members',
         title: 'Beitrittsanfrage abgelehnt',
         body: `Die Anfrage von ${rejectedRequest.fullName} wurde abgelehnt.`,
         icon: 'person_cancel',
@@ -1750,6 +1800,7 @@ export class WorkspacePreviewService {
       this.addMemberToProject(existingMember, payload.projectId);
       this.inboxService.createSystemNotification({
         kind: 'member',
+        alarmCategory: 'members',
         title: 'Projektzugriff ergänzt',
         body: `${existingMember.fullName} wurde einem weiteren Projekt zugeordnet.`,
         icon: 'group_add',
@@ -1779,6 +1830,7 @@ export class WorkspacePreviewService {
     this.addMemberToProject(member, payload.projectId);
     this.inboxService.createSystemNotification({
       kind: 'member',
+      alarmCategory: 'members',
       title: 'Einladung angelegt',
       body: `${member.fullName} wurde zum Workspace eingeladen.`,
       icon: 'forward_to_inbox',
@@ -2297,6 +2349,7 @@ export class WorkspacePreviewService {
     if (currentTask) {
       this.inboxService.createSystemNotification({
         kind: 'task',
+        alarmCategory: 'taskDeleted',
         title: 'Aufgabe gelöscht',
         body: `„${currentTask.title}“ wurde dauerhaft gelöscht${
           currentTask.projectTitle ? ` · ${currentTask.projectTitle}` : ''
@@ -2709,7 +2762,7 @@ export class WorkspacePreviewService {
     });
   }
 
-  /** Fügt eine Aufgabe in die dynamische Neu-Spalte einer Person ein. */
+  /** Fügt eine Zuweisung abhängig von der gewählten Eingangsspaltenlogik ein. */
   private addTaskToPersonalNewColumn(memberId: string, taskToAdd: WorkspaceTask): void {
     const boardId = this.getPersonalBoardId(memberId);
     this.boardsState.update((boards) => {
@@ -2719,6 +2772,22 @@ export class WorkspacePreviewService {
       );
       if (existingTaskIds.has(taskToAdd.id)) {
         return boards;
+      }
+
+      if (!this.settingsService.general().dynamicNewColumns) {
+        const regularColumns = personalColumns.filter(
+          (column) => column.systemRole !== 'new-assigned',
+        );
+        const targetColumn = regularColumns[0] ?? this.createPersonalDefaultColumn(memberId);
+        targetColumn.tasks = [cloneTask(taskToAdd), ...targetColumn.tasks];
+
+        return {
+          ...boards,
+          [boardId]: [
+            targetColumn,
+            ...regularColumns.filter((column) => column.id !== targetColumn.id),
+          ],
+        };
       }
 
       const newColumn =
@@ -2884,15 +2953,30 @@ export class WorkspacePreviewService {
         (column) => column.systemRole !== 'new-assigned',
       );
 
-      boards[personalBoardId] = newColumnTasks.length
-        ? [
-            {
-              ...(existingNewColumn ?? this.createPersonalNewColumn(member.id)),
-              tasks: newColumnTasks.map(cloneTask),
-            },
-            ...regularColumns,
-          ]
-        : regularColumns;
+      if (this.settingsService.general().dynamicNewColumns) {
+        boards[personalBoardId] = newColumnTasks.length
+          ? [
+              {
+                ...(existingNewColumn ?? this.createPersonalNewColumn(member.id)),
+                tasks: newColumnTasks.map(cloneTask),
+              },
+              ...regularColumns,
+            ]
+          : regularColumns;
+        continue;
+      }
+
+      const fallbackColumns = regularColumns.length
+        ? regularColumns
+        : [this.createPersonalDefaultColumn(member.id)];
+      const targetColumn = fallbackColumns[0]!;
+      const mergedTasks = [...newColumnTasks, ...targetColumn.tasks].filter(
+        (item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index,
+      );
+      boards[personalBoardId] = [
+        { ...targetColumn, tasks: mergedTasks.map(cloneTask) },
+        ...fallbackColumns.slice(1),
+      ];
     }
 
     this.boardsState.set(
@@ -2976,6 +3060,16 @@ export class WorkspacePreviewService {
   /** Liefert den persönlichen Vornamen einer Person. */
   private getMemberFirstName(member: WorkspaceMember): string {
     return member.fullName.trim().split(/\s+/)[0] ?? member.fullName;
+  }
+
+  /** Erstellt eine reguläre Eingangsspalte, wenn dynamische Neu-Spalten deaktiviert sind. */
+  private createPersonalDefaultColumn(memberId: string): WorkspaceColumn {
+    return {
+      id: `personal-open-${memberId}`,
+      title: 'Offen',
+      color: '#4E82A8',
+      tasks: [],
+    };
   }
 
   /** Erstellt die dynamische Neu-Spalte einer Person. */
@@ -3077,6 +3171,7 @@ export class WorkspacePreviewService {
     const projectSuffix = task.projectTitle ? ` · ${task.projectTitle}` : '';
     this.inboxService.createSystemNotification({
       kind: 'task',
+      alarmCategory: this.getTaskAlarmCategory(action),
       title: this.getTaskActivityTitle(action),
       body: `„${task.title}“: ${action}${projectSuffix}`,
       icon,
@@ -3084,6 +3179,20 @@ export class WorkspacePreviewService {
       route: task.projectId ? `/projects/${task.projectId}/board` : '/board',
       queryParams: { task: task.id },
     });
+  }
+
+  /** Ordnet eine Task-Aktivität der gewählten Alarmkategorie zu. */
+  private getTaskAlarmCategory(action: string): WorkspaceAlarmCategory {
+    const normalizedAction = action.toLocaleLowerCase('de');
+
+    if (normalizedAction.includes('wieder geöffnet')) return 'taskReopened';
+    if (normalizedAction.includes('abgeschlossen')) return 'taskCompleted';
+    if (normalizedAction.includes('zugewiesen') || normalizedAction.includes('zuweisung')) {
+      return 'assignment';
+    }
+    if (normalizedAction.includes('verschoben')) return 'taskMove';
+    if (normalizedAction.includes('dauerhaft gelöscht')) return 'taskDeleted';
+    return 'taskChanged';
   }
 
   /** Schreibt eine Projektaktivität als Systemnachricht in die Inbox. */
@@ -3096,12 +3205,26 @@ export class WorkspacePreviewService {
   ): void {
     this.inboxService.createSystemNotification({
       kind: 'project',
+      alarmCategory: this.getProjectAlarmCategory(title),
       title,
       body,
       icon,
       actor: BEN,
       route,
     });
+  }
+
+  /** Ordnet eine Projektaktivität der gewählten Alarmkategorie zu. */
+  private getProjectAlarmCategory(title: string): WorkspaceAlarmCategory {
+    const normalizedTitle = title.toLocaleLowerCase('de');
+
+    if (normalizedTitle.includes('erstellt') || normalizedTitle.includes('angelegt')) {
+      return 'projectCreated';
+    }
+    if (normalizedTitle.includes('abgeschlossen')) return 'projectCompleted';
+    if (normalizedTitle.includes('archiviert')) return 'projectArchived';
+    if (normalizedTitle.includes('gelöscht')) return 'projectDeleted';
+    return 'projectChanged';
   }
 
   /** Ergänzt einen Verlaufseintrag und synchronisiert die Aktivität mit der Inbox. */

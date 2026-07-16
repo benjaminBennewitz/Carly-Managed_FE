@@ -20,6 +20,7 @@
    INHALTSVERZEICHNIS
 
    01   Design Tokens
+   02   Schriftstufen
    ========================================================================== */
 
 /* ==========================================================================
@@ -27,11 +28,12 @@
    ========================================================================== */
 
 :root {
-  --font-family-body: 'Archivo', ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-body:
+    'Archivo', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-family-highlight: 'Bricolage Grotesque', 'Archivo', ui-sans-serif, sans-serif;
   --font-family-sans: var(--font-family-body);
   --font-family-display: var(--font-family-highlight);
-  --font-family-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 
   --font-size-100: 0.75rem;
   --font-size-200: 0.8125rem;
@@ -131,6 +133,14 @@
   --layout-page-gutter: clamp(1rem, 0.5rem + 2vw, 2rem);
 }
 
+/* ==========================================================================
+   02   Schriftstufen
+   ========================================================================== */
+
 :root[data-font-size='large'] {
   font-size: 112.5%;
+}
+
+:root[data-font-size='xlarge'] {
+  font-size: 125%;
 }

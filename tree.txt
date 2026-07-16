@@ -90,10 +90,16 @@ Carly-Managed_FE/
 │   │   │   │   └── global-search.service.ts
 │   │   │   ├── security/
 │   │   │   │   └── frontend-input.utils.ts
+│   │   │   ├── settings/
+│   │   │   │   ├── app-settings.models.ts
+│   │   │   │   ├── app-settings.service.spec.ts
+│   │   │   │   └── app-settings.service.ts
 │   │   │   ├── system/
 │   │   │   │   └── connectivity.service.ts
 │   │   │   ├── theme/
-│   │   │   │   └── theme.service.ts
+│   │   │   │   ├── theme.service.spec.ts
+│   │   │   │   ├── theme.service.ts
+│   │   │   │   └── theme-palettes.ts
 │   │   │   └── workspace/
 │   │   │       ├── task-rules.spec.ts
 │   │   │       ├── task-rules.ts
@@ -194,9 +200,11 @@ Carly-Managed_FE/
 │   │   │   └── settings/
 │   │   │       └── pages/
 │   │   │           └── settings-page/
+│   │   │               ├── settings-page.cards.scss
 │   │   │               ├── settings-page.component.html
 │   │   │               ├── settings-page.component.scss
-│   │   │               └── settings-page.component.ts
+│   │   │               ├── settings-page.component.ts
+│   │   │               └── settings-page.forms.scss
 │   │   ├── shared/
 │   │   │   ├── ui/
 │   │   │   │   ├── dropdown/
@@ -219,6 +227,10 @@ Carly-Managed_FE/
 │   │   │   │   │   ├── page-header.component.html
 │   │   │   │   │   ├── page-header.component.scss
 │   │   │   │   │   └── page-header.component.ts
+│   │   │   │   ├── screen-magnifier/
+│   │   │   │   │   ├── screen-magnifier.component.html
+│   │   │   │   │   ├── screen-magnifier.component.scss
+│   │   │   │   │   └── screen-magnifier.component.ts
 │   │   │   │   ├── select-menu/
 │   │   │   │   │   ├── select-menu.component.html
 │   │   │   │   │   ├── select-menu.component.scss
@@ -227,9 +239,13 @@ Carly-Managed_FE/
 │   │   │   │   │   ├── workspace-task-card.component.html
 │   │   │   │   │   ├── workspace-task-card.component.scss
 │   │   │   │   │   └── workspace-task-card.component.ts
-│   │   │   │   └── workspace-task-drawer/
-│   │   │   │       ├── workspace-task-drawer.component.html
-│   │   │   │       └── workspace-task-drawer.component.ts
+│   │   │   │   ├── workspace-task-drawer/
+│   │   │   │   │   ├── workspace-task-drawer.component.html
+│   │   │   │   │   └── workspace-task-drawer.component.ts
+│   │   │   │   └── workspace-tools/
+│   │   │   │       ├── workspace-tools.component.html
+│   │   │   │       ├── workspace-tools.component.scss
+│   │   │   │       └── workspace-tools.component.ts
 │   │   │   └── validation/
 │   │   │       ├── auth.validators.spec.ts
 │   │   │       └── auth.validators.ts
