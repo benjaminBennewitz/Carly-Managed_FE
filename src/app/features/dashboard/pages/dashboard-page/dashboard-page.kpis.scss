@@ -1,0 +1,82 @@
+/*###############################
+###
+###     dashboard-page.kpis.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
+
+/* ========================================================================== 
+   INHALTSVERZEICHNIS
+
+   01   KPI-Leiste
+   ========================================================================== */
+
+/* ==========================================================================
+   01   KPI-Leiste
+   ========================================================================== */
+
+.dashboard-page__kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.dashboard-kpi {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 5.25rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--motion-duration-fast), box-shadow var(--motion-duration-fast), transform var(--motion-duration-fast);
+}
+
+.dashboard-kpi:hover,
+.dashboard-kpi--active {
+  border-color: color-mix(in srgb, var(--dashboard-kpi-tone, var(--color-action-primary)) 42%, var(--color-border-subtle));
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-0.1rem);
+}
+
+.dashboard-kpi__icon {
+  display: grid;
+  width: 2.25rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--dashboard-kpi-tone, var(--color-action-primary)) 14%, transparent);
+  color: var(--dashboard-kpi-tone, var(--color-action-primary));
+  font-size: 1.15rem;
+}
+
+.dashboard-kpi__copy { display: grid; min-width: 0; gap: 0.1rem; }
+.dashboard-kpi__copy > span { overflow: hidden; color: var(--color-text-secondary); font-size: var(--font-size-200); font-weight: var(--font-weight-semibold); text-overflow: ellipsis; white-space: nowrap; }
+.dashboard-kpi__copy strong { color: var(--color-text-primary); font-size: var(--font-size-500); line-height: 1; }
+.dashboard-kpi__copy small { overflow: hidden; color: var(--color-text-muted); font-size: var(--font-size-100); text-overflow: ellipsis; white-space: nowrap; }
+.dashboard-kpi__open { color: var(--color-text-muted); font-size: 1rem; transition: transform var(--motion-duration-fast); }
+.dashboard-kpi--active .dashboard-kpi__open { transform: rotate(180deg); }
+.dashboard-kpi--accent { --dashboard-kpi-tone: var(--color-action-primary); }
+.dashboard-kpi--danger { --dashboard-kpi-tone: var(--color-status-danger); }
+.dashboard-kpi--warning { --dashboard-kpi-tone: var(--color-status-warning); }
+.dashboard-kpi--success { --dashboard-kpi-tone: var(--color-status-success); }
+.dashboard-kpi--neutral { --dashboard-kpi-tone: var(--color-text-secondary); }
+

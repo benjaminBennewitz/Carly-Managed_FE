@@ -16,168 +16,63 @@
 ###
 #################################*/
 
-/* ==========================================================================
+/* ========================================================================== 
    INHALTSVERZEICHNIS
 
-   01   Seite
-   02   KPI-Karten
-   03   Inhaltsraster
-   04   Panel und Leerzustand
-   05   Carly-Bereich
-   06   Responsive Darstellung
+   01   Seitenlayout
+   02   Responsive Darstellung
    ========================================================================== */
 
 /* ==========================================================================
-   01   Seite
+   01   Seitenlayout
    ========================================================================== */
+
+:host { display: block; min-width: 0; }
 
 .dashboard-page {
   display: grid;
-  gap: var(--space-8);
+  min-width: 0;
+  gap: var(--space-5);
+  padding-block-end: var(--space-6);
 }
-
-/* ==========================================================================
-   02   KPI-Karten
-   ========================================================================== */
-
-.dashboard-page__kpis {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-
-.dashboard-page__kpis article {
-  display: grid;
-  min-height: 4.75rem;
-  padding: var(--space-3);
-  gap: var(--space-1);
-  border: var(--border-width-subtle) solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-primary);
-}
-
-.dashboard-page__kpis span {
-  color: var(--color-text-muted);
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-100);
-  letter-spacing: var(--letter-spacing-label);
-  text-transform: uppercase;
-}
-
-.dashboard-page__kpis strong {
-  color: var(--color-action-primary);
-  font-size: var(--font-size-500);
-}
-
-.dashboard-page__kpis p {
-  font-size: var(--font-size-200);
-}
-
-/* ==========================================================================
-   03   Inhaltsraster
-   ========================================================================== */
 
 .dashboard-page__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.6fr);
-  gap: var(--space-5);
-}
-
-.dashboard-page__panel,
-.dashboard-page__carly {
-  min-height: 23rem;
-  border: var(--border-width-subtle) solid var(--color-border-subtle);
-  border-radius: var(--radius-xl);
-  background: var(--color-surface-primary);
-}
-
-/* ==========================================================================
-   04   Panel und Leerzustand
-   ========================================================================== */
-
-.dashboard-page__panel {
-  display: grid;
-  padding: var(--space-6);
-  grid-template-rows: auto 1fr;
-}
-
-.dashboard-page__panel header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  min-width: 0;
   gap: var(--space-4);
 }
 
-.dashboard-page__panel header span,
-.dashboard-page__carly span {
-  color: var(--color-text-muted);
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-100);
-  letter-spacing: var(--letter-spacing-label);
-  text-transform: uppercase;
-}
-
-.dashboard-page__empty {
-  display: grid;
-  max-width: 24rem;
-  margin: auto;
-  place-items: center;
-  gap: var(--space-2);
-  text-align: center;
-}
-
-.dashboard-page__empty strong {
-  color: var(--color-text-primary);
-}
+.dashboard-page__grid--top { grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.55fr); }
+.dashboard-page__grid--bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 /* ==========================================================================
-   05   Carly-Bereich
+   02   Responsive Darstellung
    ========================================================================== */
 
-.dashboard-page__carly {
-  position: relative;
-  display: flex;
-  padding: var(--space-6);
-  overflow: hidden;
-  align-items: flex-end;
-  background:
-    radial-gradient(circle at 80% 20%, rgb(228 190 102 / 0.15), transparent 14rem),
-    var(--color-brand-subtle);
+@media (max-width: 76rem) {
+  .dashboard-page__kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dashboard-page__grid--top { grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.6fr); }
 }
 
-.dashboard-page__carly img {
-  position: absolute;
-  right: -4rem;
-  bottom: -5rem;
-  width: 18rem;
-  height: auto;
-  opacity: 0.35;
+@media (max-width: 60rem) {
+  .dashboard-page__grid--top,
+  .dashboard-page__grid--bottom { grid-template-columns: 1fr; }
+  .dashboard-carly { grid-template-columns: minmax(12rem, 0.45fr) minmax(0, 1fr); grid-template-rows: auto; min-height: 16rem; }
 }
 
-.dashboard-page__carly div {
-  position: relative;
-  z-index: var(--z-index-raised);
-  display: grid;
-  max-width: 18rem;
-  gap: var(--space-2);
+@media (max-width: 44rem) {
+  .dashboard-page__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-carly { grid-template-columns: 1fr; grid-template-rows: minmax(9rem, auto) auto; }
+  .dashboard-project-row { grid-template-columns: auto minmax(0, 1fr); }
+  .dashboard-project-row__progress { grid-column: 2; }
 }
 
-/* ==========================================================================
-   06   Responsive Darstellung
-   ========================================================================== */
-
-@media (max-width: 68rem) {
-  .dashboard-page__kpis {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .dashboard-page__grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 30rem) {
+  .dashboard-page__kpis { grid-template-columns: 1fr; }
+  .dashboard-kpi { min-height: 4.6rem; }
+  .dashboard-panel { padding: var(--space-4); }
 }
 
-@media (max-width: 36rem) {
-  .dashboard-page__kpis {
-    grid-template-columns: 1fr;
-  }
-}
+:host-context(:root[data-motion='reduced']) .dashboard-carly__visual::before,
+:host-context(:root[data-neuro='true']) .dashboard-carly__visual::before { animation: none; }
+

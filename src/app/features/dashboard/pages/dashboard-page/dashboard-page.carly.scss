@@ -1,0 +1,47 @@
+/*###############################
+###
+###     dashboard-page.carly.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
+
+/* ========================================================================== 
+   INHALTSVERZEICHNIS
+
+   01   Carly-Kurzstatus
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Carly-Kurzstatus
+   ========================================================================== */
+
+.dashboard-carly { position: relative; display: grid; min-height: 21rem; overflow: hidden; grid-template-rows: minmax(9rem, 0.9fr) auto; background: radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--color-action-primary) 18%, transparent), transparent 55%), var(--color-brand-subtle); }
+.dashboard-carly__visual { position: relative; display: grid; place-items: center; overflow: hidden; }
+.dashboard-carly__visual::before { content: ''; position: absolute; width: 12rem; aspect-ratio: 1; border: 1px dashed color-mix(in srgb, var(--color-action-primary) 45%, transparent); border-radius: 50%; animation: dashboard-carly-orbit 18s linear infinite; }
+.dashboard-carly__visual cm-carly-face { position: relative; z-index: 1; transform: scale(1.25); }
+.dashboard-carly__content { position: relative; z-index: 1; display: grid; gap: var(--space-3); padding: var(--space-5); background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-surface-primary) 86%, transparent) 18%); }
+.dashboard-carly__title { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.dashboard-carly__title h2 { margin: 0; font-size: var(--font-size-500); }
+.dashboard-carly__title strong { padding: 0.35rem 0.65rem; border-radius: var(--radius-round); background: color-mix(in srgb, var(--color-action-primary) 14%, transparent); color: var(--color-action-primary); font-size: var(--font-size-200); }
+.dashboard-carly__content p { color: var(--color-text-secondary); font-size: var(--font-size-200); }
+.dashboard-carly__stats { display: grid; gap: var(--space-2); }
+.dashboard-carly__stats > div { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.2rem var(--space-3); }
+.dashboard-carly__stats i { grid-column: 1 / -1; }
+.dashboard-carly__stats span { color: var(--color-text-secondary); font-size: var(--font-size-100); }
+.dashboard-carly__stats strong { font-size: var(--font-size-100); }
+.dashboard-carly__content > a { display: inline-flex; width: fit-content; align-items: center; gap: var(--space-1); color: var(--color-action-primary); font-size: var(--font-size-200); font-weight: var(--font-weight-semibold); text-decoration: none; }
+.dashboard-carly__content > a span { font-size: 1rem; }
+
+@keyframes dashboard-carly-orbit { to { transform: rotate(360deg); } }
+

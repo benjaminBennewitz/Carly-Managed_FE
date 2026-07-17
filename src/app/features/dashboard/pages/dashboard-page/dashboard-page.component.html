@@ -2,59 +2,159 @@
 
 <section class="dashboard-page">
   <cm-page-header
-    eyebrow="Deine wichtigsten Aufgaben, Boards und Aktivitäten an einem Ort."
+    eyebrow="Appweite Kennzahlen, Fokusaufgaben und Carlys aktueller Status auf einen Blick."
     title="Guten Tag. Was steht heute an?"
   />
 
-  <div class="dashboard-page__kpis" aria-label="Kennzahlen">
-    <article>
-      <span>Heute</span>
-      <strong>04</strong>
-      <p>Aufgaben im Fokus</p>
-    </article>
-    <article>
-      <span>Boards</span>
-      <strong>02</strong>
-      <p>Aktive Arbeitsbereiche</p>
-    </article>
-    <article>
-      <span>Team</span>
-      <strong>LIVE</strong>
-      <p>Gemeinsam aktiv</p>
-    </article>
-    <article>
-      <span>Carly</span>
-      <strong>OPT-IN</strong>
-      <p>Motivation bleibt optional</p>
-    </article>
+  <div class="dashboard-page__kpis" aria-label="Appweite Kennzahlen">
+    @for (item of kpis(); track item.key) {
+      <button
+        class="dashboard-kpi dashboard-kpi--{{ item.tone }}"
+        type="button"
+        [class.dashboard-kpi--active]="activeKpi() === item.key"
+        [attr.aria-expanded]="activeKpi() === item.key"
+        (click)="toggleKpi(item.key)"
+      >
+        <span class="dashboard-kpi__icon material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+        <span class="dashboard-kpi__copy">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <small>{{ item.hint }}</small>
+        </span>
+        <span class="dashboard-kpi__open material-symbols-outlined" aria-hidden="true">expand_more</span>
+      </button>
+    }
   </div>
 
-  <div class="dashboard-page__grid">
-    <article class="dashboard-page__panel">
-      <header>
-        <div>
-          <span>Heute</span>
-          <h2>Nächste Aufgaben</h2>
+  @if (activeKpiData(); as kpi) {
+    <section class="dashboard-kpi-popover" role="dialog" aria-modal="true" [attr.aria-label]="kpi.label">
+      <button class="dashboard-kpi-popover__backdrop" type="button" aria-label="Detailliste schließen" (click)="closeKpi()"></button>
+      <article class="dashboard-kpi-popover__panel">
+        <header>
+          <div>
+            <span>Details</span>
+            <h2>{{ kpi.label }} · {{ kpi.value }}</h2>
+          </div>
+          <button type="button" aria-label="Detailliste schließen" (click)="closeKpi()">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </header>
+
+        <div class="dashboard-kpi-popover__list">
+          @switch (kpi.key) {
+            @case ('open') {
+              @for (task of openTasks(); track task.id) {
+                <button type="button" class="dashboard-detail-row" (click)="openTask(task)">
+                  <span class="dashboard-detail-row__icon material-symbols-outlined">task_alt</span>
+                  <span><strong>{{ task.title }}</strong><small>{{ task.projectTitle ?? 'Persönliches Board' }} · {{ formatDate(task.dueDate) }}</small></span>
+                  <span class="priority-pill priority-pill--{{ task.priority }}">{{ task.priority }}</span>
+                </button>
+              } @empty { <p class="dashboard-empty">Keine offenen Aufgaben.</p> }
+            }
+            @case ('today') {
+              @for (task of todayTasks(); track task.id) {
+                <button type="button" class="dashboard-detail-row" (click)="openTask(task)">
+                  <span class="dashboard-detail-row__icon material-symbols-outlined">today</span>
+                  <span><strong>{{ task.title }}</strong><small>{{ task.projectTitle ?? 'Persönliches Board' }} · {{ task.dueTime ?? 'ganztägig' }}</small></span>
+                  <span class="priority-pill priority-pill--{{ task.priority }}">{{ task.priority }}</span>
+                </button>
+              } @empty { <p class="dashboard-empty">Heute ist nichts fällig.</p> }
+            }
+            @case ('overdue') {
+              @for (task of overdueTasks(); track task.id) {
+                <button type="button" class="dashboard-detail-row" (click)="openTask(task)">
+                  <span class="dashboard-detail-row__icon material-symbols-outlined">warning</span>
+                  <span><strong>{{ task.title }}</strong><small>{{ task.projectTitle ?? 'Persönliches Board' }} · fällig {{ formatDate(task.dueDate) }}</small></span>
+                  <span class="priority-pill priority-pill--{{ task.priority }}">{{ task.priority }}</span>
+                </button>
+              } @empty { <p class="dashboard-empty">Keine überfälligen Aufgaben.</p> }
+            }
+            @case ('projects') {
+              @for (project of activeProjects(); track project.id) {
+                <button type="button" class="dashboard-detail-row" (click)="openProject(project)">
+                  <span class="dashboard-detail-row__project-icon material-symbols-outlined" [style.background]="project.color">{{ project.icon }}</span>
+                  <span><strong>{{ project.name }}</strong><small>{{ workspaceService.getOpenTaskCount(project.id) }} offen · {{ workspaceService.getOverdueTaskCount(project.id) }} überfällig</small></span>
+                  <span class="material-symbols-outlined">open_in_new</span>
+                </button>
+              } @empty { <p class="dashboard-empty">Keine aktiven Projekte.</p> }
+            }
+            @case ('unread') {
+              <a class="dashboard-detail-row" routerLink="/inbox" (click)="closeKpi()">
+                <span class="dashboard-detail-row__icon material-symbols-outlined">notifications</span>
+                <span><strong>Systemmeldungen</strong><small>{{ inboxService.unreadSystemCount() }} ungelesen</small></span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+              </a>
+              <a class="dashboard-detail-row" routerLink="/inbox" (click)="closeKpi()">
+                <span class="dashboard-detail-row__icon material-symbols-outlined">forum</span>
+                <span><strong>Direkt- und Gruppenchats</strong><small>{{ inboxService.unreadConversationCount() }} ungelesen</small></span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+              </a>
+            }
+          }
         </div>
+      </article>
+    </section>
+  }
+
+  <div class="dashboard-page__grid dashboard-page__grid--top">
+    <article class="dashboard-panel dashboard-focus">
+      <header class="dashboard-panel__header">
+        <div><span>Heute wichtig</span><h2>Arbeitsfokus</h2></div>
+        <a routerLink="/board">Alle Aufgaben</a>
       </header>
-      <div class="dashboard-page__empty">
-        <strong>Keine Aufgaben für heute</strong>
-        <p>Dein Tagesbereich ist aktuell frei.</p>
+      <div class="dashboard-focus__list">
+        @for (task of focusTasks(); track task.id) {
+          <button type="button" class="dashboard-task-row" (click)="openTask(task)">
+            <span class="priority-dot priority-dot--{{ task.priority }}"></span>
+            <span><strong>{{ task.title }}</strong><small>{{ task.projectTitle ?? 'Persönliches Board' }} · {{ formatDate(task.dueDate) }}</small></span>
+            @if (task.assignee; as assignee) {
+              <span class="dashboard-avatar" [style.background]="assignee.avatarColor" [style.color]="assignee.avatarTextColor">{{ assignee.initials }}</span>
+            }
+          </button>
+        } @empty { <p class="dashboard-empty">Aktuell sind keine offenen Aufgaben vorhanden.</p> }
       </div>
     </article>
 
-    <aside class="dashboard-page__carly">
-      <img
-        src="/assets/img/carly.webp"
-        alt="Carly wartet am unteren Rand"
-        width="360"
-        height="360"
-      />
-      <div>
-        <span>Carly Status</span>
-        <h2>Noch ganz entspannt.</h2>
-        <p>Carly begleitet Fortschritt, Pausen und gemeinsame Erfolge dezent.</p>
+    <aside class="dashboard-carly">
+      <div class="dashboard-carly__visual"><cm-carly-face [sleeping]="carlyService.progress().isSleeping" /></div>
+      <div class="dashboard-carly__content">
+        <span>Carly Kurzstatus</span>
+        <div class="dashboard-carly__title"><h2>{{ moodLabel() }}</h2><strong>Level {{ carlyService.progress().level }}</strong></div>
+        <p>{{ carlyService.progress().lastMessage }}</p>
+        <div class="dashboard-carly__stats">
+          <div><span>Zuneigung</span><strong>{{ carlyService.progress().affection }}%</strong><i><b [style.width.%]="carlyService.progress().affection"></b></i></div>
+          <div><span>Erfahrung</span><strong>{{ carlyService.progress().experience }}%</strong><i><b [style.width.%]="carlyService.levelProgress()"></b></i></div>
+        </div>
+        <a routerLink="/carly">Zu Carly <span class="material-symbols-outlined">arrow_forward</span></a>
       </div>
     </aside>
+  </div>
+
+  <div class="dashboard-page__grid dashboard-page__grid--bottom">
+    <article class="dashboard-panel">
+      <header class="dashboard-panel__header"><div><span>Projektlage</span><h2>Aktive Projekte</h2></div><a routerLink="/projects">Projektübersicht</a></header>
+      <div class="dashboard-project-list">
+        @for (item of projectOverview(); track item.project.id) {
+          <button type="button" class="dashboard-project-row" (click)="openProject(item.project)">
+            <span class="dashboard-project-row__icon material-symbols-outlined" [style.background]="item.project.color">{{ item.project.icon }}</span>
+            <span class="dashboard-project-row__copy"><strong>{{ item.project.name }}</strong><small>{{ item.open }} offen · {{ item.overdue }} überfällig</small></span>
+            <span class="dashboard-project-row__progress"><i><b [style.width.%]="item.total ? ((item.total - item.open) / item.total) * 100 : 0"></b></i><small>{{ item.total - item.open }}/{{ item.total }}</small></span>
+          </button>
+        } @empty { <p class="dashboard-empty">Keine aktiven Projekte.</p> }
+      </div>
+    </article>
+
+    <article class="dashboard-panel">
+      <header class="dashboard-panel__header"><div><span>Zuletzt passiert</span><h2>Aktivitäten</h2></div><a routerLink="/inbox">Inbox öffnen</a></header>
+      <div class="dashboard-activity-list">
+        @for (item of recentActivity(); track item.id) {
+          <a class="dashboard-activity-row" [routerLink]="item.route ?? '/inbox'" [queryParams]="item.queryParams">
+            <span class="material-symbols-outlined">{{ item.icon }}</span>
+            <span><strong>{{ item.title }}</strong><small>{{ item.body }}</small></span>
+            @if (!item.isRead) { <i aria-label="Ungelesen"></i> }
+          </a>
+        } @empty { <p class="dashboard-empty">Noch keine Aktivitäten vorhanden.</p> }
+      </div>
+    </article>
   </div>
 </section>

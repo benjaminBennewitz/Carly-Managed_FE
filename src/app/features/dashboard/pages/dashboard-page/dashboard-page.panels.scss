@@ -1,0 +1,108 @@
+/*###############################
+###
+###     dashboard-page.panels.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
+
+/* ========================================================================== 
+   INHALTSVERZEICHNIS
+
+   01   Dashboard-Panels
+   02   Fokus und Projekte
+   03   Aktivitäten
+   ========================================================================== */
+
+/* ==========================================================================
+   01   Dashboard-Panels
+   ========================================================================== */
+
+.dashboard-panel,
+.dashboard-carly {
+  min-width: 0;
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.dashboard-panel { display: grid; align-content: start; gap: var(--space-4); padding: var(--space-5); }
+.dashboard-panel__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); }
+.dashboard-panel__header div { display: grid; gap: var(--space-1); }
+.dashboard-panel__header span,
+.dashboard-carly__content > span { color: var(--color-text-muted); font-family: var(--font-family-mono); font-size: var(--font-size-100); letter-spacing: var(--letter-spacing-label); text-transform: uppercase; }
+.dashboard-panel__header h2 { margin: 0; font-size: var(--font-size-500); }
+.dashboard-panel__header a { color: var(--color-action-primary); font-size: var(--font-size-200); font-weight: var(--font-weight-semibold); text-decoration: none; }
+
+/* ==========================================================================
+   02   Fokus und Projekte
+   ========================================================================== */
+
+.dashboard-focus__list,
+.dashboard-project-list,
+.dashboard-activity-list { display: grid; gap: var(--space-2); }
+
+.dashboard-task-row,
+.dashboard-project-row {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-width-subtle) solid transparent;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dashboard-task-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+.dashboard-task-row:hover,
+.dashboard-project-row:hover { border-color: var(--color-border-strong); background: var(--color-surface-elevated); }
+.dashboard-task-row > span:nth-child(2),
+.dashboard-project-row__copy { display: grid; min-width: 0; gap: 0.15rem; }
+.dashboard-task-row strong,
+.dashboard-task-row small,
+.dashboard-project-row strong,
+.dashboard-project-row small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dashboard-task-row small,
+.dashboard-project-row small { color: var(--color-text-muted); }
+.priority-dot { width: 0.55rem; aspect-ratio: 1; border-radius: 50%; background: var(--color-text-muted); }
+.priority-dot--hoch { background: var(--color-status-danger); }
+.priority-dot--mittel { background: var(--color-status-warning); }
+.priority-dot--niedrig { background: var(--color-status-success); }
+.dashboard-avatar { display: grid; width: 2rem; aspect-ratio: 1; place-items: center; border-radius: 50%; font-size: var(--font-size-100); font-weight: var(--font-weight-bold); }
+.dashboard-project-row { grid-template-columns: auto minmax(0, 1fr) minmax(7rem, 0.32fr); }
+.dashboard-project-row__icon { display: grid; width: 2.4rem; aspect-ratio: 1; place-items: center; border-radius: var(--radius-md); color: white; }
+.dashboard-project-row__progress { display: grid; grid-template-columns: minmax(4rem, 1fr) auto; align-items: center; gap: var(--space-2); }
+.dashboard-project-row__progress i,
+.dashboard-carly__stats i { display: block; height: 0.42rem; overflow: hidden; border-radius: var(--radius-round); background: var(--color-surface-tertiary); }
+.dashboard-project-row__progress b,
+.dashboard-carly__stats b { display: block; height: 100%; border-radius: inherit; background: var(--color-action-primary); }
+
+/* ==========================================================================
+   03   Aktivitäten
+   ========================================================================== */
+
+.dashboard-activity-row { display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-lg); background: var(--color-surface-secondary); color: var(--color-text-primary); text-decoration: none; }
+.dashboard-activity-row:hover { background: var(--color-surface-elevated); }
+.dashboard-activity-row > .material-symbols-outlined { display: grid; width: 2.25rem; aspect-ratio: 1; place-items: center; border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-action-primary) 12%, transparent); color: var(--color-action-primary); font-size: 1.05rem; }
+.dashboard-activity-row > span:nth-child(2) { display: grid; min-width: 0; gap: 0.15rem; }
+.dashboard-activity-row strong,
+.dashboard-activity-row small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dashboard-activity-row small { color: var(--color-text-muted); }
+.dashboard-activity-row > i { width: 0.5rem; aspect-ratio: 1; border-radius: 50%; background: var(--color-action-primary); }
+

@@ -1,0 +1,68 @@
+/*###############################
+###
+###     dashboard-page.dialog.scss
+###     Produktion App
+###     BASED ON: Angular  21.02.0, SCSS,
+###     AUTHOR: Benjamin Bennewitz
+###
+###
+###       ██████╗  ▀█
+###       ██╔══██╗ █▄
+###       ██████╦╝
+###       ██╔══██╗
+###       ██████╦╝
+###       ╚═════╝
+###
+###
+#################################*/
+
+/* ========================================================================== 
+   INHALTSVERZEICHNIS
+
+   01   KPI-Dialog
+   ========================================================================== */
+
+/* ==========================================================================
+   01   KPI-Dialog
+   ========================================================================== */
+
+.dashboard-kpi-popover { position: fixed; inset: 0; z-index: var(--z-index-modal); display: grid; place-items: center; padding: var(--space-5); }
+.dashboard-kpi-popover__backdrop { position: absolute; inset: 0; border: 0; background: rgb(8 6 12 / 0.54); backdrop-filter: blur(0.18rem); }
+.dashboard-kpi-popover__panel { position: relative; display: grid; width: min(38rem, 100%); max-height: min(42rem, calc(100dvh - 3rem)); grid-template-rows: auto minmax(0, 1fr); overflow: hidden; border: var(--border-width-subtle) solid var(--color-border-subtle); border-radius: var(--radius-xl); background: var(--color-surface-elevated); box-shadow: var(--shadow-xl); }
+.dashboard-kpi-popover__panel > header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-4) var(--space-5); border-bottom: var(--border-width-subtle) solid var(--color-border-subtle); }
+.dashboard-kpi-popover__panel header div { display: grid; gap: var(--space-1); }
+.dashboard-kpi-popover__panel header span:first-child { color: var(--color-text-muted); font-family: var(--font-family-mono); font-size: var(--font-size-100); letter-spacing: var(--letter-spacing-label); text-transform: uppercase; }
+.dashboard-kpi-popover__panel h2 { margin: 0; font-size: var(--font-size-500); }
+.dashboard-kpi-popover__panel header button { display: grid; width: 2.25rem; aspect-ratio: 1; place-items: center; padding: 0; border: 0; border-radius: var(--radius-round); background: var(--color-surface-secondary); color: var(--color-text-primary); cursor: pointer; }
+.dashboard-kpi-popover__list { display: grid; align-content: start; gap: var(--space-2); overflow-y: auto; padding: var(--space-4); }
+
+.dashboard-detail-row {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dashboard-detail-row:hover { border-color: var(--color-border-strong); background: var(--color-surface-secondary); }
+.dashboard-detail-row > span:nth-child(2) { display: grid; min-width: 0; gap: 0.15rem; }
+.dashboard-detail-row strong,
+.dashboard-detail-row small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dashboard-detail-row small { color: var(--color-text-muted); }
+.dashboard-detail-row__icon,
+.dashboard-detail-row__project-icon { display: grid; width: 2.25rem; aspect-ratio: 1; place-items: center; border-radius: var(--radius-md); background: var(--color-surface-secondary); font-size: 1.1rem; }
+.dashboard-detail-row__project-icon { color: white; }
+.priority-pill { padding: 0.25rem 0.55rem; border-radius: var(--radius-round); background: var(--color-surface-secondary); color: var(--color-text-secondary); font-size: var(--font-size-100); font-weight: var(--font-weight-semibold); text-transform: capitalize; }
+.priority-pill--hoch { background: color-mix(in srgb, var(--color-status-danger) 14%, transparent); color: var(--color-status-danger); }
+.priority-pill--mittel { background: color-mix(in srgb, var(--color-status-warning) 16%, transparent); color: var(--color-status-warning); }
+.dashboard-empty { margin: auto; padding: var(--space-7); color: var(--color-text-muted); text-align: center; }
+

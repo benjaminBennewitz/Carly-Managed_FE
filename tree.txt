@@ -164,9 +164,13 @@ Carly-Managed_FE/
 │   │   │   ├── dashboard/
 │   │   │   │   └── pages/
 │   │   │   │       └── dashboard-page/
+│   │   │   │           ├── dashboard-page.carly.scss
 │   │   │   │           ├── dashboard-page.component.html
 │   │   │   │           ├── dashboard-page.component.scss
-│   │   │   │           └── dashboard-page.component.ts
+│   │   │   │           ├── dashboard-page.component.ts
+│   │   │   │           ├── dashboard-page.dialog.scss
+│   │   │   │           ├── dashboard-page.kpis.scss
+│   │   │   │           └── dashboard-page.panels.scss
 │   │   │   ├── inbox/
 │   │   │   │   └── pages/
 │   │   │   │       └── inbox-page/
