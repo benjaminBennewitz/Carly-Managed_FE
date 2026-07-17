@@ -28,4 +28,5 @@ export interface CarlyProgress {
 export interface CarlyState {
   settings: CarlySettings;
   progress: CarlyProgress;
+  version?: number;
 }

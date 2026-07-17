@@ -1,11 +1,14 @@
 // src/app/core/carly/carly.service.ts
 
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, Injectable, signal } from '@angular/core';
 
-import { CarlyFoodId, CarlyProgress, CarlySettings, CarlyState } from './carly.models';
+import { API_BASE_URL } from '../api/api.config';
+import { CarlyFoodId, CarlySettings, CarlyState } from './carly.models';
 
-const CARLY_STORAGE_KEY = 'carly-managed-carly-v1';
-const DEFAULT_STATE: CarlyState = {
+type CarlySettingsPatch = Partial<CarlySettings> & { positionX?: number };
+
+const EMPTY_STATE: CarlyState = {
   settings: {
     enabled: true,
     showGlobally: true,
@@ -15,141 +18,180 @@ const DEFAULT_STATE: CarlyState = {
     reduceAnimations: false,
   },
   progress: {
-    level: 3,
-    experience: 62,
-    affection: 74,
-    energy: 68,
-    satiety: 58,
-    streak: 5,
+    level: 1,
+    experience: 0,
+    affection: 50,
+    energy: 50,
+    satiety: 50,
+    streak: 0,
     mood: 'neugierig',
     isSleeping: false,
-    lastMessage: 'Bereit für ein kleines Produktivitätsabenteuer?',
-    positionX: 28,
+    lastMessage: '',
+    positionX: 0.5,
   },
-};
-
-const FOOD_VALUES: Record<CarlyFoodId, { satiety: number; affection: number; message: string }> = {
-  fish: { satiety: 24, affection: 4, message: 'Fisch! Ein Klassiker mit magischem Nachgeschmack.' },
-  berry: { satiety: 12, affection: 7, message: 'Mystische Beeren. Knusprig wären sie besser.' },
-  cookie: { satiety: 18, affection: 10, message: 'Ein Keks für Carly. Das bleibt unter uns.' },
-  potion: { satiety: 8, affection: 5, message: 'Der Trank prickelt bis in die Ohrenspitzen.' },
+  version: 1,
 };
 
 @Injectable({ providedIn: 'root' })
 export class CarlyService {
-  private readonly stateValue = signal<CarlyState>(this.readState());
+  private readonly stateValue = signal<CarlyState>(structuredClone(EMPTY_STATE));
+  private queuedPatch: CarlySettingsPatch = {};
+  private patchRunning = false;
 
   readonly state = this.stateValue.asReadonly();
   readonly settings = computed(() => this.stateValue().settings);
   readonly progress = computed(() => this.stateValue().progress);
-  readonly visibleGlobally = computed(() => this.settings().enabled && this.settings().showGlobally);
-  readonly levelProgress = computed(() => Math.max(0, Math.min(100, this.progress().experience)));
+  readonly visibleGlobally = computed(
+    () => this.settings().enabled && this.settings().showGlobally,
+  );
+  readonly levelProgress = computed(() =>
+    Math.max(0, Math.min(100, this.progress().experience % 100)),
+  );
 
-  /** Aktualisiert Carlys globale Einstellungen. */
+  constructor(private readonly http: HttpClient) {
+    this.reload();
+  }
+
+  /** Lädt Carlys persistierten Zustand vom Backend. */
+  reload(): void {
+    this.http.get<CarlyState>(`${API_BASE_URL}/preferences/carly/`).subscribe({
+      next: (state) => this.stateValue.set(this.applyPatch(state, this.queuedPatch)),
+    });
+  }
+
+  /** Aktualisiert ausschließlich nutzersteuerbare Carly-Einstellungen. */
   updateSettings(changes: Partial<CarlySettings>): void {
-    this.updateState({
-      settings: { ...this.settings(), ...changes },
-      progress: this.progress(),
-    });
+    this.stateValue.update((state) => this.applyPatch(state, changes));
+    this.queuePatch(changes);
   }
 
-  /** Streichelt Carly und erhöht Zuneigung sowie Erfahrung. */
+  /** Streichelt Carly unter Beachtung serverseitiger Limits. */
   pet(): void {
-    if (this.progress().isSleeping) return;
-    this.updateProgress({
-      affection: this.clamp(this.progress().affection + 5),
-      experience: this.nextExperience(4),
-      mood: 'glücklich',
-      lastMessage: 'Mrrrp. Das war akzeptabel. Du darfst weitermachen.',
-    });
+    this.performAction('pet');
   }
 
-  /** Füttert Carly mit einer ausgewählten Kleinigkeit. */
+  /** Füttert Carly mit einer serverseitig validierten Auswahl. */
   feed(food: CarlyFoodId): void {
-    if (this.progress().isSleeping) return;
-    const values = FOOD_VALUES[food];
-    this.updateProgress({
-      satiety: this.clamp(this.progress().satiety + values.satiety),
-      affection: this.clamp(this.progress().affection + values.affection),
-      experience: this.nextExperience(6),
-      mood: 'glücklich',
-      lastMessage: values.message,
-    });
+    this.performAction('feed', { food });
   }
 
-  /** Startet eine kurze Spielaktion. */
+  /** Startet eine begrenzte Spielaktion. */
   play(): void {
-    if (this.progress().isSleeping) return;
-    this.updateProgress({
-      energy: this.clamp(this.progress().energy - 12),
-      affection: this.clamp(this.progress().affection + 8),
-      experience: this.nextExperience(8),
-      mood: 'glücklich',
-      lastMessage: 'Ein magischer Sprint! Jetzt bist du wieder dran.',
-    });
+    this.performAction('play');
   }
 
   /** Schickt Carly schlafen. */
   sleep(): void {
-    this.updateProgress({ isSleeping: true, mood: 'müde', lastMessage: 'Zzz … nur fünf magische Minuten.' });
+    this.performAction('sleep');
   }
 
-  /** Weckt Carly und füllt ihre Energie auf. */
+  /** Weckt Carly. */
   wake(): void {
-    this.updateProgress({
-      isSleeping: false,
-      energy: this.clamp(this.progress().energy + 28),
-      mood: 'neugierig',
-      lastMessage: 'Ich bin wach. Was habe ich verpasst?',
+    this.performAction('wake');
+  }
+
+  /** Aktualisiert Carlys Position während des Ziehens ausschließlich lokal. */
+  previewPositionX(positionX: number): void {
+    const normalized = this.normalizePosition(positionX);
+    this.stateValue.update((state) => this.applyPatch(state, { positionX: normalized }));
+  }
+
+  /** Speichert Carlys letzte Position einmalig nach dem Ziehen. */
+  persistPositionX(positionX = this.progress().positionX): void {
+    const normalized = this.normalizePosition(positionX);
+    this.stateValue.update((state) => this.applyPatch(state, { positionX: normalized }));
+    this.queuePatch({ positionX: normalized });
+  }
+
+  /** Setzt Carly serverseitig auf den Standardzustand zurück. */
+  reset(): void {
+    this.queuedPatch = {};
+    this.http.delete<CarlyState>(`${API_BASE_URL}/preferences/carly/`).subscribe({
+      next: (state) => this.stateValue.set(state),
     });
   }
 
-  /** Speichert die horizontale Position des globalen Maskottchens. */
-  setPositionX(positionX: number): void {
-    this.updateProgress({ positionX: Math.max(0, Math.round(positionX)) });
+  /** Reiht partielle Änderungen ein und verhindert parallele Versionsschreibvorgänge. */
+  private queuePatch(changes: CarlySettingsPatch): void {
+    this.queuedPatch = { ...this.queuedPatch, ...changes };
+    this.flushPatchQueue();
   }
 
-  /** Setzt Carly auf den Auslieferungszustand zurück. */
-  reset(): void {
-    this.updateState(structuredClone(DEFAULT_STATE));
+  /** Überträgt immer nur einen Patch und verwendet danach den neuen Versionsstand. */
+  private flushPatchQueue(): void {
+    if (this.patchRunning || Object.keys(this.queuedPatch).length === 0) return;
+
+    const changes = this.queuedPatch;
+    this.queuedPatch = {};
+    this.patchRunning = true;
+    const version = this.stateValue().version ?? 1;
+
+    this.http
+      .patch<CarlyState>(`${API_BASE_URL}/preferences/carly/`, {
+        ...changes,
+        version,
+      })
+      .subscribe({
+        next: (state) => {
+          this.patchRunning = false;
+          this.stateValue.set(this.applyPatch(state, this.queuedPatch));
+          this.flushPatchQueue();
+        },
+        error: (error: HttpErrorResponse) => this.handlePatchError(error, changes),
+      });
   }
 
-  /** Aktualisiert ausschließlich Fortschrittswerte. */
-  private updateProgress(changes: Partial<CarlyProgress>): void {
-    this.updateState({ settings: this.settings(), progress: { ...this.progress(), ...changes } });
-  }
+  /** Lädt bei einem Versionskonflikt den aktuellen Stand und versucht den Patch erneut. */
+  private handlePatchError(error: HttpErrorResponse, changes: CarlySettingsPatch): void {
+    this.patchRunning = false;
 
-  /** Speichert einen vollständigen Carly-Zustand. */
-  private updateState(state: CarlyState): void {
-    this.stateValue.set(state);
-    localStorage.setItem(CARLY_STORAGE_KEY, JSON.stringify(state));
-  }
-
-  /** Berechnet Erfahrung und einfache Levelaufstiege. */
-  private nextExperience(amount: number): number {
-    const total = this.progress().experience + amount;
-    if (total < 100) return total;
-    this.updateProgress({ level: this.progress().level + 1 });
-    return total - 100;
-  }
-
-  /** Begrenzt Prozentwerte auf den gültigen Bereich. */
-  private clamp(value: number): number {
-    return Math.max(0, Math.min(100, value));
-  }
-
-  /** Liest und bereinigt den lokal gespeicherten Zustand. */
-  private readState(): CarlyState {
-    try {
-      const raw = localStorage.getItem(CARLY_STORAGE_KEY);
-      if (!raw) return structuredClone(DEFAULT_STATE);
-      const parsed = JSON.parse(raw) as Partial<CarlyState>;
-      return {
-        settings: { ...DEFAULT_STATE.settings, ...parsed.settings },
-        progress: { ...DEFAULT_STATE.progress, ...parsed.progress },
-      };
-    } catch {
-      return structuredClone(DEFAULT_STATE);
+    if (error.status !== 409) {
+      this.queuedPatch = {};
+      this.reload();
+      return;
     }
+
+    const pendingChanges = { ...changes, ...this.queuedPatch };
+    this.queuedPatch = {};
+    this.http.get<CarlyState>(`${API_BASE_URL}/preferences/carly/`).subscribe({
+      next: (state) => {
+        this.stateValue.set(this.applyPatch(state, pendingChanges));
+        this.queuedPatch = pendingChanges;
+        this.flushPatchQueue();
+      },
+      error: () => {
+        this.queuedPatch = {};
+        this.reload();
+      },
+    });
+  }
+
+  /** Wendet nutzersteuerbare Änderungen auf den lokalen Zustand an. */
+  private applyPatch(state: CarlyState, changes: CarlySettingsPatch): CarlyState {
+    const { positionX, ...settingsChanges } = changes;
+    return {
+      ...state,
+      settings: { ...state.settings, ...settingsChanges },
+      progress:
+        positionX === undefined
+          ? state.progress
+          : { ...state.progress, positionX: this.normalizePosition(positionX) },
+    };
+  }
+
+  /** Begrenzt eine normalisierte Position zuverlässig auf den sichtbaren Bereich. */
+  private normalizePosition(positionX: number): number {
+    return Math.max(0, Math.min(1, positionX));
+  }
+
+  /** Führt eine benannte Carly-Aktion mit Versionsprüfung aus. */
+  private performAction(action: string, payload: { food?: CarlyFoodId } = {}): void {
+    const current = this.stateValue();
+    this.http
+      .post<CarlyState>(`${API_BASE_URL}/preferences/carly/actions/${action}/`, {
+        ...payload,
+        version: current.version ?? 1,
+      })
+      .subscribe({ next: (state) => this.stateValue.set(state), error: () => this.reload() });
   }
 }

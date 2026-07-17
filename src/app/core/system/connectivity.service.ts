@@ -10,9 +10,7 @@ export class ConnectivityService {
 
   readonly isOnline = this.onlineState.asReadonly();
   readonly label = computed(() => (this.onlineState() ? 'Online' : 'Offline'));
-  readonly icon = computed(() =>
-    this.onlineState() ? 'cloud_done' : 'cloud_off',
-  );
+  readonly icon = computed(() => (this.onlineState() ? 'cloud_done' : 'cloud_off'));
 
   constructor(destroyRef: DestroyRef) {
     const updateOnlineStatus = (): void => {

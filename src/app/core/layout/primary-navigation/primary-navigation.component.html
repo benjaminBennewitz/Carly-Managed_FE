@@ -49,9 +49,7 @@
             aria-label="Angepinnte Projekte ein- oder ausblenden"
             (click)="toggleProjects()"
           >
-            <span class="material-symbols-outlined" aria-hidden="true">
-              keyboard_arrow_down
-            </span>
+            <span class="material-symbols-outlined" aria-hidden="true"> keyboard_arrow_down </span>
           </button>
         }
       </div>
@@ -109,5 +107,11 @@
       </span>
       <span>{{ connectivityService.label() }}</span>
     </div>
+
+    <nav class="primary-navigation__legal" aria-label="Rechtliche Informationen">
+      <a routerLink="/impressum" (click)="handleNavigation()">Impressum</a>
+      <span aria-hidden="true">·</span>
+      <a routerLink="/datenschutz" (click)="handleNavigation()">Datenschutz</a>
+    </nav>
   </div>
 </aside>

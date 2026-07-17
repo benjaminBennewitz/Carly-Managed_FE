@@ -67,4 +67,5 @@ export interface AppSettings {
   accessibility: AccessibilitySettings;
   general: GeneralSettings;
   tools: ToolSettings;
+  version?: number;
 }

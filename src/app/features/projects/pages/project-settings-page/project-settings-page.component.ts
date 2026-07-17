@@ -18,7 +18,7 @@ import {
   WORKSPACE_PROJECT_COLOR_OPTIONS,
   WORKSPACE_PROJECT_ICON_OPTIONS,
 } from '../../../../core/workspace/workspace-project-options';
-import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
+import { WorkspaceService } from '../../../../core/workspace/workspace.service';
 import { MemberSelectComponent } from '../../../../shared/ui/member-select/member-select.component';
 
 type ProjectSettingsTab = 'general' | 'members' | 'interface' | 'management';
@@ -32,7 +32,7 @@ type ProjectLifecycleAction = 'complete' | 'archive' | 'delete';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectSettingsPageComponent {
-  protected readonly workspaceService: WorkspacePreviewService;
+  protected readonly workspaceService: WorkspaceService;
   protected readonly activeTab = signal<ProjectSettingsTab>('general');
   protected readonly project = signal<WorkspaceProject | null>(null);
   protected readonly managerIds = signal<string[]>([]);
@@ -152,7 +152,7 @@ export class ProjectSettingsPageComponent {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    workspaceService: WorkspacePreviewService,
+    workspaceService: WorkspaceService,
     destroyRef: DestroyRef,
   ) {
     this.workspaceService = workspaceService;

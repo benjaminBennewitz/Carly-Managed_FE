@@ -1,18 +1,12 @@
 // src/app/core/layout/primary-navigation/primary-navigation.component.ts
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  signal,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, input, output } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
-import { AuthPreviewService } from '../../auth/services/auth-preview.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { SessionService } from '../../auth/services/session.service';
 import { ConnectivityService } from '../../system/connectivity.service';
-import { WorkspacePreviewService } from '../../workspace/workspace-preview.service';
+import { WorkspaceService } from '../../workspace/workspace.service';
 
 interface NavigationItem {
   label: string;
@@ -43,13 +37,13 @@ export class PrimaryNavigationComponent {
   protected readonly projectsOpen = signal(true);
   protected readonly sessionService: SessionService;
   protected readonly connectivityService: ConnectivityService;
-  protected readonly workspaceService: WorkspacePreviewService;
+  protected readonly workspaceService: WorkspaceService;
 
   constructor(
     sessionService: SessionService,
     connectivityService: ConnectivityService,
-    workspaceService: WorkspacePreviewService,
-    private readonly authPreviewService: AuthPreviewService,
+    workspaceService: WorkspaceService,
+    private readonly authService: AuthService,
     private readonly router: Router,
   ) {
     this.sessionService = sessionService;
@@ -74,11 +68,18 @@ export class PrimaryNavigationComponent {
   }
 
   /**
-   * Beendet die lokale Vorschau-Sitzung und wechselt zurück zum Login.
+   * Beendet die serverseitige Sitzung und wechselt zurück zum Login.
    */
   logout(): void {
-    this.authPreviewService.logout();
-    this.closeRequested.emit();
-    void this.router.navigate(['/auth/login']);
+    this.authService.logout().subscribe({
+      complete: () => {
+        this.closeRequested.emit();
+        void this.router.navigate(['/auth/login']);
+      },
+      error: () => {
+        this.closeRequested.emit();
+        void this.router.navigate(['/auth/login']);
+      },
+    });
   }
 }

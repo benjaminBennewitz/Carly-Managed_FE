@@ -1,19 +1,20 @@
 // src/app/core/settings/app-settings.service.ts
 
 import { DOCUMENT } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { computed, Inject, Injectable, signal } from '@angular/core';
 
-import { AccessibilityFontSize, AccessibilitySettings, AppSettings, ColorVisionMode, GeneralSettings, ToolSettings, WorkspaceAlarmCategory, WorkspaceAlarmSettings } from './app-settings.models';
+import {
+  AccessibilitySettings,
+  AppSettings,
+  GeneralSettings,
+  ToolSettings,
+  WorkspaceAlarmCategory,
+  WorkspaceAlarmSettings,
+} from './app-settings.models';
 
-const APP_SETTINGS_STORAGE_KEY = 'carly-managed-app-settings-v1';
-const COLOR_VISION_MODES: readonly ColorVisionMode[] = [
-  'standard',
-  'protanopia',
-  'deuteranopia',
-  'tritanopia',
-  'monochrome',
-];
-const FONT_SIZES: readonly AccessibilityFontSize[] = ['normal', 'large', 'xlarge'];
+import { API_BASE_URL } from '../api/api.config';
+
 const DEFAULT_ALARMS: WorkspaceAlarmSettings = {
   assignment: true,
   taskMove: true,
@@ -44,15 +45,15 @@ const DEFAULT_SETTINGS: AppSettings = {
     tooltipsEnabled: true,
     allowInvites: true,
     hideRealName: false,
-    realName: 'Benjamin Bennewitz',
-    nickname: 'Ben',
+    realName: 'Nutzer',
+    nickname: 'Nutzer',
     alarms: DEFAULT_ALARMS,
   },
   tools: {
     pomodoro: false,
     taskTimer: false,
     weather: false,
-    weatherLocation: 'Mönchengladbach',
+    weatherLocation: '',
   },
 };
 
@@ -68,29 +69,9 @@ function createDefaultSettings(): AppSettings {
   };
 }
 
-/** Prüft einen unbekannten Wert auf einen gültigen Farbenblindheitsmodus. */
-function isColorVisionMode(value: unknown): value is ColorVisionMode {
-  return COLOR_VISION_MODES.includes(value as ColorVisionMode);
-}
-
-/** Prüft einen unbekannten Wert auf eine gültige Schriftstufe. */
-function isFontSize(value: unknown): value is AccessibilityFontSize {
-  return FONT_SIZES.includes(value as AccessibilityFontSize);
-}
-
-/** Liefert einen bereinigten einzeiligen Einstellungswert. */
-function normalizeSettingText(value: unknown, fallback: string, maxLength: number): string {
-  if (typeof value !== 'string') {
-    return fallback;
-  }
-
-  const normalized = value.replace(/\s+/g, ' ').trim().slice(0, maxLength);
-  return normalized || fallback;
-}
-
 @Injectable({ providedIn: 'root' })
 export class AppSettingsService {
-  private readonly settingsState = signal<AppSettings>(this.readSettings());
+  private readonly settingsState = signal<AppSettings>(createDefaultSettings());
   private tooltipElement: HTMLElement | null = null;
   private tooltipObserver: MutationObserver | null = null;
   private activeTooltipTarget: HTMLElement | null = null;
@@ -108,8 +89,22 @@ export class AppSettingsService {
     return general.hideRealName ? general.nickname : general.realName;
   });
 
-  constructor(@Inject(DOCUMENT) private readonly document: Document) {
+  constructor(
+    @Inject(DOCUMENT) private readonly document: Document,
+    private readonly http: HttpClient,
+  ) {
     this.applyDocumentSettings(this.settingsState());
+    this.reload();
+  }
+
+  /** Lädt den serverseitig gespeicherten Einstellungszustand. */
+  reload(): void {
+    this.http.get<AppSettings>(`${API_BASE_URL}/preferences/settings/`).subscribe({
+      next: (settings) => {
+        this.settingsState.set(settings);
+        this.applyDocumentSettings(settings);
+      },
+    });
   }
 
   /** Stellt sicher, dass der Service beim App-Start initialisiert wird. */
@@ -166,12 +161,14 @@ export class AppSettingsService {
     });
   }
 
-  /** Setzt alle Einstellungen auf den lokalen Auslieferungszustand zurück. */
+  /** Setzt die persönlichen Einstellungen serverseitig zurück. */
   reset(): void {
-    const defaults = createDefaultSettings();
-    this.settingsState.set(defaults);
-    this.persistSettings(defaults);
-    this.applyDocumentSettings(defaults);
+    this.http.delete<AppSettings>(`${API_BASE_URL}/preferences/settings/`).subscribe({
+      next: (settings) => {
+        this.settingsState.set(settings);
+        this.applyDocumentSettings(settings);
+      },
+    });
   }
 
   /** Aktualisiert, persistiert und aktiviert geänderte Einstellungen. */
@@ -181,11 +178,18 @@ export class AppSettingsService {
       accessibility: changes.accessibility ?? current.accessibility,
       general: changes.general ?? current.general,
       tools: changes.tools ?? current.tools,
+      version: current.version,
     };
 
     this.settingsState.set(nextSettings);
-    this.persistSettings(nextSettings);
     this.applyDocumentSettings(nextSettings);
+    this.http.patch<AppSettings>(`${API_BASE_URL}/preferences/settings/`, nextSettings).subscribe({
+      next: (settings) => {
+        this.settingsState.set(settings);
+        this.applyDocumentSettings(settings);
+      },
+      error: () => this.reload(),
+    });
   }
 
   /** Überträgt Darstellungs- und Bedienoptionen auf das Wurzeldokument. */
@@ -282,7 +286,10 @@ export class AppSettingsService {
 
   /** Ermittelt, ob ein Ereignisziel eine reine Icon-Aktion mit Beschriftung ist. */
   private getTooltipTarget(eventTarget: EventTarget | null): HTMLElement | null {
-    if (this.settingsState().general.tooltipsEnabled === false || !(eventTarget instanceof Element)) {
+    if (
+      this.settingsState().general.tooltipsEnabled === false ||
+      !(eventTarget instanceof Element)
+    ) {
       return null;
     }
 
@@ -404,103 +411,4 @@ export class AppSettingsService {
     }
     this.activeTooltipTarget = null;
   };
-
-  /** Persistiert den vollständigen Einstellungszustand lokal. */
-  private persistSettings(settings: AppSettings): void {
-    try {
-      window.localStorage.setItem(APP_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-    } catch {
-      // Die Einstellungen bleiben auch ohne verfügbaren Browser-Speicher aktiv.
-    }
-  }
-
-  /** Liest und validiert gespeicherte Einstellungen. */
-  private readSettings(): AppSettings {
-    const defaults = createDefaultSettings();
-
-    try {
-      const storedValue = window.localStorage.getItem(APP_SETTINGS_STORAGE_KEY);
-      if (!storedValue) {
-        return defaults;
-      }
-
-      const parsed = JSON.parse(storedValue) as Partial<AppSettings>;
-      const accessibility = (parsed.accessibility ?? {}) as Partial<AccessibilitySettings>;
-      const general = (parsed.general ?? {}) as Partial<GeneralSettings>;
-      const alarms = (general.alarms ?? {}) as Partial<WorkspaceAlarmSettings>;
-      const tools = (parsed.tools ?? {}) as Partial<ToolSettings>;
-
-      return {
-        accessibility: {
-          colorVisionMode: isColorVisionMode(accessibility.colorVisionMode)
-            ? accessibility.colorVisionMode
-            : defaults.accessibility.colorVisionMode,
-          neuroMode:
-            typeof accessibility.neuroMode === 'boolean'
-              ? accessibility.neuroMode
-              : defaults.accessibility.neuroMode,
-          reduceMotion:
-            typeof accessibility.reduceMotion === 'boolean'
-              ? accessibility.reduceMotion
-              : defaults.accessibility.reduceMotion,
-          reduceHover:
-            typeof accessibility.reduceHover === 'boolean'
-              ? accessibility.reduceHover
-              : defaults.accessibility.reduceHover,
-          magnifier:
-            typeof accessibility.magnifier === 'boolean'
-              ? accessibility.magnifier
-              : defaults.accessibility.magnifier,
-          fontSize: isFontSize(accessibility.fontSize)
-            ? accessibility.fontSize
-            : defaults.accessibility.fontSize,
-          highContrast:
-            typeof accessibility.highContrast === 'boolean'
-              ? accessibility.highContrast
-              : defaults.accessibility.highContrast,
-        },
-        general: {
-          dynamicNewColumns:
-            typeof general.dynamicNewColumns === 'boolean'
-              ? general.dynamicNewColumns
-              : defaults.general.dynamicNewColumns,
-          tooltipsEnabled:
-            typeof general.tooltipsEnabled === 'boolean'
-              ? general.tooltipsEnabled
-              : defaults.general.tooltipsEnabled,
-          allowInvites:
-            typeof general.allowInvites === 'boolean'
-              ? general.allowInvites
-              : defaults.general.allowInvites,
-          hideRealName:
-            typeof general.hideRealName === 'boolean'
-              ? general.hideRealName
-              : defaults.general.hideRealName,
-          realName: normalizeSettingText(general.realName, defaults.general.realName, 80),
-          nickname: normalizeSettingText(general.nickname, defaults.general.nickname, 40),
-          alarms: Object.fromEntries(
-            Object.entries(defaults.general.alarms).map(([key, fallback]) => [
-              key,
-              typeof alarms[key as WorkspaceAlarmCategory] === 'boolean'
-                ? alarms[key as WorkspaceAlarmCategory]
-                : fallback,
-            ]),
-          ) as unknown as WorkspaceAlarmSettings,
-        },
-        tools: {
-          pomodoro: typeof tools.pomodoro === 'boolean' ? tools.pomodoro : defaults.tools.pomodoro,
-          taskTimer:
-            typeof tools.taskTimer === 'boolean' ? tools.taskTimer : defaults.tools.taskTimer,
-          weather: typeof tools.weather === 'boolean' ? tools.weather : defaults.tools.weather,
-          weatherLocation: normalizeSettingText(
-            tools.weatherLocation,
-            defaults.tools.weatherLocation,
-            80,
-          ),
-        },
-      };
-    } catch {
-      return defaults;
-    }
-  }
 }

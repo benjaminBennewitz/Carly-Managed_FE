@@ -191,6 +191,11 @@
                       </div>
                     </div>
 
+                    <p id="member-identity-note" class="members-page__identity-note">
+                      Name und E-Mail gehören zum persönlichen Konto und können hier nicht geändert
+                      werden. Du verwaltest ausschließlich Rolle und Iconfarbe im Workspace.
+                    </p>
+
                     <div class="members-page__form-grid">
                       <label class="members-page__field">
                         <span>Name</span>
@@ -199,6 +204,8 @@
                           formControlName="fullName"
                           autocomplete="name"
                           maxlength="80"
+                          readonly
+                          aria-describedby="member-identity-note"
                           [attr.aria-invalid]="
                             editSubmitted() && editForm.controls.fullName.invalid ? 'true' : null
                           "
@@ -215,6 +222,8 @@
                           formControlName="email"
                           autocomplete="email"
                           maxlength="254"
+                          readonly
+                          aria-describedby="member-identity-note"
                           [attr.aria-invalid]="
                             editSubmitted() && editForm.controls.email.invalid ? 'true' : null
                           "
@@ -452,7 +461,7 @@
               </div>
 
               <p class="members-page__dialog-note">
-                Dies ist eine lokale Vorschau. Es wird keine echte E-Mail versendet.
+                Das Backend versendet eine echte, zeitlich begrenzte Passwort-Reset-E-Mail.
               </p>
             }
 
@@ -489,6 +498,7 @@
               <button
                 type="button"
                 class="members-page__button members-page__button--primary"
+                [disabled]="requestPending()"
                 (click)="confirmPasswordReset()"
               >
                 Reset-E-Mail senden

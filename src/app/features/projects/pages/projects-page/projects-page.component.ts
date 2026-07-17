@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 import { ProjectDueState, WorkspaceProject } from '../../../../core/workspace/workspace.models';
-import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
+import { WorkspaceService } from '../../../../core/workspace/workspace.service';
 
 @Component({
   selector: 'cm-projects-page',
@@ -14,7 +14,7 @@ import { WorkspacePreviewService } from '../../../../core/workspace/workspace-pr
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectsPageComponent {
-  protected readonly workspaceService: WorkspacePreviewService;
+  protected readonly workspaceService: WorkspaceService;
   protected readonly projects;
   protected readonly collaborativeProjects;
   protected readonly lastOpenedProject;
@@ -25,7 +25,7 @@ export class ProjectsPageComponent {
   );
 
   constructor(
-    workspaceService: WorkspacePreviewService,
+    workspaceService: WorkspaceService,
     private readonly router: Router,
   ) {
     this.workspaceService = workspaceService;

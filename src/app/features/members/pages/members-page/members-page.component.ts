@@ -11,13 +11,17 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { finalize } from 'rxjs';
+
+import { AuthService } from '../../../../core/auth/services/auth.service';
+import { SessionService } from '../../../../core/auth/services/session.service';
 
 import {
   WorkspaceJoinRequest,
   WorkspaceMember,
   WorkspaceMemberRole,
 } from '../../../../core/workspace/workspace.models';
-import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
+import { WorkspaceService } from '../../../../core/workspace/workspace.service';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 
 type MemberDialogState = 'password-confirm' | 'password-sent' | 'delete-confirm' | null;
@@ -38,7 +42,7 @@ interface MemberSecurityPresentation {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MembersPageComponent {
-  protected readonly workspaceService: WorkspacePreviewService;
+  protected readonly workspaceService: WorkspaceService;
   protected readonly selectedMemberId = signal<string | null>(null);
   protected readonly expandedMemberId = signal<string | null>(null);
   protected readonly showCreateForm = signal(false);
@@ -47,12 +51,12 @@ export class MembersPageComponent {
   protected readonly createError = signal('');
   protected readonly editError = signal('');
   protected readonly feedback = signal('');
+  protected readonly requestPending = signal(false);
   protected readonly dialogState = signal<MemberDialogState>(null);
   protected readonly dialogMember = signal<WorkspaceMember | null>(null);
   protected readonly securityBars = [1, 2, 3, 4] as const;
 
   private readonly formBuilder = inject(FormBuilder);
-  private readonly currentMemberId = 'member-ben';
 
   protected readonly createForm = this.formBuilder.nonNullable.group({
     fullName: ['', [Validators.required, Validators.maxLength(80)]],
@@ -69,7 +73,9 @@ export class MembersPageComponent {
   });
 
   constructor(
-    workspaceService: WorkspacePreviewService,
+    workspaceService: WorkspaceService,
+    private readonly authService: AuthService,
+    private readonly sessionService: SessionService,
     route: ActivatedRoute,
     destroyRef: DestroyRef,
   ) {
@@ -147,25 +153,32 @@ export class MembersPageComponent {
     this.openMember(member.id);
   }
 
-  /** Legt ein neues Mitglied mit validierten lokalen Daten an. */
+  /** Versendet eine validierte Workspace-Einladung über das Backend. */
   createMember(): void {
     this.createSubmitted.set(true);
     this.createError.set('');
 
-    if (this.createForm.invalid) {
+    if (this.createForm.invalid || this.requestPending()) {
       this.createForm.markAllAsTouched();
       return;
     }
 
-    const member = this.workspaceService.createMember(this.createForm.getRawValue());
-    if (!member) {
-      this.createError.set('Die E-Mail-Adresse ist bereits vergeben oder ungültig.');
-      return;
-    }
-
-    this.closeCreateForm();
-    this.openMember(member.id);
-    this.showFeedback(`${member.fullName} wurde als Mitglied hinzugefügt.`);
+    const payload = this.createForm.getRawValue();
+    this.requestPending.set(true);
+    this.workspaceService
+      .createMember(payload)
+      .pipe(finalize(() => this.requestPending.set(false)))
+      .subscribe({
+        next: () => {
+          this.closeCreateForm();
+          this.showFeedback(`Die Einladung an ${payload.email} wurde versendet.`);
+        },
+        error: () => {
+          this.createError.set(
+            'Die Einladung konnte nicht versendet werden. Prüfe E-Mail-Adresse und Berechtigung.',
+          );
+        },
+      });
   }
 
   /** Speichert Änderungen des aktuell geöffneten Mitglieds. */
@@ -211,9 +224,9 @@ export class MembersPageComponent {
     this.showFeedback(`${member.fullName} wurde aus dem Team entfernt.`);
   }
 
-  /** Prüft, ob ein Mitglied aus der lokalen Vorschau entfernt werden darf. */
+  /** Prüft, ob ein anderes, nicht besitzendes Mitglied entfernt werden darf. */
   canDeleteMember(member: WorkspaceMember): boolean {
-    return member.id !== this.currentMemberId;
+    return member.id !== this.sessionService.currentUser()?.id && member.role !== 'owner';
   }
 
   /** Öffnet die Passwort-Reset-Bestätigung. */
@@ -222,13 +235,24 @@ export class MembersPageComponent {
     this.dialogState.set('password-confirm');
   }
 
-  /** Simuliert den Versand der Passwort-Reset-E-Mail. */
+  /** Fordert eine generische Passwort-Reset-E-Mail beim Backend an. */
   confirmPasswordReset(): void {
-    if (!this.dialogMember()) {
+    const member = this.dialogMember();
+    if (!member || this.requestPending()) {
       return;
     }
 
-    this.dialogState.set('password-sent');
+    this.requestPending.set(true);
+    this.authService
+      .requestPasswordReset(member.email)
+      .pipe(finalize(() => this.requestPending.set(false)))
+      .subscribe({
+        next: () => this.dialogState.set('password-sent'),
+        error: () => {
+          this.closeDialog();
+          this.showFeedback('Die Passwort-Reset-Anfrage konnte nicht versendet werden.');
+        },
+      });
   }
 
   /** Schließt den aktuell sichtbaren Bestätigungsdialog. */

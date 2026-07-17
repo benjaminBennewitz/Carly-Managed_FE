@@ -1,16 +1,17 @@
 // src/app/core/workspace/workspace-automation.service.ts
 
+import { HttpClient } from '@angular/common/http';
 import { Injectable, signal } from '@angular/core';
 
+import { API_BASE_URL } from '../api/api.config';
+import { PaginatedResponse, unwrapCollection } from '../api/api.models';
 import {
   WorkspaceAutomationRule,
   WorkspaceAutomationRuleSavePayload,
   WorkspaceAutomationTrigger,
   WorkspaceTask,
 } from './workspace.models';
-
-const WORKSPACE_AUTOMATION_STORAGE_KEY = 'carly-managed-preview-automation-rules-v1';
-const DUE_SOON_DAYS = 3;
+import { WorkspaceService } from './workspace.service';
 
 export interface WorkspaceAutomationEvent {
   boardId: string;
@@ -19,276 +20,149 @@ export interface WorkspaceAutomationEvent {
   sourceColumnId: string | null;
 }
 
-const INITIAL_RULES: Record<string, WorkspaceAutomationRule[]> = {
-  'carly-managed': [
-    {
-      id: 'automation-carly-completed-review',
-      boardId: 'carly-managed',
-      name: 'Erledigte Aufgaben in Review verschieben',
-      trigger: 'task.completed',
-      conditions: {
-        taskScope: 'main_task',
-        sourceColumnId: null,
-        searchTerm: '',
-        dueDateMode: 'any',
-      },
-      actions: [{ type: 'move_task_tree', targetColumnId: 'review' }],
-      isActive: true,
-      sortOrder: 0,
-      createdAt: '2026-07-01T10:00:00.000Z',
-      updatedAt: '2026-07-01T10:00:00.000Z',
-    },
-    {
-      id: 'automation-carly-reopened-open',
-      boardId: 'carly-managed',
-      name: 'Wieder geöffnete Aufgaben nach Offen verschieben',
-      trigger: 'task.reopened',
-      conditions: {
-        taskScope: 'main_task',
-        sourceColumnId: 'review',
-        searchTerm: '',
-        dueDateMode: 'any',
-      },
-      actions: [{ type: 'move_task_tree', targetColumnId: 'todo' }],
-      isActive: true,
-      sortOrder: 1,
-      createdAt: '2026-07-01T10:05:00.000Z',
-      updatedAt: '2026-07-01T10:05:00.000Z',
-    },
-  ],
-  personal: [
-    {
-      id: 'automation-personal-completed',
-      boardId: 'personal',
-      name: 'Erledigte Aufgaben einsortieren',
-      trigger: 'task.completed',
-      conditions: {
-        taskScope: 'main_task',
-        sourceColumnId: null,
-        searchTerm: '',
-        dueDateMode: 'any',
-      },
-      actions: [{ type: 'move_task_tree', targetColumnId: 'personal-done' }],
-      isActive: true,
-      sortOrder: 0,
-      createdAt: '2026-07-01T10:10:00.000Z',
-      updatedAt: '2026-07-01T10:10:00.000Z',
-    },
-  ],
-  'portfolio-relaunch': [
-    {
-      id: 'automation-portfolio-completed',
-      boardId: 'portfolio-relaunch',
-      name: 'Erledigte Aufgaben abschließen',
-      trigger: 'task.completed',
-      conditions: {
-        taskScope: 'main_task',
-        sourceColumnId: null,
-        searchTerm: '',
-        dueDateMode: 'any',
-      },
-      actions: [{ type: 'move_task_tree', targetColumnId: 'portfolio-done' }],
-      isActive: true,
-      sortOrder: 0,
-      createdAt: '2026-07-01T10:15:00.000Z',
-      updatedAt: '2026-07-01T10:15:00.000Z',
-    },
-  ],
-};
-
-function cloneRule(rule: WorkspaceAutomationRule): WorkspaceAutomationRule {
-  return {
-    ...rule,
-    conditions: { ...rule.conditions },
-    actions: rule.actions.map((action) => ({ ...action })),
-  };
-}
-
-function cloneRuleMap(
-  rules: Record<string, WorkspaceAutomationRule[]>,
-): Record<string, WorkspaceAutomationRule[]> {
-  return Object.fromEntries(
-    Object.entries(rules).map(([boardId, boardRules]) => [boardId, boardRules.map(cloneRule)]),
-  );
-}
-
-function loadRules(): Record<string, WorkspaceAutomationRule[]> {
-  try {
-    const storedRules = window.localStorage.getItem(WORKSPACE_AUTOMATION_STORAGE_KEY);
-    if (!storedRules) {
-      return cloneRuleMap(INITIAL_RULES);
-    }
-
-    return cloneRuleMap(JSON.parse(storedRules) as Record<string, WorkspaceAutomationRule[]>);
-  } catch {
-    return cloneRuleMap(INITIAL_RULES);
-  }
-}
-
 @Injectable({ providedIn: 'root' })
 export class WorkspaceAutomationService {
-  private readonly rulesState = signal<Record<string, WorkspaceAutomationRule[]>>(loadRules());
+  private readonly rulesState = signal<Record<string, WorkspaceAutomationRule[]>>({});
+  private readonly loadedBoards = new Set<string>();
 
-  /** Liefert alle Regeln eines persönlichen oder projektbezogenen Boards. */
+  constructor(
+    private readonly http: HttpClient,
+    private readonly workspaceService: WorkspaceService,
+  ) {}
+
+  /** Liefert Regeln und stößt bei Bedarf den API-Abruf an. */
   getRules(boardId: string): WorkspaceAutomationRule[] {
-    return [...(this.rulesState()[boardId] ?? [])]
-      .sort((left, right) => left.sortOrder - right.sortOrder)
-      .map(cloneRule);
+    this.ensureLoaded(boardId);
+    return [...(this.rulesState()[boardId] ?? [])].sort(
+      (left, right) => left.sortOrder - right.sortOrder,
+    );
   }
 
-  /** Liefert die Anzahl der aktiven Regeln eines Boards. */
+  /** Liefert die Anzahl aktiver Regeln. */
   getActiveRuleCount(boardId: string): number {
-    return (this.rulesState()[boardId] ?? []).filter((rule) => rule.isActive).length;
+    return this.getRules(boardId).filter((rule) => rule.isActive).length;
   }
 
-  /** Erstellt oder aktualisiert eine Regel im aktuellen Boardkontext. */
+  /** Erstellt oder aktualisiert eine serverseitige Regel. */
   saveRule(boardId: string, payload: WorkspaceAutomationRuleSavePayload): WorkspaceAutomationRule {
-    const now = new Date().toISOString();
-    const existingRule = payload.ruleId
-      ? ((this.rulesState()[boardId] ?? []).find((rule) => rule.id === payload.ruleId) ?? null)
+    const existing = payload.ruleId
+      ? (this.getRules(boardId).find((rule) => rule.id === payload.ruleId) ?? null)
       : null;
-    const savedRule: WorkspaceAutomationRule = {
-      id: existingRule?.id ?? `automation-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      boardId,
-      name: payload.name.trim().slice(0, 180),
+    const boardApiId = this.workspaceService.getBoardApiId(boardId);
+    const now = new Date().toISOString();
+    const optimistic: WorkspaceAutomationRule = {
+      id: existing?.id ?? crypto.randomUUID(),
+      boardId: boardApiId ?? boardId,
+      name: payload.name.trim(),
       trigger: payload.trigger,
-      conditions: { ...payload.conditions },
-      actions: payload.actions.map((action) => ({ ...action })),
+      conditions: payload.conditions,
+      actions: payload.actions,
       isActive: payload.isActive,
-      sortOrder: existingRule?.sortOrder ?? payload.sortOrder,
-      createdAt: existingRule?.createdAt ?? now,
+      sortOrder: payload.sortOrder,
+      createdAt: existing?.createdAt ?? now,
       updatedAt: now,
+      version: existing?.version ?? 1,
     };
+    this.replaceRule(boardId, optimistic);
 
-    this.rulesState.update((rules) => {
-      const boardRules = rules[boardId] ?? [];
-      const nextBoardRules = existingRule
-        ? boardRules.map((rule) => (rule.id === savedRule.id ? savedRule : rule))
-        : [...boardRules, savedRule];
-
-      return { ...rules, [boardId]: nextBoardRules };
+    if (!boardApiId) return optimistic;
+    const { ruleId: _ruleId, ...writePayload } = payload;
+    const request = existing
+      ? this.http.patch<WorkspaceAutomationRule>(
+          `${API_BASE_URL}/workspaces/automations/${existing.id}/`,
+          { ...writePayload, boardId: boardApiId, version: existing.version ?? 1 },
+        )
+      : this.http.post<WorkspaceAutomationRule>(`${API_BASE_URL}/workspaces/automations/`, {
+          ...writePayload,
+          boardId: boardApiId,
+        });
+    request.subscribe({
+      next: (rule) => this.replaceRule(boardId, rule),
+      error: () => this.reload(boardId),
     });
-    this.persistRules();
-    return cloneRule(savedRule);
+    return optimistic;
   }
 
-  /** Schaltet eine Regel aktiv oder inaktiv. */
+  /** Aktiviert oder deaktiviert eine Regel. */
   toggleRule(boardId: string, ruleId: string, isActive: boolean): void {
-    this.rulesState.update((rules) => ({
-      ...rules,
-      [boardId]: (rules[boardId] ?? []).map((rule) =>
-        rule.id === ruleId ? { ...rule, isActive, updatedAt: new Date().toISOString() } : rule,
-      ),
-    }));
-    this.persistRules();
+    const rule = this.getRules(boardId).find((item) => item.id === ruleId);
+    if (!rule) return;
+    this.replaceRule(boardId, { ...rule, isActive });
+    this.http
+      .patch<WorkspaceAutomationRule>(`${API_BASE_URL}/workspaces/automations/${ruleId}/`, {
+        isActive,
+        version: rule.version ?? 1,
+      })
+      .subscribe({
+        next: (saved) => this.replaceRule(boardId, saved),
+        error: () => this.reload(boardId),
+      });
   }
 
-  /** Löscht eine Regel aus einem Boardkontext. */
+  /** Löscht eine einzelne Regel. */
   deleteRule(boardId: string, ruleId: string): void {
+    const rule = this.getRules(boardId).find((item) => item.id === ruleId);
+    if (!rule) return;
     this.rulesState.update((rules) => ({
       ...rules,
-      [boardId]: (rules[boardId] ?? []).filter((rule) => rule.id !== ruleId),
+      [boardId]: (rules[boardId] ?? []).filter((item) => item.id !== ruleId),
     }));
-    this.persistRules();
+    this.http
+      .delete<void>(
+        `${API_BASE_URL}/workspaces/automations/${ruleId}/?version=${rule.version ?? 1}`,
+      )
+      .subscribe({ error: () => this.reload(boardId) });
   }
 
-  /** Entfernt sämtliche Regeln eines dauerhaft gelöschten Boardkontexts. */
+  /** Entfernt den lokalen Regelcache eines gelöschten Boards. */
   deleteBoardRules(boardId: string): void {
     this.rulesState.update((rules) => {
-      const nextRules = { ...rules };
-      delete nextRules[boardId];
-      return nextRules;
+      const next = { ...rules };
+      delete next[boardId];
+      return next;
     });
-    this.persistRules();
+    this.loadedBoards.delete(boardId);
   }
 
-  /** Ermittelt die erste passende Zielspalte einer aktiven Verschieberegel. */
-  resolveMoveTarget(event: WorkspaceAutomationEvent): string | null {
-    const matchingRule = (this.rulesState()[event.boardId] ?? [])
-      .filter((rule) => rule.isActive)
-      .sort((left, right) => left.sortOrder - right.sortOrder)
-      .find((rule) => this.matchesRule(rule, event));
-
-    const targetColumnId = matchingRule?.actions.find(
-      (action) => action.type === 'move_task_tree',
-    )?.targetColumnId;
-
-    return targetColumnId && targetColumnId !== event.sourceColumnId ? targetColumnId : null;
+  /** Serverautomationen werden nicht zusätzlich im Browser ausgeführt. */
+  resolveMoveTarget(_event: WorkspaceAutomationEvent): string | null {
+    return null;
   }
 
-  /** Prüft Trigger und Bedingungen einer Regel gegen ein Workspace-Ereignis. */
-  private matchesRule(rule: WorkspaceAutomationRule, event: WorkspaceAutomationEvent): boolean {
-    if (rule.trigger !== event.trigger) {
-      return false;
-    }
-
-    if (rule.conditions.taskScope === 'main_task' && event.task.parentTaskId !== null) {
-      return false;
-    }
-
-    if (
-      rule.conditions.sourceColumnId !== null &&
-      rule.conditions.sourceColumnId !== event.sourceColumnId
-    ) {
-      return false;
-    }
-
-    const searchTerm = rule.conditions.searchTerm.trim().toLocaleLowerCase('de');
-    if (searchTerm) {
-      const searchableText = [event.task.title, event.task.description, ...event.task.tags]
-        .join(' ')
-        .toLocaleLowerCase('de');
-      if (!searchableText.includes(searchTerm)) {
-        return false;
-      }
-    }
-
-    return this.matchesDueDate(rule.conditions.dueDateMode, event.task.dueDate);
+  /** Lädt Regeln beim ersten Zugriff. */
+  private ensureLoaded(boardId: string): void {
+    if (this.loadedBoards.has(boardId)) return;
+    this.loadedBoards.add(boardId);
+    this.reload(boardId);
   }
 
-  /** Prüft den optionalen Datumsfilter einer Regel. */
-  private matchesDueDate(
-    mode: WorkspaceAutomationRule['conditions']['dueDateMode'],
-    dueDate: string | null,
-  ): boolean {
-    if (mode === 'any') {
-      return true;
-    }
-
-    if (mode === 'without_date') {
-      return dueDate === null;
-    }
-
-    if (!dueDate) {
-      return false;
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayValue = today.toISOString().slice(0, 10);
-
-    if (mode === 'today') {
-      return dueDate === todayValue;
-    }
-
-    if (mode === 'overdue') {
-      return dueDate < todayValue;
-    }
-
-    const dueSoonLimit = new Date(today);
-    dueSoonLimit.setDate(dueSoonLimit.getDate() + DUE_SOON_DAYS);
-    return dueDate > todayValue && dueDate <= dueSoonLimit.toISOString().slice(0, 10);
+  /** Lädt die Regeln eines Boards neu. */
+  private reload(boardId: string): void {
+    const boardApiId = this.workspaceService.getBoardApiId(boardId);
+    if (!boardApiId) return;
+    this.http
+      .get<WorkspaceAutomationRule[] | PaginatedResponse<WorkspaceAutomationRule>>(
+        `${API_BASE_URL}/workspaces/automations/?boardId=${boardApiId}`,
+      )
+      .subscribe({
+        next: (response) =>
+          this.rulesState.update((rules) => ({
+            ...rules,
+            [boardId]: unwrapCollection(response),
+          })),
+      });
   }
 
-  /** Speichert sämtliche Regeln im lokalen Browser-Speicher. */
-  private persistRules(): void {
-    try {
-      window.localStorage.setItem(
-        WORKSPACE_AUTOMATION_STORAGE_KEY,
-        JSON.stringify(this.rulesState()),
-      );
-    } catch {
-      // Der Regelbaukasten bleibt ohne Browser-Speicher in der Sitzung funktionsfähig.
-    }
+  /** Ersetzt eine Regel im lokalen Cache. */
+  private replaceRule(boardId: string, rule: WorkspaceAutomationRule): void {
+    this.rulesState.update((rules) => {
+      const current = rules[boardId] ?? [];
+      return {
+        ...rules,
+        [boardId]: current.some((item) => item.id === rule.id)
+          ? current.map((item) => (item.id === rule.id ? rule : item))
+          : [...current, rule],
+      };
+    });
   }
 }

@@ -3,7 +3,7 @@
 import { Injectable } from '@angular/core';
 
 import { normalizeSearchValue, normalizeSingleLineInput } from '../security/frontend-input.utils';
-import { WorkspacePreviewService } from '../workspace/workspace-preview.service';
+import { WorkspaceService } from '../workspace/workspace.service';
 import {
   GlobalSearchGroup,
   GlobalSearchResult,
@@ -141,7 +141,7 @@ const ROUTE_ENTRIES: readonly SearchEntry[] = [
 
 @Injectable({ providedIn: 'root' })
 export class GlobalSearchService {
-  constructor(private readonly workspaceService: WorkspacePreviewService) {}
+  constructor(private readonly workspaceService: WorkspaceService) {}
 
   /**
    * Bereinigt eine Suchanfrage vollständig im Frontend.
@@ -151,7 +151,7 @@ export class GlobalSearchService {
   }
 
   /**
-   * Durchsucht lokale Vorschauinhalte und gruppiert Treffer nach Zielroute.
+   * Durchsucht den geladenen Workspace-Snapshot und gruppiert Treffer nach Zielroute.
    */
   search(rawQuery: string): GlobalSearchGroup[] {
     const query = this.sanitizeQuery(rawQuery);

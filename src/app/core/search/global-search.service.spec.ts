@@ -2,7 +2,7 @@
 
 import { TestBed } from '@angular/core/testing';
 
-import { WorkspacePreviewService } from '../workspace/workspace-preview.service';
+import { WorkspaceService } from '../workspace/workspace.service';
 import { GlobalSearchService } from './global-search.service';
 
 describe('GlobalSearchService', () => {
@@ -12,7 +12,7 @@ describe('GlobalSearchService', () => {
     window.localStorage.clear();
     TestBed.configureTestingModule({});
     service = TestBed.inject(GlobalSearchService);
-    TestBed.inject(WorkspacePreviewService);
+    TestBed.inject(WorkspaceService);
   });
 
   it('bereinigt Steuerzeichen und HTML-Klammern', () => {

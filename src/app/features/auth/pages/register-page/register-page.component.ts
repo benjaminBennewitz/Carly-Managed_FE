@@ -6,7 +6,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { AuthPreviewService } from '../../../../core/auth/services/auth-preview.service';
+import { AuthService } from '../../../../core/auth/services/auth.service';
 import { CheckboxFieldComponent } from '../../../../shared/ui/forms/checkbox-field/checkbox-field.component';
 import { TextFieldComponent } from '../../../../shared/ui/forms/text-field/text-field.component';
 import {
@@ -92,7 +92,7 @@ export class RegisterPageComponent {
   protected readonly formError = signal('');
 
   constructor(
-    private readonly authPreviewService: AuthPreviewService,
+    private readonly authService: AuthService,
     private readonly router: Router,
   ) {
     this.passwordControl.valueChanges
@@ -149,7 +149,7 @@ export class RegisterPageComponent {
   }
 
   /**
-   * Validiert das Formular und startet die lokale Registrierungsvorschau.
+   * Validiert das Formular und registriert das Konto über die API.
    */
   submit(): void {
     this.submitted.set(true);
@@ -163,7 +163,7 @@ export class RegisterPageComponent {
     this.pending.set(true);
     const rawValue = this.form.getRawValue();
 
-    this.authPreviewService
+    this.authService
       .register({
         displayName: rawValue.displayName.trim(),
         email: rawValue.email.trim().toLocaleLowerCase('de-DE'),

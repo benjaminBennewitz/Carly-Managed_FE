@@ -3,7 +3,7 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 
 import { WorkspaceTask } from '../../../../core/workspace/workspace.models';
-import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
+import { WorkspaceService } from '../../../../core/workspace/workspace.service';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { WorkspaceTaskCardComponent } from '../../../../shared/ui/workspace-task-card/workspace-task-card.component';
 import { WorkspaceTaskDrawerComponent } from '../../../../shared/ui/workspace-task-drawer/workspace-task-drawer.component';
@@ -16,10 +16,10 @@ import { WorkspaceTaskDrawerComponent } from '../../../../shared/ui/workspace-ta
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PoolPageComponent {
-  protected readonly workspaceService: WorkspacePreviewService;
+  protected readonly workspaceService: WorkspaceService;
   protected readonly selectedTask = signal<WorkspaceTask | null>(null);
 
-  constructor(workspaceService: WorkspacePreviewService) {
+  constructor(workspaceService: WorkspaceService) {
     this.workspaceService = workspaceService;
   }
 

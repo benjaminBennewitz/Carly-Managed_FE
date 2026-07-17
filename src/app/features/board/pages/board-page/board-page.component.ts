@@ -19,7 +19,7 @@ import {
   WorkspaceTaskRecurrenceSavePayload,
 } from '../../../../core/workspace/workspace.models';
 import { WorkspaceDisplayPreferencesService } from '../../../../core/workspace/workspace-display-preferences.service';
-import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
+import { WorkspaceService } from '../../../../core/workspace/workspace.service';
 import { MemberSelectComponent } from '../../../../shared/ui/member-select/member-select.component';
 import {
   SelectMenuComponent,
@@ -77,7 +77,7 @@ type TaskDrawerTab = 'details' | 'subtasks' | 'comments' | 'attachments' | 'hist
   },
 })
 export class BoardPageComponent {
-  protected readonly workspaceService: WorkspacePreviewService;
+  protected readonly workspaceService: WorkspaceService;
   protected readonly displayPreferences: WorkspaceDisplayPreferencesService;
   protected readonly automationService: WorkspaceAutomationService;
   protected readonly columnColorOptions = COLUMN_COLOR_OPTIONS;
@@ -190,7 +190,7 @@ export class BoardPageComponent {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    workspaceService: WorkspacePreviewService,
+    workspaceService: WorkspaceService,
     displayPreferences: WorkspaceDisplayPreferencesService,
     automationService: WorkspaceAutomationService,
     destroyRef: DestroyRef,

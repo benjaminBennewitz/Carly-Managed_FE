@@ -15,7 +15,7 @@ import {
   normalizeMultilineInput,
   normalizeSingleLineInput,
 } from '../../../security/frontend-input.utils';
-import { WorkspacePreviewService } from '../../../workspace/workspace-preview.service';
+import { WorkspaceService } from '../../../workspace/workspace.service';
 import { DropdownCoordinatorService } from '../../../../shared/ui/dropdown/dropdown-coordinator.service';
 import { MemberSelectComponent } from '../../../../shared/ui/member-select/member-select.component';
 import {
@@ -43,7 +43,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuickActionsComponent {
-  protected readonly workspaceService: WorkspacePreviewService;
+  protected readonly workspaceService: WorkspaceService;
   protected readonly open = computed(
     () => this.dropdownCoordinator.activeId() === QUICK_ACTION_MENU_ID,
   );
@@ -163,7 +163,7 @@ export class QuickActionsComponent {
   private feedbackTimerId: number | null = null;
 
   constructor(
-    workspaceService: WorkspacePreviewService,
+    workspaceService: WorkspaceService,
     private readonly dropdownCoordinator: DropdownCoordinatorService,
     private readonly elementRef: ElementRef<HTMLElement>,
     private readonly router: Router,
@@ -274,20 +274,27 @@ export class QuickActionsComponent {
     void this.router.navigate(['/projects', project.id, 'board']);
   }
 
-  /** Speichert eine lokale Einladung. */
+  /** Versendet eine validierte Workspace- oder Projekteinladung. */
   inviteMember(): void {
     if (this.inviteForm.invalid) {
       this.inviteForm.markAllAsTouched();
       return;
     }
 
-    const member = this.workspaceService.inviteMember({
+    const payload = {
       fullName: normalizeSingleLineInput(this.inviteForm.controls.fullName.value, 80),
       email: normalizeSingleLineInput(this.inviteForm.controls.email.value, 254),
       projectId: this.inviteForm.controls.projectId.value || null,
+    };
+    this.workspaceService.inviteMember(payload).subscribe({
+      next: () => {
+        this.closeModal();
+        this.showFeedback(`Die Einladung an ${payload.email} wurde versendet.`);
+      },
+      error: () => {
+        this.showFeedback('Die Einladung konnte nicht versendet werden.');
+      },
     });
-    this.closeModal();
-    this.showFeedback(`${member.fullName} wurde eingeladen.`);
   }
 
   /** Speichert eine lokale Nachricht. */

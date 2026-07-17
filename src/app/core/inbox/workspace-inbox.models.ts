@@ -48,6 +48,7 @@ export interface WorkspaceConversation {
   createdAt: string;
   updatedAt: string;
   unreadCount: number;
+  version?: number;
 }
 
 export interface WorkspaceConversationCreatePayload {

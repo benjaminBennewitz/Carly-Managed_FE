@@ -1,8 +1,10 @@
 // src/app/app.config.ts
 
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { ActivatedRouteSnapshot, provideRouter, withViewTransitions } from '@angular/router';
 
+import { apiInterceptor } from './core/api/api.interceptor';
 import { routes } from './app.routes';
 
 const AUTH_ROUTE_ORDER = ['login', 'register'];
@@ -52,6 +54,7 @@ function setTransitionDirection(
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideHttpClient(withInterceptors([apiInterceptor])),
     provideRouter(
       routes,
       withViewTransitions({

@@ -1,17 +1,23 @@
 // src/app/features/settings/pages/settings-page/settings-page.component.ts
 
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { finalize } from 'rxjs';
 
 import { CarlySettings } from '../../../../core/carly/carly.models';
 import { CarlyService } from '../../../../core/carly/carly.service';
-import { AccessibilityFontSize, ColorVisionMode, WorkspaceAlarmCategory } from '../../../../core/settings/app-settings.models';
+import { DemoDataService } from '../../../../core/demo/demo-data.service';
+import {
+  AccessibilityFontSize,
+  ColorVisionMode,
+  WorkspaceAlarmCategory,
+} from '../../../../core/settings/app-settings.models';
 import { AppSettingsService } from '../../../../core/settings/app-settings.service';
 import { ThemeMode, ThemeName, ThemeService } from '../../../../core/theme/theme.service';
 import { WorkspaceDisplayPreferencesService } from '../../../../core/workspace/workspace-display-preferences.service';
-import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
+import { WorkspaceService } from '../../../../core/workspace/workspace.service';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 
-type SettingsTab = 'carly' | 'accessibility' | 'general' | 'tools' | 'themes';
+type SettingsTab = 'carly' | 'accessibility' | 'general' | 'tools' | 'themes' | 'testdata';
 type AccessibilityBooleanKey =
   'neuroMode' | 'reduceMotion' | 'reduceHover' | 'magnifier' | 'highContrast';
 type GeneralBooleanKey = 'dynamicNewColumns' | 'tooltipsEnabled' | 'allowInvites';
@@ -62,6 +68,7 @@ export class SettingsPageComponent {
   protected readonly settingsService: AppSettingsService;
   protected readonly themeService: ThemeService;
   protected readonly displayPreferences: WorkspaceDisplayPreferencesService;
+  protected readonly demoDataService: DemoDataService;
   protected readonly activeTab = signal<SettingsTab>('carly');
   protected readonly statusMessage = signal('');
   protected readonly fadeLevels: readonly (15 | 35 | 55)[] = [15, 35, 55];
@@ -101,6 +108,12 @@ export class SettingsPageComponent {
       label: 'Themes',
       icon: 'palette',
       description: 'Farbsets unabhängig vom Modus',
+    },
+    {
+      id: 'testdata',
+      label: 'Testdaten',
+      icon: 'database',
+      description: 'Demo-Workspace reproduzierbar zurücksetzen',
     },
   ];
 
@@ -268,12 +281,14 @@ export class SettingsPageComponent {
     settingsService: AppSettingsService,
     themeService: ThemeService,
     displayPreferences: WorkspaceDisplayPreferencesService,
-    private readonly workspaceService: WorkspacePreviewService,
+    demoDataService: DemoDataService,
+    private readonly workspaceService: WorkspaceService,
   ) {
     this.carlyService = carlyService;
     this.settingsService = settingsService;
     this.themeService = themeService;
     this.displayPreferences = displayPreferences;
+    this.demoDataService = demoDataService;
   }
 
   /** Aktualisiert eine Carly-Einstellung. */
@@ -414,6 +429,39 @@ export class SettingsPageComponent {
     this.workspaceService.refreshIntakePreferences();
     this.workspaceService.applyCurrentMemberPrivacy();
     this.showSavedState('Alle Einstellungen wurden zurückgesetzt.');
+  }
+
+  /** Setzt den abgegrenzten Demo-Workspace nach ausdrücklicher Bestätigung zurück. */
+  protected resetTestData(): void {
+    const workspaceName = this.demoDataService.status().workspaceName;
+    if (
+      this.demoDataService.pending() ||
+      !window.confirm(
+        `Alle Änderungen im Demo-Workspace „${workspaceName}“ verwerfen und den definierten Ausgangsstand wiederherstellen?`,
+      )
+    ) {
+      return;
+    }
+
+    this.statusMessage.set('Testdaten werden zurückgesetzt …');
+    this.demoDataService
+      .reset()
+      .pipe(finalize(() => this.demoDataService.reloadStatus()))
+      .subscribe({
+        next: (result) => {
+          this.workspaceService.reload();
+          this.settingsService.reload();
+          this.carlyService.reload();
+          this.statusMessage.set(
+            `${result.projects} Projekte und ${result.tasks} Aufgaben wurden wiederhergestellt.`,
+          );
+        },
+        error: () => {
+          this.statusMessage.set(
+            'Die Testdaten konnten nicht zurückgesetzt werden. Prüfe Staff-Rechte und Backend-Konfiguration.',
+          );
+        },
+      });
   }
 
   /** Liest den Zustand eines Checkbox- oder Switch-Inputs. */

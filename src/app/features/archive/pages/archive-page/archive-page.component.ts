@@ -3,8 +3,13 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { ArchivedTaskEntry, WorkspaceMember, WorkspaceProject, WorkspaceTask } from '../../../../core/workspace/workspace.models';
-import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
+import {
+  ArchivedTaskEntry,
+  WorkspaceMember,
+  WorkspaceProject,
+  WorkspaceTask,
+} from '../../../../core/workspace/workspace.models';
+import { WorkspaceService } from '../../../../core/workspace/workspace.service';
 import { WorkspaceTaskDrawerComponent } from '../../../../shared/ui/workspace-task-drawer/workspace-task-drawer.component';
 
 type ArchiveViewMode = 'cards' | 'list';
@@ -17,7 +22,7 @@ type ArchiveViewMode = 'cards' | 'list';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArchivePageComponent {
-  protected readonly workspaceService: WorkspacePreviewService;
+  protected readonly workspaceService: WorkspaceService;
   protected readonly projectViewMode = signal<ArchiveViewMode>('cards');
   protected readonly taskViewMode = signal<ArchiveViewMode>('cards');
   protected readonly projectsNewestFirst = signal(true);
@@ -39,7 +44,7 @@ export class ArchivePageComponent {
   );
 
   constructor(
-    workspaceService: WorkspacePreviewService,
+    workspaceService: WorkspaceService,
     private readonly router: Router,
   ) {
     this.workspaceService = workspaceService;

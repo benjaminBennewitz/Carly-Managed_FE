@@ -1,6 +1,14 @@
 // src/app/shared/ui/screen-magnifier/screen-magnifier.component.ts
 
-import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  inject,
+  ViewChild,
+} from '@angular/core';
 
 const MAGNIFICATION = 1.8;
 const REFRESH_INTERVAL_MS = 500;

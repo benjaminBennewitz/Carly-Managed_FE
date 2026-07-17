@@ -3,9 +3,8 @@ Carly-Managed_FE/
 │   └── ...
 ├── .vscode/
 │   └── ...
-├── Entwurf/
-│   ├── board.png
-│   └── carly-board.png
+├── dist/
+│   └── ...
 ├── node_modules/
 │   └── ...
 ├── public/
@@ -39,6 +38,11 @@ Carly-Managed_FE/
 ├── src/
 │   ├── app/
 │   │   ├── core/
+│   │   │   ├── api/
+│   │   │   │   ├── api.config.ts
+│   │   │   │   ├── api.interceptor.spec.ts
+│   │   │   │   ├── api.interceptor.ts
+│   │   │   │   └── api.models.ts
 │   │   │   ├── auth/
 │   │   │   │   ├── guards/
 │   │   │   │   │   ├── auth.guard.ts
@@ -47,11 +51,16 @@ Carly-Managed_FE/
 │   │   │   │   │   ├── auth.model.ts
 │   │   │   │   │   └── current-user.model.ts
 │   │   │   │   └── services/
-│   │   │   │       ├── auth-preview.service.ts
+│   │   │   │       ├── auth.service.spec.ts
+│   │   │   │       ├── auth.service.ts
 │   │   │   │       └── session.service.ts
 │   │   │   ├── carly/
 │   │   │   │   ├── carly.models.ts
+│   │   │   │   ├── carly.service.spec.ts
 │   │   │   │   └── carly.service.ts
+│   │   │   ├── demo/
+│   │   │   │   ├── demo-data.service.spec.ts
+│   │   │   │   └── demo-data.service.ts
 │   │   │   ├── inbox/
 │   │   │   │   ├── workspace-inbox.models.ts
 │   │   │   │   ├── workspace-inbox.service.spec.ts
@@ -107,12 +116,12 @@ Carly-Managed_FE/
 │   │   │       ├── task-rules.spec.ts
 │   │   │       ├── task-rules.ts
 │   │   │       ├── workspace.models.ts
+│   │   │       ├── workspace.service.spec.ts
+│   │   │       ├── workspace.service.ts
 │   │   │       ├── workspace-automation.service.spec.ts
 │   │   │       ├── workspace-automation.service.ts
 │   │   │       ├── workspace-display-preferences.service.spec.ts
 │   │   │       ├── workspace-display-preferences.service.ts
-│   │   │       ├── workspace-preview.service.spec.ts
-│   │   │       ├── workspace-preview.service.ts
 │   │   │       └── workspace-project-options.ts
 │   │   ├── features/
 │   │   │   ├── archive/
@@ -314,6 +323,7 @@ Carly-Managed_FE/
 ├── make-tree.ps1
 ├── package.json
 ├── package-lock.json
+├── proxy.conf.json
 ├── README.md
 ├── tools.md
 ├── tree.txt

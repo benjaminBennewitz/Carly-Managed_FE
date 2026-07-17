@@ -1,10 +1,23 @@
 // src/app/shared/ui/workspace-task-drawer/workspace-task-drawer.component.ts
 
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, EventEmitter, Input, Output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  EventEmitter,
+  Input,
+  Output,
+  signal,
+} from '@angular/core';
 
 import { canReleaseTaskToPool, isOnDemandReadyTask } from '../../../core/workspace/task-rules';
-import { TaskPriority, WorkspaceMember, WorkspaceTask } from '../../../core/workspace/workspace.models';
-import { WorkspacePreviewService } from '../../../core/workspace/workspace-preview.service';
+import {
+  TaskPriority,
+  WorkspaceMember,
+  WorkspaceTask,
+} from '../../../core/workspace/workspace.models';
+import { WorkspaceService } from '../../../core/workspace/workspace.service';
 import { MemberSelectComponent } from '../member-select/member-select.component';
 import { SelectMenuComponent, SelectMenuOption } from '../select-menu/select-menu.component';
 import { WorkspaceTaskCardComponent } from '../workspace-task-card/workspace-task-card.component';
@@ -23,11 +36,7 @@ type TaskDrawerTab = 'details' | 'subtasks' | 'comments' | 'attachments' | 'hist
 
 @Component({
   selector: 'cm-workspace-task-drawer',
-  imports: [
-    MemberSelectComponent,
-    SelectMenuComponent,
-    WorkspaceTaskCardComponent,
-  ],
+  imports: [MemberSelectComponent, SelectMenuComponent, WorkspaceTaskCardComponent],
   templateUrl: './workspace-task-drawer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -48,7 +57,7 @@ export class WorkspaceTaskDrawerComponent {
   @Output() readonly taskUpdated = new EventEmitter<WorkspaceTask>();
   @Output() readonly taskDeleted = new EventEmitter<string>();
 
-  protected readonly workspaceService: WorkspacePreviewService;
+  protected readonly workspaceService: WorkspaceService;
   protected readonly priorityOptions = PRIORITY_OPTIONS;
   protected readonly selectedTask = signal<WorkspaceTask | null>(null);
   protected readonly drawerClosing = signal(false);
@@ -106,7 +115,7 @@ export class WorkspaceTaskDrawerComponent {
   });
   private closeTimerId: number | null = null;
 
-  constructor(workspaceService: WorkspacePreviewService, destroyRef: DestroyRef) {
+  constructor(workspaceService: WorkspaceService, destroyRef: DestroyRef) {
     this.workspaceService = workspaceService;
 
     destroyRef.onDestroy(() => {

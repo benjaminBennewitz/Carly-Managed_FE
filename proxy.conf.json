@@ -1,0 +1,21 @@
+{
+  "/api": {
+    "target": "http://localhost:8000",
+    "secure": false,
+    "changeOrigin": false,
+    "logLevel": "warn"
+  },
+  "/ws": {
+    "target": "ws://localhost:8000",
+    "secure": false,
+    "ws": true,
+    "changeOrigin": false,
+    "logLevel": "warn"
+  },
+  "/media": {
+    "target": "http://localhost:8000",
+    "secure": false,
+    "changeOrigin": false,
+    "logLevel": "warn"
+  }
+}

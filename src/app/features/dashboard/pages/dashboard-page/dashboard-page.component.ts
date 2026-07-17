@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { CarlyService } from '../../../../core/carly/carly.service';
 import { WorkspaceInboxService } from '../../../../core/inbox/workspace-inbox.service';
-import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
+import { WorkspaceService } from '../../../../core/workspace/workspace.service';
 import { WorkspaceProject, WorkspaceTask } from '../../../../core/workspace/workspace.models';
 import { CarlyFaceComponent } from '../../../../shared/ui/carly-face/carly-face.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
@@ -35,7 +35,7 @@ interface DashboardKpi {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardPageComponent {
-  protected readonly workspaceService = inject(WorkspacePreviewService);
+  protected readonly workspaceService = inject(WorkspaceService);
   protected readonly inboxService = inject(WorkspaceInboxService);
   private readonly router = inject(Router);
 
@@ -71,11 +71,15 @@ export class DashboardPageComponent {
         const priority = { hoch: 0, mittel: 1, niedrig: 2 };
         const dueLeft = left.dueDate ?? '9999-12-31';
         const dueRight = right.dueDate ?? '9999-12-31';
-        return dueLeft.localeCompare(dueRight) || priority[left.priority] - priority[right.priority];
+        return (
+          dueLeft.localeCompare(dueRight) || priority[left.priority] - priority[right.priority]
+        );
       })
       .slice(0, 6),
   );
-  protected readonly recentActivity = computed(() => this.inboxService.systemNotifications().slice(0, 5));
+  protected readonly recentActivity = computed(() =>
+    this.inboxService.systemNotifications().slice(0, 5),
+  );
   protected readonly activeProjects = computed(() => this.workspaceService.projects());
   protected readonly projectOverview = computed(() =>
     this.activeProjects()
@@ -90,15 +94,50 @@ export class DashboardPageComponent {
   );
 
   protected readonly kpis = computed<DashboardKpi[]>(() => [
-    { key: 'open', label: 'Offene Aufgaben', value: this.openTasks().length, hint: 'Appweit noch zu erledigen', icon: 'checklist', tone: 'neutral' },
-    { key: 'today', label: 'Heute fällig', value: this.todayTasks().length, hint: 'Benötigen heute Aufmerksamkeit', icon: 'today', tone: 'accent' },
-    { key: 'overdue', label: 'Überfällig', value: this.overdueTasks().length, hint: 'Termin bereits überschritten', icon: 'warning', tone: 'danger' },
-    { key: 'projects', label: 'Aktive Projekte', value: this.activeProjects().length, hint: 'Laufende Arbeitsbereiche', icon: 'folder_open', tone: 'success' },
-    { key: 'unread', label: 'Ungelesen', value: this.inboxService.totalUnreadCount(), hint: 'Inbox und Systemmeldungen', icon: 'mark_email_unread', tone: 'warning' },
+    {
+      key: 'open',
+      label: 'Offene Aufgaben',
+      value: this.openTasks().length,
+      hint: 'Appweit noch zu erledigen',
+      icon: 'checklist',
+      tone: 'neutral',
+    },
+    {
+      key: 'today',
+      label: 'Heute fällig',
+      value: this.todayTasks().length,
+      hint: 'Benötigen heute Aufmerksamkeit',
+      icon: 'today',
+      tone: 'accent',
+    },
+    {
+      key: 'overdue',
+      label: 'Überfällig',
+      value: this.overdueTasks().length,
+      hint: 'Termin bereits überschritten',
+      icon: 'warning',
+      tone: 'danger',
+    },
+    {
+      key: 'projects',
+      label: 'Aktive Projekte',
+      value: this.activeProjects().length,
+      hint: 'Laufende Arbeitsbereiche',
+      icon: 'folder_open',
+      tone: 'success',
+    },
+    {
+      key: 'unread',
+      label: 'Ungelesen',
+      value: this.inboxService.totalUnreadCount(),
+      hint: 'Inbox und Systemmeldungen',
+      icon: 'mark_email_unread',
+      tone: 'warning',
+    },
   ]);
 
-  protected readonly activeKpiData = computed(() =>
-    this.kpis().find((item) => item.key === this.activeKpi()) ?? null,
+  protected readonly activeKpiData = computed(
+    () => this.kpis().find((item) => item.key === this.activeKpi()) ?? null,
   );
 
   /** Öffnet oder schließt die Detailliste einer KPI. */
@@ -143,7 +182,9 @@ export class DashboardPageComponent {
   /** Liefert ein lokalisiertes Datum für kompakte Listen. */
   protected formatDate(value: string | null): string {
     if (!value) return 'Ohne Termin';
-    return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short' }).format(new Date(`${value}T12:00:00`));
+    return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short' }).format(
+      new Date(`${value}T12:00:00`),
+    );
   }
 
   /** Liefert eine kurze Bezeichnung für Carlys Stimmung. */

@@ -68,12 +68,8 @@ export class BoardColumnComponent {
   protected readonly isEditingTitle = signal(false);
   protected readonly draftTitle = signal('');
   protected readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
-  protected readonly toolbarMenuId = computed(
-    () => `column-toolbar-${this.column().id}`,
-  );
-  protected readonly colorMenuId = computed(
-    () => `column-color-${this.column().id}`,
-  );
+  protected readonly toolbarMenuId = computed(() => `column-toolbar-${this.column().id}`);
+  protected readonly colorMenuId = computed(() => `column-color-${this.column().id}`);
   protected readonly toolbarPinned = computed(() => {
     const activeId = this.dropdownCoordinator.activeId();
     return activeId === this.toolbarMenuId() || activeId === this.colorMenuId();
@@ -88,10 +84,7 @@ export class BoardColumnComponent {
     destroyRef: DestroyRef,
   ) {
     const handlePointerDown = (event: PointerEvent): void => {
-      if (
-        !this.elementRef.nativeElement.contains(event.target as Node) &&
-        this.isOwnMenuActive()
-      ) {
+      if (!this.elementRef.nativeElement.contains(event.target as Node) && this.isOwnMenuActive()) {
         this.dropdownCoordinator.closeAll();
       }
     };

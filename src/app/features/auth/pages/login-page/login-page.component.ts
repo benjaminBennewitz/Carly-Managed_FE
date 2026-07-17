@@ -5,7 +5,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { AuthPreviewService } from '../../../../core/auth/services/auth-preview.service';
+import { AuthService } from '../../../../core/auth/services/auth.service';
 import { CheckboxFieldComponent } from '../../../../shared/ui/forms/checkbox-field/checkbox-field.component';
 import { TextFieldComponent } from '../../../../shared/ui/forms/text-field/text-field.component';
 import {
@@ -39,11 +39,7 @@ export class LoginPageComponent {
     }),
     password: new FormControl('', {
       nonNullable: true,
-      validators: [
-        Validators.required,
-        Validators.maxLength(128),
-        noControlCharactersValidator(),
-      ],
+      validators: [Validators.required, Validators.maxLength(128), noControlCharactersValidator()],
     }),
     rememberMe: new FormControl(false, { nonNullable: true }),
   });
@@ -53,13 +49,13 @@ export class LoginPageComponent {
   protected readonly formError = signal('');
 
   constructor(
-    private readonly authPreviewService: AuthPreviewService,
+    private readonly authService: AuthService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
   ) {}
 
   /**
-   * Validiert das Formular und startet die lokale Vorschau-Sitzung.
+   * Validiert das Formular und startet eine serverseitige Sitzung.
    */
   submit(): void {
     this.submitted.set(true);
@@ -74,7 +70,7 @@ export class LoginPageComponent {
 
     const rawValue = this.form.getRawValue();
 
-    this.authPreviewService
+    this.authService
       .login({
         ...rawValue,
         email: rawValue.email.trim().toLocaleLowerCase('de-DE'),

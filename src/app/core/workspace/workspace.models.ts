@@ -40,6 +40,7 @@ export interface WorkspaceJoinRequest {
   email: string;
   avatarColor: string;
   requestedAt: string;
+  status?: 'pending' | 'approved' | 'rejected';
 }
 
 export interface WorkspaceSubtask {
@@ -48,6 +49,7 @@ export interface WorkspaceSubtask {
   assignee: WorkspaceMember | null;
   isDone: boolean;
   createdAt: string;
+  version?: number;
 }
 
 export interface WorkspaceComment {
@@ -55,6 +57,7 @@ export interface WorkspaceComment {
   author: WorkspaceMember;
   body: string;
   createdAt: string;
+  version?: number;
 }
 
 export interface WorkspaceAttachment {
@@ -76,6 +79,7 @@ export interface WorkspaceHistoryEntry {
 
 export interface WorkspaceTaskRecurrenceRule {
   id: string;
+  version?: number;
   taskId: string;
   taskTitle: string;
   taskIsDone: boolean;
@@ -126,6 +130,7 @@ export interface WorkspaceAutomationRule {
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
+  version?: number;
 }
 
 export interface WorkspaceAutomationRuleSavePayload {
@@ -177,6 +182,7 @@ export interface WorkspaceTask {
   createdOutsideColumn: boolean;
   createdAt: string;
   updatedAt: string;
+  version?: number;
 }
 
 export interface WorkspaceColumn {
@@ -188,6 +194,8 @@ export interface WorkspaceColumn {
   sortMode?: WorkspaceColumnSortMode;
   isDynamic?: boolean;
   systemRole?: 'new-assigned' | 'pool-review';
+  position?: number;
+  version?: number;
 }
 
 export interface WorkspaceProject {
@@ -212,6 +220,7 @@ export interface WorkspaceProject {
   allowsOnDemandTasks: boolean;
   dueState: ProjectDueState;
   dueSummary: string;
+  version?: number;
 }
 
 export interface WorkspaceProjectCreatePayload {

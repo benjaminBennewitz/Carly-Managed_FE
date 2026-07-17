@@ -20,7 +20,7 @@ import {
 } from '../../../../core/inbox/workspace-inbox.models';
 import { WorkspaceInboxService } from '../../../../core/inbox/workspace-inbox.service';
 import { WorkspaceMember } from '../../../../core/workspace/workspace.models';
-import { WorkspacePreviewService } from '../../../../core/workspace/workspace-preview.service';
+import { WorkspaceService } from '../../../../core/workspace/workspace.service';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 
 type SystemMessageFilter = 'all' | 'unread';
@@ -38,7 +38,7 @@ export class InboxPageComponent {
   @ViewChild('messageTextarea') private readonly messageTextarea?: ElementRef<HTMLTextAreaElement>;
 
   protected readonly inboxService: WorkspaceInboxService;
-  protected readonly workspaceService: WorkspacePreviewService;
+  protected readonly workspaceService: WorkspaceService;
   protected readonly selectedConversationId = signal<string | null>(null);
   protected readonly systemFilter = signal<SystemMessageFilter>('all');
   protected readonly dialogState = signal<InboxDialogState>(null);
@@ -137,7 +137,7 @@ export class InboxPageComponent {
 
   constructor(
     inboxService: WorkspaceInboxService,
-    workspaceService: WorkspacePreviewService,
+    workspaceService: WorkspaceService,
     private readonly router: Router,
     destroyRef: DestroyRef,
   ) {
