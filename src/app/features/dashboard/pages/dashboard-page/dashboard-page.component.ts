@@ -41,6 +41,8 @@ export class DashboardPageComponent {
 
   protected readonly carlyService = inject(CarlyService);
   protected readonly activeKpi = signal<DashboardKpiKey | null>(null);
+  protected readonly isKpiClosing = signal(false);
+  private closeTimer: ReturnType<typeof setTimeout> | null = null;
   protected readonly today = new Date().toISOString().slice(0, 10);
 
   protected readonly allTasks = computed(() => {
@@ -101,12 +103,30 @@ export class DashboardPageComponent {
 
   /** Öffnet oder schließt die Detailliste einer KPI. */
   protected toggleKpi(key: DashboardKpiKey): void {
-    this.activeKpi.update((current) => current === key ? null : key);
+    if (this.activeKpi() === key) {
+      this.closeKpi();
+      return;
+    }
+
+    if (this.closeTimer) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
+    }
+
+    this.isKpiClosing.set(false);
+    this.activeKpi.set(key);
   }
 
-  /** Schließt die aktuell geöffnete KPI-Detailliste. */
+  /** Schließt die aktuell geöffnete KPI-Detailliste mit einer kurzen Animation. */
   protected closeKpi(): void {
-    this.activeKpi.set(null);
+    if (!this.activeKpi() || this.isKpiClosing()) return;
+
+    this.isKpiClosing.set(true);
+    this.closeTimer = setTimeout(() => {
+      this.activeKpi.set(null);
+      this.isKpiClosing.set(false);
+      this.closeTimer = null;
+    }, 220);
   }
 
   /** Öffnet eine Aufgabe im zugehörigen Board-Drawer. */

@@ -27,7 +27,13 @@
   </div>
 
   @if (activeKpiData(); as kpi) {
-    <section class="dashboard-kpi-popover" role="dialog" aria-modal="true" [attr.aria-label]="kpi.label">
+    <section
+      class="dashboard-kpi-popover"
+      role="dialog"
+      aria-modal="true"
+      [class.dashboard-kpi-popover--closing]="isKpiClosing()"
+      [attr.aria-label]="kpi.label"
+    >
       <button class="dashboard-kpi-popover__backdrop" type="button" aria-label="Detailliste schließen" (click)="closeKpi()"></button>
       <article class="dashboard-kpi-popover__panel">
         <header>
@@ -35,7 +41,7 @@
             <span>Details</span>
             <h2>{{ kpi.label }} · {{ kpi.value }}</h2>
           </div>
-          <button type="button" aria-label="Detailliste schließen" (click)="closeKpi()">
+          <button class="ui-close-button" type="button" aria-label="Detailliste schließen" (click)="closeKpi()">
             <span class="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </header>
@@ -44,7 +50,7 @@
           @switch (kpi.key) {
             @case ('open') {
               @for (task of openTasks(); track task.id) {
-                <button type="button" class="dashboard-detail-row" (click)="openTask(task)">
+                <button type="button" class="dashboard-detail-row dashboard-detail-row--task" (click)="openTask(task)">
                   <span class="dashboard-detail-row__icon material-symbols-outlined">task_alt</span>
                   <span><strong>{{ task.title }}</strong><small>{{ task.projectTitle ?? 'Persönliches Board' }} · {{ formatDate(task.dueDate) }}</small></span>
                   <span class="priority-pill priority-pill--{{ task.priority }}">{{ task.priority }}</span>
@@ -53,7 +59,7 @@
             }
             @case ('today') {
               @for (task of todayTasks(); track task.id) {
-                <button type="button" class="dashboard-detail-row" (click)="openTask(task)">
+                <button type="button" class="dashboard-detail-row dashboard-detail-row--task" (click)="openTask(task)">
                   <span class="dashboard-detail-row__icon material-symbols-outlined">today</span>
                   <span><strong>{{ task.title }}</strong><small>{{ task.projectTitle ?? 'Persönliches Board' }} · {{ task.dueTime ?? 'ganztägig' }}</small></span>
                   <span class="priority-pill priority-pill--{{ task.priority }}">{{ task.priority }}</span>
@@ -62,7 +68,7 @@
             }
             @case ('overdue') {
               @for (task of overdueTasks(); track task.id) {
-                <button type="button" class="dashboard-detail-row" (click)="openTask(task)">
+                <button type="button" class="dashboard-detail-row dashboard-detail-row--task" (click)="openTask(task)">
                   <span class="dashboard-detail-row__icon material-symbols-outlined">warning</span>
                   <span><strong>{{ task.title }}</strong><small>{{ task.projectTitle ?? 'Persönliches Board' }} · fällig {{ formatDate(task.dueDate) }}</small></span>
                   <span class="priority-pill priority-pill--{{ task.priority }}">{{ task.priority }}</span>
@@ -71,7 +77,7 @@
             }
             @case ('projects') {
               @for (project of activeProjects(); track project.id) {
-                <button type="button" class="dashboard-detail-row" (click)="openProject(project)">
+                <button type="button" class="dashboard-detail-row dashboard-detail-row--project" (click)="openProject(project)">
                   <span class="dashboard-detail-row__project-icon material-symbols-outlined" [style.background]="project.color">{{ project.icon }}</span>
                   <span><strong>{{ project.name }}</strong><small>{{ workspaceService.getOpenTaskCount(project.id) }} offen · {{ workspaceService.getOverdueTaskCount(project.id) }} überfällig</small></span>
                   <span class="material-symbols-outlined">open_in_new</span>
@@ -79,12 +85,12 @@
               } @empty { <p class="dashboard-empty">Keine aktiven Projekte.</p> }
             }
             @case ('unread') {
-              <a class="dashboard-detail-row" routerLink="/inbox" (click)="closeKpi()">
+              <a class="dashboard-detail-row dashboard-detail-row--inbox" routerLink="/inbox" (click)="closeKpi()">
                 <span class="dashboard-detail-row__icon material-symbols-outlined">notifications</span>
                 <span><strong>Systemmeldungen</strong><small>{{ inboxService.unreadSystemCount() }} ungelesen</small></span>
                 <span class="material-symbols-outlined">arrow_forward</span>
               </a>
-              <a class="dashboard-detail-row" routerLink="/inbox" (click)="closeKpi()">
+              <a class="dashboard-detail-row dashboard-detail-row--inbox" routerLink="/inbox" (click)="closeKpi()">
                 <span class="dashboard-detail-row__icon material-symbols-outlined">forum</span>
                 <span><strong>Direkt- und Gruppenchats</strong><small>{{ inboxService.unreadConversationCount() }} ungelesen</small></span>
                 <span class="material-symbols-outlined">arrow_forward</span>

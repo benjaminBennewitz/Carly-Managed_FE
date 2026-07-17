@@ -67,11 +67,18 @@
   color: var(--color-text-primary);
   text-align: left;
   cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
 .dashboard-task-row { grid-template-columns: auto minmax(0, 1fr) auto; }
-.dashboard-task-row:hover,
-.dashboard-project-row:hover { border-color: var(--color-border-strong); background: var(--color-surface-elevated); }
+.dashboard-task-row:hover { border-color: color-mix(in srgb, var(--color-action-primary) 38%, var(--color-border-strong)); background: var(--color-surface-elevated); box-shadow: var(--shadow-sm); transform: translateX(0.18rem); }
+.dashboard-project-row:hover { border-color: var(--color-border-strong); background: var(--color-surface-elevated); box-shadow: var(--shadow-sm); transform: translateY(-0.1rem); }
+.dashboard-task-row:focus-visible,
+.dashboard-project-row:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus-ring); outline-offset: var(--focus-ring-offset); }
 .dashboard-task-row > span:nth-child(2),
 .dashboard-project-row__copy { display: grid; min-width: 0; gap: 0.15rem; }
 .dashboard-task-row strong,
@@ -86,7 +93,8 @@
 .priority-dot--niedrig { background: var(--color-status-success); }
 .dashboard-avatar { display: grid; width: 2rem; aspect-ratio: 1; place-items: center; border-radius: 50%; font-size: var(--font-size-100); font-weight: var(--font-weight-bold); }
 .dashboard-project-row { grid-template-columns: auto minmax(0, 1fr) minmax(7rem, 0.32fr); }
-.dashboard-project-row__icon { display: grid; width: 2.4rem; aspect-ratio: 1; place-items: center; border-radius: var(--radius-md); color: white; }
+.dashboard-project-row__icon { display: grid; width: 2.4rem; aspect-ratio: 1; place-items: center; border-radius: var(--radius-md); color: white; transition: transform 180ms ease; }
+.dashboard-project-row:hover .dashboard-project-row__icon { transform: scale(1.06) rotate(3deg); }
 .dashboard-project-row__progress { display: grid; grid-template-columns: minmax(4rem, 1fr) auto; align-items: center; gap: var(--space-2); }
 .dashboard-project-row__progress i,
 .dashboard-carly__stats i { display: block; height: 0.42rem; overflow: hidden; border-radius: var(--radius-round); background: var(--color-surface-tertiary); }
@@ -97,9 +105,11 @@
    03   Aktivitäten
    ========================================================================== */
 
-.dashboard-activity-row { display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-lg); background: var(--color-surface-secondary); color: var(--color-text-primary); text-decoration: none; }
-.dashboard-activity-row:hover { background: var(--color-surface-elevated); }
-.dashboard-activity-row > .material-symbols-outlined { display: grid; width: 2.25rem; aspect-ratio: 1; place-items: center; border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-action-primary) 12%, transparent); color: var(--color-action-primary); font-size: 1.05rem; }
+.dashboard-activity-row { display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-lg); background: var(--color-surface-secondary); color: var(--color-text-primary); text-decoration: none; transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
+.dashboard-activity-row:hover { background: var(--color-surface-elevated); box-shadow: var(--shadow-xs); transform: translateX(0.18rem); }
+.dashboard-activity-row:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus-ring); outline-offset: var(--focus-ring-offset); }
+.dashboard-activity-row > .material-symbols-outlined { display: grid; width: 2.25rem; aspect-ratio: 1; place-items: center; border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-action-primary) 12%, transparent); color: var(--color-action-primary); font-size: 1.05rem; transition: transform 180ms ease, background-color 180ms ease; }
+.dashboard-activity-row:hover > .material-symbols-outlined { background: color-mix(in srgb, var(--color-action-primary) 18%, transparent); transform: scale(1.06); }
 .dashboard-activity-row > span:nth-child(2) { display: grid; min-width: 0; gap: 0.15rem; }
 .dashboard-activity-row strong,
 .dashboard-activity-row small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
