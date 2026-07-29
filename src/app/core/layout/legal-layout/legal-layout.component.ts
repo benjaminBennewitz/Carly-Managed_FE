@@ -4,6 +4,8 @@ import { Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
+import { ThemeService } from '../../theme/theme.service';
+
 type LegalTransitionDirection = 'forward' | 'backward';
 
 @Component({
@@ -16,6 +18,7 @@ type LegalTransitionDirection = 'forward' | 'backward';
 export class LegalLayoutComponent {
   private readonly location = inject(Location);
   private readonly router = inject(Router);
+  protected readonly themeService = inject(ThemeService);
 
   /**
    * Markiert die Richtung für den folgenden nativen Seitenübergang.

@@ -57,6 +57,11 @@ export class ThemeService {
     () => `${THEME_LABELS[this.themeState()]} · ${this.modeState() === 'dark' ? 'Dunkel' : 'Hell'}`,
   );
   readonly modeIcon = computed(() => (this.modeState() === 'dark' ? 'dark_mode' : 'light_mode'));
+  readonly logoPath = computed(() =>
+    this.modeState() === 'dark'
+      ? '/assets/img/carly-managed-logo_wide_light.webp'
+      : '/assets/img/carly-managed-logo_wide.webp',
+  );
 
   constructor(@Inject(DOCUMENT) private readonly document: Document) {
     const storedTheme = this.readStoredTheme();

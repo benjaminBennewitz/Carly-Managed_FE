@@ -3,7 +3,7 @@
 <main class="auth-layout">
   <section class="auth-layout__brand" aria-labelledby="brand-title">
     <a class="auth-layout__logo" routerLink="/auth/login" aria-label="Carly Managed Startseite">
-      <img src="/assets/img/carly-managed-logo_wide.webp" alt="" width="720" height="180" />
+      <img [src]="themeService.logoPath()" alt="" width="720" height="180" />
     </a>
 
     <div class="auth-layout__intro">
@@ -48,7 +48,7 @@
       routerLink="/auth/login"
       aria-label="Carly Managed Startseite"
     >
-      <img src="/assets/img/carly-managed-logo_wide.webp" alt="" width="720" height="180" />
+      <img [src]="themeService.logoPath()" alt="" width="720" height="180" />
     </a>
 
     <div class="auth-layout__content-inner">

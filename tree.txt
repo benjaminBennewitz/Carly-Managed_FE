@@ -8,6 +8,11 @@ Carly-Managed_FE/
 ├── public/
 │   ├── assets/
 │   │   ├── carly/
+│   │   │   ├── storybook/
+│   │   │   │   ├── carly-story-01-tower.png
+│   │   │   │   ├── carly-story-02-tower.png
+│   │   │   │   ├── carly-story-03-tower.png
+│   │   │   │   └── carly-story-04-tower.png
 │   │   │   └── carly.svg
 │   │   ├── fonts/
 │   │   │   ├── archivo/
@@ -33,7 +38,8 @@ Carly-Managed_FE/
 │   │       │   └── kpi-views.svg
 │   │       ├── carly-managed-logo_big.webp
 │   │       ├── carly-managed-logo_wide.webp
-│   │       └── carly-managed-logo_wide_claim.webp
+│   │       ├── carly-managed-logo_wide_claim.webp
+│   │       └── carly-managed-logo_wide_light.webp
 │   └── favicon.ico
 ├── src/
 │   ├── app/
