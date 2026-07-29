@@ -13,7 +13,7 @@
     <span class="carly-character__fallback material-symbols-outlined">pets</span>
   }
 
-  @if (carlyService.reaction() === 'petted') {
+  @if (carlyService.reaction() === 'petted' || carlyService.reaction() === 'celebrating') {
     <span class="carly-character__hearts">
       <i>♥</i>
       <i>♥</i>

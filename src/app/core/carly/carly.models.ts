@@ -3,7 +3,8 @@
 export type CarlyMood = 'glücklich' | 'neugierig' | 'müde' | 'hungrig';
 export type CarlyFoodId = 'fish' | 'berry' | 'cookie' | 'potion';
 export type CarlyVisualTransition = 'none' | 'sleeping' | 'waking';
-export type CarlyReaction = 'none' | 'petted' | 'dizzy';
+export type CarlyReaction = 'none' | 'petted' | 'dizzy' | 'celebrating';
+export type CarlyMessageDurationSeconds = 5 | 7 | 10 | 15;
 
 export interface CarlySettings {
   enabled: boolean;

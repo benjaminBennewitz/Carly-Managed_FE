@@ -8,6 +8,9 @@ export type CarlyMessageCategory =
   | 'project-deadline'
   | 'progress'
   | 'clear'
+  | 'idle-nudge'
+  | 'idle-sleepy'
+  | 'idle-sleep'
   | 'generic';
 
 export interface CarlyMessageTemplate {
@@ -50,6 +53,19 @@ export const CARLY_MESSAGE_TEMPLATES: readonly CarlyMessageTemplate[] = [
   { id: 'clear-01', category: 'clear', text: 'Keine überfälligen Aufgaben. Ich wusste natürlich, dass Potenzial vorhanden ist.' },
   { id: 'clear-02', category: 'clear', text: 'Der Kalender sieht erstaunlich friedlich aus. Behalte das bitte bei. Es steht dir.' },
   { id: 'clear-03', category: 'clear', text: 'Nichts überfällig. Sehr ordentlich. Ich werde versuchen, nicht zu überrascht auszusehen.' },
+
+
+  { id: 'idle-nudge-01', category: 'idle-nudge', text: 'Es ist verdächtig ruhig hier. Planst du etwas Geniales oder beobachtest du nur sehr konzentriert den Bildschirm?' },
+  { id: 'idle-nudge-02', category: 'idle-nudge', text: 'Ich melde vorsichtig: Das Board bewegt sich seit einer Weile nicht. Ich schon. Innerlich.' },
+  { id: 'idle-nudge-03', category: 'idle-nudge', text: 'Kurze Pause? Erlaubt. Dauerhafte Versteinerung? Eher nicht.' },
+
+  { id: 'idle-sleepy-01', category: 'idle-sleepy', text: 'Noch immer still. Meine Aufmerksamkeit wird langsam weich an den Rändern.' },
+  { id: 'idle-sleepy-02', category: 'idle-sleepy', text: 'Falls du gerade nachdenkst: ausgezeichnet. Falls nicht, könnte ich inzwischen ein kleines Nickerchen erwägen.' },
+  { id: 'idle-sleepy-03', category: 'idle-sleepy', text: 'So viel Ruhe macht selbst eine magische Katze müde. Nur eine sachliche Feststellung.' },
+
+  { id: 'idle-sleep-01', category: 'idle-sleep', text: 'Ich nehme einen kurzen Powernap. Weck mich, sobald hier wieder etwas Wichtiges passiert.' },
+  { id: 'idle-sleep-02', category: 'idle-sleep', text: 'Genug Stille für heute. Ich schließe kurz die Augen. Du weißt ja, wo du mich findest.' },
+  { id: 'idle-sleep-03', category: 'idle-sleep', text: 'Ich bin nicht gelangweilt. Ich optimiere nur meine Energieverwaltung. Mit geschlossenen Augen.' },
 
   { id: 'generic-01', category: 'generic', text: 'Ein klarer nächster Schritt schlägt zehn perfekte Pläne.' },
   { id: 'generic-02', category: 'generic', text: 'Aufgaben verschwinden selten durch intensives Anstarren. Ich habe es geprüft.' },

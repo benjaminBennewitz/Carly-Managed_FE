@@ -11,10 +11,14 @@ const POMODORO_DURATION_SECONDS = 25 * 60;
   templateUrl: './workspace-tools.component.html',
   styleUrl: './workspace-tools.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.workspace-tools-host--drawer-open]': 'drawerOpen()',
+  },
 })
 export class WorkspaceToolsComponent {
   protected readonly settingsService: AppSettingsService;
   protected readonly open = signal(false);
+  protected readonly drawerOpen = signal(false);
   protected readonly pomodoroSeconds = signal(POMODORO_DURATION_SECONDS);
   protected readonly pomodoroRunning = signal(false);
   protected readonly taskTimerSeconds = signal(0);
@@ -24,6 +28,13 @@ export class WorkspaceToolsComponent {
 
   constructor(settingsService: AppSettingsService, destroyRef: DestroyRef) {
     this.settingsService = settingsService;
+
+    const updateDrawerState = (): void => {
+      this.drawerOpen.set(document.querySelector('.task-drawer') !== null);
+    };
+    const drawerObserver = new MutationObserver(updateDrawerState);
+    drawerObserver.observe(document.body, { childList: true, subtree: true });
+    updateDrawerState();
 
     const timerId = window.setInterval(() => {
       if (this.pomodoroRunning()) {
@@ -44,6 +55,7 @@ export class WorkspaceToolsComponent {
 
     destroyRef.onDestroy(() => {
       window.clearInterval(timerId);
+      drawerObserver.disconnect();
     });
   }
 

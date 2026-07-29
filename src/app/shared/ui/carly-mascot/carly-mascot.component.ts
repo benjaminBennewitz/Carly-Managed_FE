@@ -13,6 +13,10 @@ const DIRECTION_CHANGE_THRESHOLD = 2;
 const DRAG_DIRECTION_MIN_DELTA_PX = 6;
 const CONTEXT_MESSAGE_MIN_MS = 38_000;
 const CONTEXT_MESSAGE_MAX_MS = 75_000;
+const INACTIVITY_NUDGE_MS = 150_000;
+const INACTIVITY_SLEEPY_MS = 240_000;
+const INACTIVITY_SLEEP_MESSAGE_MS = 285_000;
+const AUTO_SLEEP_MS = 300_000;
 
 @Component({
   selector: 'cm-carly-mascot',
@@ -43,6 +47,7 @@ export class CarlyMascotComponent {
   private lastDragDirection = 0;
   private directionChanges: number[] = [];
   private autoSleepTimer: number | null = null;
+  private inactivityMessageTimers: number[] = [];
   private messageTimer: number | null = null;
   private contextualMessageTimer: number | null = null;
 
@@ -75,10 +80,7 @@ export class CarlyMascotComponent {
 
       untracked(() => {
         if (!autoSleep || sleeping) {
-          if (this.autoSleepTimer !== null) {
-            window.clearTimeout(this.autoSleepTimer);
-            this.autoSleepTimer = null;
-          }
+          this.clearAutoSleepTimers();
           return;
         }
 
@@ -116,18 +118,53 @@ export class CarlyMascotComponent {
     destroyRef.onDestroy(() => {
       window.removeEventListener('pointerdown', resetAutoSleep);
       window.removeEventListener('keydown', resetAutoSleep);
-      if (this.autoSleepTimer !== null) window.clearTimeout(this.autoSleepTimer);
+      this.clearAutoSleepTimers();
       if (this.messageTimer !== null) window.clearTimeout(this.messageTimer);
       this.clearContextualMessageTimer();
     });
   }
 
-  /** Plant Carlys automatischen Schlaf nach längerer Inaktivität. */
+  /** Plant abgestufte Inaktivitätshinweise und Carlys anschließenden automatischen Schlaf. */
   private scheduleAutoSleep(): void {
-    if (this.autoSleepTimer !== null) window.clearTimeout(this.autoSleepTimer);
+    this.clearAutoSleepTimers();
     if (!this.carlyService.settings().autoSleep || this.carlyService.progress().isSleeping) return;
 
-    this.autoSleepTimer = window.setTimeout(() => this.carlyService.sleep(), 300_000);
+    this.scheduleInactivityMessage(INACTIVITY_NUDGE_MS, 'nudge');
+    this.scheduleInactivityMessage(INACTIVITY_SLEEPY_MS, 'sleepy');
+    this.scheduleInactivityMessage(INACTIVITY_SLEEP_MESSAGE_MS, 'sleep');
+
+    this.autoSleepTimer = window.setTimeout(() => {
+      this.autoSleepTimer = null;
+      if (!this.carlyService.settings().autoSleep || this.carlyService.progress().isSleeping) return;
+      this.carlyService.sleep();
+    }, AUTO_SLEEP_MS);
+  }
+
+  /** Plant genau einen Inaktivitätstext, sofern Carly in diesem Moment frei sprechen kann. */
+  private scheduleInactivityMessage(
+    delayMs: number,
+    stage: 'nudge' | 'sleepy' | 'sleep',
+  ): void {
+    const timer = window.setTimeout(() => {
+      this.inactivityMessageTimers = this.inactivityMessageTimers.filter((value) => value !== timer);
+      if (!this.canSpeakContextualMessage()) return;
+
+      const message = this.carlyMessageService.pickInactivityMessage(stage);
+      if (message) this.carlyService.speak(message);
+    }, delayMs);
+
+    this.inactivityMessageTimers.push(timer);
+  }
+
+  /** Entfernt alle geplanten Inaktivitätsstufen. */
+  private clearAutoSleepTimers(): void {
+    if (this.autoSleepTimer !== null) {
+      window.clearTimeout(this.autoSleepTimer);
+      this.autoSleepTimer = null;
+    }
+
+    this.inactivityMessageTimers.forEach((timer) => window.clearTimeout(timer));
+    this.inactivityMessageTimers = [];
   }
 
   /** Plant einen kontextbezogenen Carly-Kommentar mit bewusst großem Zufallsabstand. */

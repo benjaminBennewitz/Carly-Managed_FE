@@ -32,8 +32,13 @@
 :host {
   position: fixed;
   right: var(--space-5);
-  bottom: var(--space-5);
+  bottom: var(--space-3);
   z-index: var(--z-index-sticky);
+  transition: right var(--motion-duration-slow) var(--motion-easing-emphasized);
+}
+
+:host(.workspace-tools-host--drawer-open) {
+  right: calc(min(42rem, 96vw) + var(--space-4));
 }
 
 .workspace-tools {
@@ -199,7 +204,12 @@
 @media (max-width: 38rem) {
   :host {
     right: var(--space-3);
-    bottom: var(--space-3);
+    bottom: var(--space-2);
+  }
+
+  :host(.workspace-tools-host--drawer-open) {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .workspace-tools__trigger span:last-child {

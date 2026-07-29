@@ -114,10 +114,32 @@
               aria-hidden="true"
             ></span
           ></label>
+          <fieldset
+            class="settings-segment-field settings-segment-field--dialog-duration"
+            [disabled]="!carlyService.settings().enabled || !carlyService.settings().messagesEnabled"
+          >
+            <legend>
+              <strong>Dialog sichtbar</strong>
+              <small>Wie lange Carlys Text mindestens stehen bleibt. Ausschalten kannst du die Nachrichten darüber.</small>
+            </legend>
+            <div class="settings-segments settings-segments--four">
+              @for (seconds of [5, 7, 10, 15]; track seconds) {
+                <button
+                  type="button"
+                  [class.settings-segments__active]="carlyService.messageDisplaySeconds() === seconds"
+                  [disabled]="!carlyService.settings().enabled || !carlyService.settings().messagesEnabled"
+                  (click)="setCarlyMessageDuration($any(seconds))"
+                >
+                  {{ seconds }} s
+                </button>
+              }
+            </div>
+          </fieldset>
+
           <label class="settings-switch-row"
             ><span
               ><strong>Reaktionen auf Task-Abschlüsse</strong
-              ><small>Bereitet spätere produktivitätsbasierte Erfahrungspunkte vor.</small></span
+              ><small>Feiert Task- und Projektabschlüsse mit Carlys Erfolgsreaktion.</small></span
             ><input
               type="checkbox"
               [disabled]="!carlyService.settings().enabled"

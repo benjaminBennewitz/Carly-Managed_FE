@@ -52,6 +52,20 @@ export class CarlyMessageService {
     return this.interpolate(selected.template.text, selected.values);
   }
 
+  /** Wählt eine zufällige, zur Inaktivitätsphase passende Carly-Nachricht. */
+  pickInactivityMessage(stage: 'nudge' | 'sleepy' | 'sleep'): string {
+    const category: CarlyMessageCategory =
+      stage === 'nudge' ? 'idle-nudge' : stage === 'sleepy' ? 'idle-sleepy' : 'idle-sleep';
+    const templates = CARLY_MESSAGE_TEMPLATES.filter((template) => template.category === category);
+    const fresh = templates.filter((template) => !this.recentMessageIds.includes(template.id));
+    const pool = fresh.length > 0 ? fresh : templates;
+    const selected = pool[Math.floor(Math.random() * pool.length)] ?? templates[0];
+
+    if (!selected) return '';
+    this.remember(selected.id);
+    return selected.text;
+  }
+
   /** Ermittelt den aktuellen Board- oder Workspace-Kontext ohne erfundene Daten. */
   private createContext(): CarlyMessageContext {
     const boardKey = this.getCurrentBoardKey();

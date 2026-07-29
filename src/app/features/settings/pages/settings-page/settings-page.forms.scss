@@ -167,6 +167,29 @@ input:focus-visible + .settings-switch {
   margin: 0;
 }
 
+.settings-segment-field--dialog-duration {
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
+}
+
+.settings-segment-field--dialog-duration legend {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0;
+}
+
+.settings-segment-field--dialog-duration legend small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-regular);
+}
+
+.settings-segments--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+
 .settings-segments,
 .settings-mode-buttons {
   display: grid;

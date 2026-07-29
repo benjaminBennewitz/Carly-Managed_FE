@@ -308,7 +308,7 @@ export class CarlyCharacterComponent {
       return;
     }
 
-    if (snapshot.reaction === 'petted' && !snapshot.sleeping) {
+    if ((snapshot.reaction === 'petted' || snapshot.reaction === 'celebrating') && !snapshot.sleeping) {
       this.setEyeMode('closed');
       this.setMouthMode('smile');
       this.setGaze(0, 0);

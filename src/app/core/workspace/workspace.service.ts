@@ -51,6 +51,22 @@ interface BoardMeta {
   version: number;
 }
 
+export type WorkspaceActivityKind =
+  | 'task-created'
+  | 'task-completed'
+  | 'task-reopened'
+  | 'project-created'
+  | 'project-completed'
+  | 'message-sent';
+
+export interface WorkspaceActivityEvent {
+  sequence: number;
+  kind: WorkspaceActivityKind;
+  title: string;
+  projectTitle: string | null;
+  occurredAt: string;
+}
+
 const PERSONAL_BOARD_KEY = 'personal';
 const DEFAULT_PROJECT_COLOR = '#7752B3';
 const DEFAULT_PROJECT_ICON = 'folder';
@@ -76,8 +92,11 @@ export class WorkspaceService {
   private readonly messagesState = signal<WorkspaceMessage[]>([]);
   private readonly archivedTaskState = signal<WorkspaceTask[]>([]);
   private readonly loadingState = signal(false);
+  private readonly lastActivityState = signal<WorkspaceActivityEvent | null>(null);
+  private activitySequence = 0;
 
   readonly loading = this.loadingState.asReadonly();
+  readonly lastActivity = this.lastActivityState.asReadonly();
   readonly workspaceId = this.workspaceIdState.asReadonly();
   readonly projects = computed(() =>
     this.projectsState()
@@ -395,6 +414,7 @@ export class WorkspaceService {
         })
         .subscribe({ next: () => this.reload(), error: () => this.reload() });
     }
+    this.emitActivity('project-created', project.name, project.name);
     return clone(project);
   }
 
@@ -499,6 +519,7 @@ export class WorkspaceService {
       createdAt: new Date().toISOString(),
     };
     this.messagesState.update((messages) => [message, ...messages]);
+    this.emitActivity('message-sent', payload.subject || 'Nachricht', null);
     return message;
   }
 
@@ -517,6 +538,11 @@ export class WorkspaceService {
       isDone,
       completedAt: isDone ? new Date().toISOString() : null,
     });
+    this.emitActivity(
+      isDone ? 'task-completed' : 'task-reopened',
+      found.task.title,
+      found.task.projectTitle,
+    );
     this.http
       .post<WorkspaceTask>(
         `${API_BASE_URL}/workspaces/tasks/${taskId}/${isDone ? 'complete' : 'reopen'}/`,
@@ -987,6 +1013,9 @@ export class WorkspaceService {
     if (!project) return null;
     const optimistic = { ...project, status, isPinned: false, updatedAt: new Date().toISOString() };
     this.patchProjectState(optimistic);
+    if (action === 'complete') {
+      this.emitActivity('project-completed', project.name, project.name);
+    }
     this.http
       .post<WorkspaceProject>(`${API_BASE_URL}/workspaces/projects/${projectId}/${action}/`, {
         version: project.version ?? 1,
@@ -996,6 +1025,22 @@ export class WorkspaceService {
         error: () => this.reload(),
       });
     return clone(optimistic);
+  }
+
+  /** Meldet eine relevante Workspace-Interaktion für reaktive UI-Module wie Carly. */
+  private emitActivity(
+    kind: WorkspaceActivityKind,
+    title: string,
+    projectTitle: string | null,
+  ): void {
+    this.activitySequence += 1;
+    this.lastActivityState.set({
+      sequence: this.activitySequence,
+      kind,
+      title,
+      projectTitle,
+      occurredAt: new Date().toISOString(),
+    });
   }
 
   /** Ersetzt ein Projekt im lokalen Snapshot. */
@@ -1120,6 +1165,7 @@ export class WorkspaceService {
           error: () => this.reload(),
         });
     }
+    this.emitActivity('task-created', task.title, task.projectTitle);
     return clone(task);
   }
 

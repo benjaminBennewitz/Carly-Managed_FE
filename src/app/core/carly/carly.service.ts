@@ -4,10 +4,14 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, DestroyRef, effect, Injectable, signal, untracked } from '@angular/core';
 
 import { API_BASE_URL } from '../api/api.config';
-import { CarlyFoodId, CarlyReaction, CarlySettings, CarlyState, CarlyVisualTransition } from './carly.models';
+import { WorkspaceInboxService } from '../inbox/workspace-inbox.service';
+import { WorkspaceActivityEvent, WorkspaceService } from '../workspace/workspace.service';
+import { CarlyFoodId, CarlyMessageDurationSeconds, CarlyReaction, CarlySettings, CarlyState, CarlyVisualTransition } from './carly.models';
 
 type CarlySettingsPatch = Partial<CarlySettings> & { positionX?: number };
 const MIN_VISUAL_TRANSITION_MS = 1_100;
+const CARLY_MESSAGE_DURATION_STORAGE_KEY = 'carly-managed:carly-message-duration';
+const DEFAULT_MESSAGE_DURATION_SECONDS: CarlyMessageDurationSeconds = 7;
 
 const EMPTY_STATE: CarlyState = {
   settings: {
@@ -43,6 +47,9 @@ export class CarlyService {
   private readonly activeMessageValue = signal('');
   private readonly messageSequenceValue = signal(0);
   private readonly messageDurationMsValue = signal(0);
+  private readonly messageDisplaySecondsValue = signal<CarlyMessageDurationSeconds>(
+    this.readStoredMessageDuration(),
+  );
 
   private queuedPatch: CarlySettingsPatch = {};
   private patchRunning = false;
@@ -51,7 +58,10 @@ export class CarlyService {
   private reactionTimer: number | null = null;
   private speechTimer: number | null = null;
   private messageTimer: number | null = null;
+  private activityReactionTimer: number | null = null;
   private lastObservedMessage = '';
+  private lastWorkspaceActivitySequence = 0;
+  private lastUnreadCount: number | null = null;
 
   readonly state = this.stateValue.asReadonly();
   readonly settings = computed(() => this.stateValue().settings);
@@ -70,12 +80,15 @@ export class CarlyService {
   readonly activeMessage = this.activeMessageValue.asReadonly();
   readonly messageSequence = this.messageSequenceValue.asReadonly();
   readonly messageDurationMs = this.messageDurationMsValue.asReadonly();
+  readonly messageDisplaySeconds = this.messageDisplaySecondsValue.asReadonly();
   readonly displayMessage = computed(
     () => this.activeMessageValue() || this.progress().lastMessage,
   );
 
   constructor(
     private readonly http: HttpClient,
+    private readonly workspaceService: WorkspaceService,
+    private readonly inboxService: WorkspaceInboxService,
     destroyRef: DestroyRef,
   ) {
     effect(() => {
@@ -97,6 +110,31 @@ export class CarlyService {
       });
     });
 
+    effect(() => {
+      const activity = this.workspaceService.lastActivity();
+      if (!activity || activity.sequence === this.lastWorkspaceActivitySequence) return;
+
+      this.lastWorkspaceActivitySequence = activity.sequence;
+      untracked(() => this.handleWorkspaceActivity(activity));
+    });
+
+    effect(() => {
+      const unreadCount = this.inboxService.totalUnreadCount();
+
+      untracked(() => {
+        if (this.lastUnreadCount === null) {
+          this.lastUnreadCount = unreadCount;
+          return;
+        }
+
+        const increased = unreadCount > this.lastUnreadCount;
+        this.lastUnreadCount = unreadCount;
+        if (increased) {
+          this.wakeForActivity('Neue Nachricht. Ich würde sie nicht allzu lange warten lassen.');
+        }
+      });
+    });
+
     this.reload();
 
     destroyRef.onDestroy(() => {
@@ -104,6 +142,7 @@ export class CarlyService {
       this.clearTimer('reaction');
       this.clearTimer('speech');
       this.clearTimer('message');
+      if (this.activityReactionTimer !== null) window.clearTimeout(this.activityReactionTimer);
     });
   }
 
@@ -118,6 +157,13 @@ export class CarlyService {
   updateSettings(changes: Partial<CarlySettings>): void {
     this.stateValue.update((state) => this.applyPatch(state, changes));
     this.queuePatch(changes);
+  }
+
+
+  /** Speichert die gewünschte Mindestanzeigezeit von Carlys Dialogen lokal. */
+  setMessageDisplaySeconds(seconds: CarlyMessageDurationSeconds): void {
+    this.messageDisplaySecondsValue.set(seconds);
+    window.localStorage.setItem(CARLY_MESSAGE_DURATION_STORAGE_KEY, String(seconds));
   }
 
   /**
@@ -182,6 +228,30 @@ export class CarlyService {
     this.startReaction('dizzy', 3_000);
   }
 
+
+  /** Zeigt eine kurze Erfolgsreaktion mit Herzen und Board-Sternen. */
+  celebrate(message: string): void {
+    const runCelebration = (): void => {
+      if (this.progress().isSleeping || this.visualTransitionValue() !== 'none') return;
+      this.startReaction('celebrating', 3_000);
+      if (this.settings().messagesEnabled) {
+        this.showNotice(message, this.messageDisplaySecondsValue() * 1_000);
+      }
+    };
+
+    if (this.progress().isSleeping || this.visualTransitionValue() === 'sleeping') {
+      this.wake();
+      if (this.activityReactionTimer !== null) window.clearTimeout(this.activityReactionTimer);
+      this.activityReactionTimer = window.setTimeout(() => {
+        this.activityReactionTimer = null;
+        runCelebration();
+      }, MIN_VISUAL_TRANSITION_MS + 220);
+      return;
+    }
+
+    runCelebration();
+  }
+
   /**
    * Lässt Carly einen Text sprechen. Die Dauer wächst mit der Textlänge und bleibt begrenzt.
    */
@@ -189,16 +259,20 @@ export class CarlyService {
     const text = message.trim();
     if (!text || !this.settings().messagesEnabled || this.progress().isSleeping) return;
 
-    const duration = this.calculateSpeechDuration(text);
+    const speechDuration = this.calculateSpeechDuration(text);
+    const displayDuration = Math.max(
+      speechDuration,
+      this.messageDisplaySecondsValue() * 1_000,
+    );
     this.clearTimer('speech');
     this.speakingValue.set(true);
     this.speechSequenceValue.update((sequence) => sequence + 1);
-    this.showNotice(text, duration);
+    this.showNotice(text, displayDuration);
 
     this.speechTimer = window.setTimeout(() => {
       this.speakingValue.set(false);
       this.speechTimer = null;
-    }, duration);
+    }, speechDuration);
   }
 
   /** Zeigt einen vorübergehenden Hinweis unabhängig von einer Sprachanimation. */
@@ -239,9 +313,62 @@ export class CarlyService {
     this.cancelVisualTransition();
     this.clearReaction();
     this.clearSpeech();
+    this.messageDisplaySecondsValue.set(DEFAULT_MESSAGE_DURATION_SECONDS);
+    window.localStorage.removeItem(CARLY_MESSAGE_DURATION_STORAGE_KEY);
     this.http.delete<CarlyState>(`${API_BASE_URL}/preferences/carly/`).subscribe({
       next: (state) => this.stateValue.set(state),
     });
+  }
+
+  /** Reagiert auf neue, abgeschlossene oder wieder geöffnete Workspace-Elemente. */
+  private handleWorkspaceActivity(activity: WorkspaceActivityEvent): void {
+    if (!this.settings().enabled) return;
+
+    if (activity.kind === 'task-completed' && this.settings().taskReactionsEnabled) {
+      this.celebrate(`„${activity.title}“ erledigt. Sehr schön. Das verdient ein wenig Sternenstaub.`);
+      return;
+    }
+
+    if (activity.kind === 'project-completed' && this.settings().taskReactionsEnabled) {
+      this.celebrate(`„${activity.title}“ abgeschlossen. Ich erlaube einen angemessen stolzen Moment.`);
+      return;
+    }
+
+    const wakeMessages: Partial<Record<WorkspaceActivityEvent['kind'], string>> = {
+      'task-created': `„${activity.title}“ ist neu auf dem Board. Dann geben wir ihr einen guten Start.`,
+      'task-reopened': `„${activity.title}“ ist wieder offen. Offenbar war die Geschichte doch noch nicht zu Ende.`,
+      'project-created': `„${activity.title}“ steht. Jetzt fehlt nur noch der Teil mit dem Erledigen.`,
+    };
+    const message = wakeMessages[activity.kind];
+    if (message) {
+      this.wakeForActivity(message);
+    }
+  }
+
+  /** Weckt Carly bei relevanter Aktivität und spricht anschließend optional einen kurzen Hinweis. */
+  private wakeForActivity(message: string): void {
+    const speakAfterWake = (): void => {
+      if (this.settings().messagesEnabled && !this.progress().isSleeping) {
+        this.speak(message);
+      }
+    };
+
+    if (this.progress().isSleeping || this.visualTransitionValue() === 'sleeping') {
+      this.wake();
+      if (this.activityReactionTimer !== null) window.clearTimeout(this.activityReactionTimer);
+      this.activityReactionTimer = window.setTimeout(() => {
+        this.activityReactionTimer = null;
+        speakAfterWake();
+      }, MIN_VISUAL_TRANSITION_MS + 220);
+    }
+  }
+
+  /** Liest die lokale Dialogdauer defensiv aus dem Browser-Speicher. */
+  private readStoredMessageDuration(): CarlyMessageDurationSeconds {
+    const value = Number(window.localStorage.getItem(CARLY_MESSAGE_DURATION_STORAGE_KEY));
+    return value === 5 || value === 7 || value === 10 || value === 15
+      ? value
+      : DEFAULT_MESSAGE_DURATION_SECONDS;
   }
 
   /** Reiht partielle Änderungen ein und verhindert parallele Versionsschreibvorgänge. */

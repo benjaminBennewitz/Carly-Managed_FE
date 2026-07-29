@@ -3,7 +3,7 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 
-import { CarlySettings } from '../../../../core/carly/carly.models';
+import { CarlyMessageDurationSeconds, CarlySettings } from '../../../../core/carly/carly.models';
 import { CarlyService } from '../../../../core/carly/carly.service';
 import { DemoDataService } from '../../../../core/demo/demo-data.service';
 import {
@@ -295,6 +295,13 @@ export class SettingsPageComponent {
   protected setCarlySetting(key: CarlyBooleanKey, event: Event): void {
     this.carlyService.updateSettings({ [key]: this.readChecked(event) });
     this.showSavedState('Carly-Einstellung gespeichert.');
+  }
+
+
+  /** Speichert die Mindestanzeigezeit für Carlys Dialogtexte. */
+  protected setCarlyMessageDuration(seconds: CarlyMessageDurationSeconds): void {
+    this.carlyService.setMessageDisplaySeconds(seconds);
+    this.showSavedState('Dialogdauer gespeichert.');
   }
 
   /** Aktiviert einen Einstellungsbereich. */

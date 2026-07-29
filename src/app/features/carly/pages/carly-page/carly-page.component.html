@@ -24,6 +24,15 @@
     <div class="carly-dashboard">
       <article class="carly-habitat">
         <div class="carly-stage">
+          <button
+            class="carly-stage__story-button"
+            type="button"
+            aria-label="Carlys Geschichte öffnen"
+            (click)="openStorybook()"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">info</span>
+          </button>
+
           <div class="carly-stage__backdrop" aria-hidden="true">
             <span class="carly-stage__glow"></span>
             <span class="carly-stage__stars carly-stage__stars--near"></span>
@@ -166,4 +175,9 @@
       </article>
     </div>
   }
+
+  @if (storybookOpen()) {
+    <cm-carly-storybook (closeRequested)="closeStorybook()" />
+  }
+
 </section>

@@ -1,0 +1,60 @@
+<!-- src/app/features/carly/components/carly-storybook/carly-storybook.component.html -->
+
+<div class="carly-storybook__backdrop" aria-hidden="true" (click)="close()"></div>
+<section class="carly-storybook" role="dialog" aria-modal="true" aria-labelledby="carly-story-title">
+  <header class="carly-storybook__header">
+    <div>
+      <span>Carlys Geschichte</span>
+      <strong>{{ pageIndex() + 1 }} / {{ pages.length }}</strong>
+    </div>
+    <button class="ui-close-button" type="button" aria-label="Carlys Geschichte schließen" (click)="close()">
+      <span class="material-symbols-outlined" aria-hidden="true">close</span>
+    </button>
+  </header>
+
+  <article class="carly-storybook__page" [attr.data-scene]="currentPage().scene">
+    <div class="carly-storybook__illustration" aria-hidden="true">
+      <span class="carly-storybook__moon"></span>
+      <span class="carly-storybook__tower material-symbols-outlined">castle</span>
+      <span class="carly-storybook__seal material-symbols-outlined">brightness_empty</span>
+      <span class="carly-storybook__threads"></span>
+      <cm-carly-character mode="full" [animateTail]="false" />
+      <span class="carly-storybook__scene-star carly-storybook__scene-star--one">✦</span>
+      <span class="carly-storybook__scene-star carly-storybook__scene-star--two">✧</span>
+      <span class="carly-storybook__scene-star carly-storybook__scene-star--three">✦</span>
+    </div>
+
+    <div class="carly-storybook__copy">
+      <p class="carly-storybook__eyebrow">{{ currentPage().eyebrow }}</p>
+      <h2 id="carly-story-title">{{ currentPage().title }}</h2>
+      @for (paragraph of currentPage().paragraphs; track paragraph) {
+        <p>{{ paragraph }}</p>
+      }
+    </div>
+  </article>
+
+  <footer class="carly-storybook__footer">
+    <button type="button" [disabled]="pageIndex() === 0" (click)="previousPage()">
+      <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+      Zurück
+    </button>
+
+    <div class="carly-storybook__dots" aria-label="Seitenfortschritt">
+      @for (page of pages; track page.title; let index = $index) {
+        <span [class.is-active]="index === pageIndex()"></span>
+      }
+    </div>
+
+    @if (pageIndex() < pages.length - 1) {
+      <button type="button" (click)="nextPage()">
+        Weiter
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+      </button>
+    } @else {
+      <button type="button" (click)="close()">
+        Buch schließen
+        <span class="material-symbols-outlined" aria-hidden="true">auto_stories</span>
+      </button>
+    }
+  </footer>
+</section>

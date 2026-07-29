@@ -52,6 +52,36 @@
   place-items: center;
 }
 
+
+.carly-stage__story-button {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: 6;
+  display: grid;
+  width: var(--size-click-target);
+  height: var(--size-click-target);
+  place-items: center;
+  border: var(--border-width-subtle) solid rgb(255 255 255 / 0.18);
+  border-radius: var(--radius-round);
+  background: rgb(10 9 28 / 0.58);
+  color: #fff4c9;
+  box-shadow: 0 0.3rem 1rem rgb(0 0 0 / 0.18);
+  cursor: pointer;
+  backdrop-filter: blur(0.45rem);
+  transition:
+    transform var(--motion-duration-fast) var(--motion-easing-standard),
+    background var(--motion-duration-fast) var(--motion-easing-standard),
+    border-color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.carly-stage__story-button:hover,
+.carly-stage__story-button:focus-visible {
+  border-color: rgb(255 216 128 / 0.72);
+  background: rgb(64 39 96 / 0.78);
+  transform: translateY(-0.1rem);
+}
+
 /* ==========================================================================
    02   Sichtbare Animationsebenen
    ========================================================================== */

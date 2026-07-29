@@ -162,6 +162,11 @@ Carly-Managed_FE/
 │   │   │   │           ├── board-page.component.scss
 │   │   │   │           └── board-page.component.ts
 │   │   │   ├── carly/
+│   │   │   │   ├── components/
+│   │   │   │   │   └── carly-storybook/
+│   │   │   │   │       ├── carly-storybook.component.html
+│   │   │   │   │       ├── carly-storybook.component.scss
+│   │   │   │   │       └── carly-storybook.component.ts
 │   │   │   │   └── pages/
 │   │   │   │       └── carly-page/
 │   │   │   │           ├── carly-page.animations.scss

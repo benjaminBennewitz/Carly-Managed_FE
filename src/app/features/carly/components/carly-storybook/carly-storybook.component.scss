@@ -1,0 +1,231 @@
+/* src/app/features/carly/components/carly-storybook/carly-storybook.component.scss */
+
+/*###############################
+###
+###     carly-storybook.component.scss
+###     Produktion App
+###     BASED ON: Angular 21.2.19, SCSS
+###     AUTHOR: Benjamin Bennewitz
+###
+#################################*/
+
+/* ========================================================================== 
+   INHALTSVERZEICHNIS
+
+   01   Dialog
+   02   Buchseite
+   03   Illustration
+   04   Navigation
+   05   Responsive Verhalten
+   ========================================================================== */
+
+.carly-storybook__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-index-dialog) - 1);
+  background: var(--color-backdrop);
+  backdrop-filter: blur(0.25rem);
+}
+
+.carly-storybook {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: var(--z-index-dialog);
+  display: grid;
+  width: 90vw;
+  height: 90vh;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-lg);
+  transform: translate(-50%, -50%);
+  animation: carly-storybook-enter 260ms var(--motion-easing-emphasized) both;
+}
+
+.carly-storybook__header,
+.carly-storybook__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-color: var(--color-border-subtle);
+}
+
+.carly-storybook__header { border-bottom: var(--border-width-subtle) solid var(--color-border-subtle); }
+.carly-storybook__footer { border-top: var(--border-width-subtle) solid var(--color-border-subtle); }
+
+.carly-storybook__header > div { display: flex; align-items: baseline; gap: var(--space-3); }
+.carly-storybook__header span:first-child { font-family: var(--font-family-highlight); font-weight: var(--font-weight-bold); }
+.carly-storybook__header strong { color: var(--color-text-muted); font-family: var(--font-family-mono); font-size: var(--font-size-100); }
+
+.carly-storybook__page {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(18rem, 0.9fr) minmax(20rem, 1.1fr);
+  overflow: auto;
+}
+
+.carly-storybook__copy {
+  display: grid;
+  align-content: center;
+  gap: var(--space-4);
+  max-width: 44rem;
+  padding: clamp(2rem, 5vw, 5.5rem);
+}
+
+.carly-storybook__eyebrow {
+  margin: 0;
+  color: var(--color-action-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.carly-storybook__copy h2 {
+  margin: 0;
+  font-family: var(--font-family-highlight);
+  font-size: clamp(2rem, 4vw, 4.25rem);
+  line-height: 0.98;
+}
+
+.carly-storybook__copy p:not(.carly-storybook__eyebrow) {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: clamp(1rem, 1.3vw, 1.12rem);
+  line-height: 1.72;
+}
+
+.carly-storybook__illustration {
+  position: relative;
+  display: grid;
+  min-height: 100%;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 34%, rgb(255 223 145 / 0.24), transparent 24%),
+    linear-gradient(155deg, #100c29, #261247 58%, #0a1322);
+}
+
+.carly-storybook__illustration::before {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgb(255 255 255 / 0.55) 0 0.07rem, transparent 0.09rem);
+  background-size: 4.8rem 5.3rem;
+  content: '';
+  opacity: 0.42;
+}
+
+.carly-storybook__illustration cm-carly-character {
+  position: relative;
+  z-index: 4;
+  width: clamp(8rem, 17vw, 14rem);
+  transform: translateY(12%);
+}
+
+.carly-storybook__moon {
+  position: absolute;
+  top: 12%;
+  right: 13%;
+  width: clamp(4rem, 9vw, 7.5rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #ffe4a4;
+  box-shadow: 0 0 3rem rgb(255 228 164 / 0.32);
+}
+
+.carly-storybook__tower {
+  position: absolute;
+  bottom: 4%;
+  left: 8%;
+  color: rgb(0 0 0 / 0.36);
+  font-size: clamp(9rem, 23vw, 20rem);
+  font-variation-settings: 'FILL' 1;
+}
+
+.carly-storybook__seal {
+  position: absolute;
+  top: 18%;
+  left: 15%;
+  color: #d9b8ff;
+  font-size: clamp(3rem, 8vw, 6rem);
+  filter: drop-shadow(0 0 0.7rem #9b67dc);
+}
+
+.carly-storybook__threads {
+  position: absolute;
+  inset: 18% 9%;
+  border: 0.08rem solid rgb(206 174 255 / 0.22);
+  border-radius: 50%;
+  transform: rotate(-16deg);
+}
+
+.carly-storybook__scene-star {
+  position: absolute;
+  z-index: 5;
+  color: #ffd880;
+  font-size: 1.1rem;
+}
+.carly-storybook__scene-star--one { top: 25%; left: 28%; }
+.carly-storybook__scene-star--two { top: 38%; right: 18%; color: #92dff5; }
+.carly-storybook__scene-star--three { bottom: 22%; right: 28%; color: #e99bc6; }
+
+.carly-storybook__page[data-scene='silence'] .carly-storybook__illustration { filter: saturate(0.72); }
+.carly-storybook__page[data-scene='silence'] .carly-storybook__tower { opacity: 0.62; }
+.carly-storybook__page[data-scene='between'] .carly-storybook__tower { transform: translateX(-26%) rotate(-8deg); opacity: 0.48; }
+.carly-storybook__page[data-scene='managed'] .carly-storybook__threads { border-style: dashed; animation: carly-story-orbit 14s linear infinite; }
+.carly-storybook__page[data-scene='managed'] .carly-storybook__seal { color: #ffd880; }
+
+.carly-storybook__footer button {
+  display: inline-flex;
+  min-height: var(--size-click-target);
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: center;
+  padding: 0 var(--space-4);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.carly-storybook__footer button:hover:not(:disabled) {
+  border-color: var(--color-action-primary);
+  background: color-mix(in srgb, var(--color-action-primary) 12%, var(--color-surface-primary));
+  color: var(--color-action-primary);
+}
+
+.carly-storybook__footer button:disabled { opacity: 0.38; cursor: default; }
+
+.carly-storybook__dots { display: flex; gap: var(--space-2); }
+.carly-storybook__dots span { width: 0.42rem; height: 0.42rem; border-radius: 50%; background: var(--color-border-strong); }
+.carly-storybook__dots span.is-active { width: 1.3rem; border-radius: var(--radius-round); background: var(--color-action-primary); }
+
+@keyframes carly-storybook-enter {
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.985); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes carly-story-orbit { to { transform: rotate(344deg); } }
+
+@media (max-width: 52rem) {
+  .carly-storybook { width: 94vw; height: 92vh; }
+  .carly-storybook__page { grid-template-columns: 1fr; }
+  .carly-storybook__illustration { min-height: 16rem; }
+  .carly-storybook__copy { padding: var(--space-6); }
+  .carly-storybook__copy h2 { font-size: clamp(1.8rem, 8vw, 3rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carly-storybook,
+  .carly-storybook__threads { animation: none !important; }
+}

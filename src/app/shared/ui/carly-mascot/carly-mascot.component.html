@@ -13,6 +13,13 @@
       <p class="carly-mascot__message" role="status">{{ messageText() }}</p>
     }
 
+    @if (carlyService.reaction() === 'celebrating') {
+      <div class="carly-board-celebration" aria-hidden="true">
+        <i>✦</i><i>★</i><i>✧</i><i>★</i><i>✦</i><i>✧</i><i>★</i><i>✦</i>
+        <i>✧</i><i>★</i><i>✦</i><i>★</i><i>✧</i><i>✦</i><i>★</i><i>✧</i>
+      </div>
+    }
+
     <div class="carly-mascot__actions" [class.carly-mascot__actions--open]="menuOpen()">
       <button type="button" aria-label="Carly streicheln" (click)="pet()">
         <span class="material-symbols-outlined" aria-hidden="true">waving_hand</span>

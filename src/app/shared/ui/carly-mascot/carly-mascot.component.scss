@@ -21,8 +21,9 @@
 
    01   Position und Dialog
    02   Carly und Aktionsmenü
-   03   Reduzierte Bewegung
-   04   Responsive Verhalten
+   03   Erfolgsreaktion
+   04   Reduzierte Bewegung
+   05   Responsive Verhalten
    ========================================================================== */
 
 /* ==========================================================================
@@ -103,12 +104,17 @@
   color: inherit;
 }
 
-.carly-mascot__face-button:hover {
-  filter: drop-shadow(0 0.45rem 0.55rem rgb(20 14 28 / 0.28));
+.carly-mascot__face-button:hover,
+.carly-mascot__face-button:focus-visible {
+  filter:
+    drop-shadow(0 0.2rem 0.28rem rgb(20 14 28 / 0.16))
+    drop-shadow(0 0 0.72rem color-mix(in srgb, var(--color-action-primary) 38%, transparent));
 }
 
 .carly-mascot__face-button:active {
-  filter: drop-shadow(0 0.28rem 0.36rem rgb(20 14 28 / 0.2));
+  filter:
+    drop-shadow(0 0.18rem 0.24rem rgb(20 14 28 / 0.14))
+    drop-shadow(0 0 0.42rem color-mix(in srgb, var(--color-action-primary) 26%, transparent));
 }
 
 .carly-mascot__actions {
@@ -147,6 +153,20 @@
   color: var(--color-text-primary);
   box-shadow: var(--shadow-sm);
   cursor: pointer;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    background var(--motion-duration-fast) var(--motion-easing-standard),
+    color var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.carly-mascot__actions button:hover,
+.carly-mascot__actions button:focus-visible {
+  border-color: color-mix(in srgb, var(--color-action-primary) 62%, var(--color-border-strong));
+  background: color-mix(in srgb, var(--color-action-primary) 15%, var(--color-surface-elevated));
+  color: var(--color-action-primary);
+  box-shadow: 0 0.25rem 0.7rem color-mix(in srgb, var(--color-action-primary) 22%, transparent);
 }
 
 .carly-mascot__actions .material-symbols-outlined {
@@ -172,12 +192,69 @@
 }
 
 /* ==========================================================================
-   03   Reduzierte Bewegung
+   03   Erfolgsreaktion
+   ========================================================================== */
+
+.carly-board-celebration {
+  position: fixed;
+  inset: var(--layout-topbar-height) 0 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.carly-board-celebration i {
+  --star-x: 50vw;
+  --star-y: 50vh;
+  --star-dx: 0rem;
+  --star-dy: -5rem;
+  position: absolute;
+  top: var(--star-y);
+  left: var(--star-x);
+  color: var(--color-action-primary);
+  font-size: clamp(0.75rem, 1.25vw, 1.35rem);
+  font-style: normal;
+  opacity: 0;
+  filter: drop-shadow(0 0 0.32rem currentColor);
+  animation: carly-board-star-burst 1850ms cubic-bezier(0.16, 0.82, 0.24, 1) both;
+}
+
+.carly-board-celebration i:nth-child(1) { --star-x: 12vw; --star-y: 70vh; --star-dx: 5rem; --star-dy: -17rem; color: #ffd45f; }
+.carly-board-celebration i:nth-child(2) { --star-x: 20vw; --star-y: 54vh; --star-dx: -2rem; --star-dy: -14rem; color: #8de8ff; animation-delay: 80ms; }
+.carly-board-celebration i:nth-child(3) { --star-x: 29vw; --star-y: 78vh; --star-dx: 3rem; --star-dy: -21rem; color: #f790c1; animation-delay: 150ms; }
+.carly-board-celebration i:nth-child(4) { --star-x: 37vw; --star-y: 63vh; --star-dx: -4rem; --star-dy: -18rem; color: #bfa1ff; animation-delay: 40ms; }
+.carly-board-celebration i:nth-child(5) { --star-x: 46vw; --star-y: 82vh; --star-dx: 2rem; --star-dy: -24rem; color: #ffe890; animation-delay: 210ms; }
+.carly-board-celebration i:nth-child(6) { --star-x: 55vw; --star-y: 58vh; --star-dx: 4rem; --star-dy: -15rem; color: #83e9d1; animation-delay: 110ms; }
+.carly-board-celebration i:nth-child(7) { --star-x: 64vw; --star-y: 74vh; --star-dx: -3rem; --star-dy: -20rem; color: #ff9a7c; animation-delay: 260ms; }
+.carly-board-celebration i:nth-child(8) { --star-x: 73vw; --star-y: 62vh; --star-dx: 2rem; --star-dy: -16rem; color: #c9a7ff; animation-delay: 20ms; }
+.carly-board-celebration i:nth-child(9) { --star-x: 82vw; --star-y: 80vh; --star-dx: -5rem; --star-dy: -22rem; color: #ffd45f; animation-delay: 180ms; }
+.carly-board-celebration i:nth-child(10) { --star-x: 90vw; --star-y: 56vh; --star-dx: -3rem; --star-dy: -15rem; color: #8de8ff; animation-delay: 90ms; }
+.carly-board-celebration i:nth-child(11) { --star-x: 16vw; --star-y: 38vh; --star-dx: 4rem; --star-dy: -11rem; color: #f790c1; animation-delay: 240ms; }
+.carly-board-celebration i:nth-child(12) { --star-x: 33vw; --star-y: 44vh; --star-dx: -1rem; --star-dy: -13rem; color: #83e9d1; animation-delay: 125ms; }
+.carly-board-celebration i:nth-child(13) { --star-x: 50vw; --star-y: 46vh; --star-dx: 1rem; --star-dy: -16rem; color: #ffe890; animation-delay: 300ms; }
+.carly-board-celebration i:nth-child(14) { --star-x: 68vw; --star-y: 42vh; --star-dx: 3rem; --star-dy: -12rem; color: #ff9a7c; animation-delay: 190ms; }
+.carly-board-celebration i:nth-child(15) { --star-x: 84vw; --star-y: 36vh; --star-dx: -4rem; --star-dy: -10rem; color: #bfa1ff; animation-delay: 70ms; }
+.carly-board-celebration i:nth-child(16) { --star-x: 58vw; --star-y: 88vh; --star-dx: -2rem; --star-dy: -26rem; color: #f790c1; animation-delay: 330ms; }
+
+@keyframes carly-board-star-burst {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.2) rotate(0deg); }
+  16% { opacity: 1; }
+  72% { opacity: 0.94; }
+  100% { opacity: 0; transform: translate(var(--star-dx), var(--star-dy)) scale(1.35) rotate(210deg); }
+}
+
+/* ==========================================================================
+   04   Reduzierte Bewegung
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .carly-mascot__face-button {
     transition: none;
+  }
+
+  .carly-board-celebration i {
+    animation: none;
+    opacity: 0;
   }
 }
 
@@ -187,9 +264,16 @@
   transition: none;
 }
 
+
+:host-context(:root[data-motion='off']) .carly-board-celebration i,
+:host-context(:root[data-motion='reduced']) .carly-board-celebration i,
+:host-context(:root[data-neuro='true']) .carly-board-celebration i {
+  animation: none;
+  opacity: 0;
+}
+
 /* ==========================================================================
-   03   Reduzierte Bewegung
-   04   Responsive Verhalten
+   05   Responsive Verhalten
    ========================================================================== */
 
 @media (max-width: 42rem) {
