@@ -2,6 +2,7 @@
 
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, HostListener, signal, untracked, viewChild } from '@angular/core';
 
+import { CarlyMessageService } from '../../../core/carly/carly-message.service';
 import { CarlyService } from '../../../core/carly/carly.service';
 import { CarlyFaceComponent } from '../carly-face/carly-face.component';
 
@@ -10,6 +11,8 @@ const DEFAULT_MASCOT_WIDTH_PX = 92;
 const DIRECTION_CHANGE_WINDOW_MS = 1_100;
 const DIRECTION_CHANGE_THRESHOLD = 2;
 const DRAG_DIRECTION_MIN_DELTA_PX = 6;
+const CONTEXT_MESSAGE_MIN_MS = 38_000;
+const CONTEXT_MESSAGE_MAX_MS = 75_000;
 
 @Component({
   selector: 'cm-carly-mascot',
@@ -41,8 +44,13 @@ export class CarlyMascotComponent {
   private directionChanges: number[] = [];
   private autoSleepTimer: number | null = null;
   private messageTimer: number | null = null;
+  private contextualMessageTimer: number | null = null;
 
-  constructor(carlyService: CarlyService, destroyRef: DestroyRef) {
+  constructor(
+    carlyService: CarlyService,
+    private readonly carlyMessageService: CarlyMessageService,
+    destroyRef: DestroyRef,
+  ) {
     this.carlyService = carlyService;
 
     const resetAutoSleep = (): void => this.scheduleAutoSleep();
@@ -78,6 +86,31 @@ export class CarlyMascotComponent {
       });
     });
 
+    effect(() => {
+      const messagesEnabled = this.carlyService.settings().messagesEnabled;
+      const sleeping = this.carlyService.isSleeping();
+      const speaking = this.carlyService.speaking();
+      const transition = this.carlyService.visualTransition();
+      const reaction = this.carlyService.reaction();
+      const menuOpen = this.menuOpen();
+
+      untracked(() => {
+        if (
+          !messagesEnabled ||
+          sleeping ||
+          speaking ||
+          transition !== 'none' ||
+          reaction !== 'none' ||
+          menuOpen
+        ) {
+          this.clearContextualMessageTimer();
+          return;
+        }
+
+        this.scheduleContextualMessage();
+      });
+    });
+
     afterNextRender(() => this.updateMascotWidth());
 
     destroyRef.onDestroy(() => {
@@ -85,6 +118,7 @@ export class CarlyMascotComponent {
       window.removeEventListener('keydown', resetAutoSleep);
       if (this.autoSleepTimer !== null) window.clearTimeout(this.autoSleepTimer);
       if (this.messageTimer !== null) window.clearTimeout(this.messageTimer);
+      this.clearContextualMessageTimer();
     });
   }
 
@@ -94,6 +128,43 @@ export class CarlyMascotComponent {
     if (!this.carlyService.settings().autoSleep || this.carlyService.progress().isSleeping) return;
 
     this.autoSleepTimer = window.setTimeout(() => this.carlyService.sleep(), 300_000);
+  }
+
+  /** Plant einen kontextbezogenen Carly-Kommentar mit bewusst großem Zufallsabstand. */
+  private scheduleContextualMessage(): void {
+    if (this.contextualMessageTimer !== null || !this.canSpeakContextualMessage()) return;
+
+    const delay =
+      CONTEXT_MESSAGE_MIN_MS +
+      Math.random() * (CONTEXT_MESSAGE_MAX_MS - CONTEXT_MESSAGE_MIN_MS);
+
+    this.contextualMessageTimer = window.setTimeout(() => {
+      this.contextualMessageTimer = null;
+      if (!this.canSpeakContextualMessage()) return;
+
+      this.carlyService.speak(this.carlyMessageService.pickMessage());
+    }, delay);
+  }
+
+  /** Prüft, ob Carly gerade einen unaufdringlichen Kontextkommentar geben darf. */
+  private canSpeakContextualMessage(): boolean {
+    return (
+      this.carlyService.settings().messagesEnabled &&
+      !this.carlyService.progress().isSleeping &&
+      !this.carlyService.speaking() &&
+      this.carlyService.visualTransition() === 'none' &&
+      this.carlyService.reaction() === 'none' &&
+      !this.menuOpen() &&
+      !this.dragging
+    );
+  }
+
+  /** Entfernt einen noch nicht ausgelösten Kontextkommentar. */
+  private clearContextualMessageTimer(): void {
+    if (this.contextualMessageTimer === null) return;
+
+    window.clearTimeout(this.contextualMessageTimer);
+    this.contextualMessageTimer = null;
   }
 
   /** Öffnet oder schließt Carlys Schnellaktionen. */
@@ -139,6 +210,7 @@ export class CarlyMascotComponent {
     event.preventDefault();
     this.updateMascotWidth();
     this.dragging = true;
+    this.clearContextualMessageTimer();
     this.dragOffset = event.clientX - element.getBoundingClientRect().left;
     this.lastDragX = event.clientX;
     const now = performance.now();
@@ -174,6 +246,7 @@ export class CarlyMascotComponent {
     this.dragging = false;
     this.lastDragX = null;
     this.carlyService.persistPositionX();
+    this.scheduleContextualMessage();
   }
 
   /** Hält die Position nach einer Größenänderung im sichtbaren Bereich. */

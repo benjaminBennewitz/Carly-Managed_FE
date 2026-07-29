@@ -31,9 +31,9 @@ Carly-Managed_FE/
 │   │       │   ├── kpi-navigation.svg
 │   │       │   ├── kpi-realtime.svg
 │   │       │   └── kpi-views.svg
-│   │       ├── carly.webp
-│   │       ├── carly-logo.webp
-│   │       └── carly-managed-logo.svg
+│   │       ├── carly-managed-logo_big.webp
+│   │       ├── carly-managed-logo_wide.webp
+│   │       └── carly-managed-logo_wide_claim.webp
 │   └── favicon.ico
 ├── src/
 │   ├── app/
@@ -57,7 +57,9 @@ Carly-Managed_FE/
 │   │   │   ├── carly/
 │   │   │   │   ├── carly.models.ts
 │   │   │   │   ├── carly.service.spec.ts
-│   │   │   │   └── carly.service.ts
+│   │   │   │   ├── carly.service.ts
+│   │   │   │   ├── carly-message.catalog.ts
+│   │   │   │   └── carly-message.service.ts
 │   │   │   ├── demo/
 │   │   │   │   ├── demo-data.service.spec.ts
 │   │   │   │   └── demo-data.service.ts

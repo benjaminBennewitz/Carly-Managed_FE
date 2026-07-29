@@ -5,6 +5,7 @@
     #wrapper
     class="carly-mascot"
     [class.carly-mascot--sleeping]="carlyService.progress().isSleeping"
+    [class.carly-mascot--speaking]="carlyService.speaking()"
     [style.left.px]="leftPositionPx()"
     aria-label="Carly Maskottchen"
   >
