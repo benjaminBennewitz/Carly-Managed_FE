@@ -1,76 +1,166 @@
 <!-- src/app/features/carly/pages/carly-page/carly-page.component.html -->
 
 <section class="carly-page">
-  <cm-page-header eyebrow="Pflege deine magische Begleiterin und wachse durch echte Produktivität." title="Carly" />
+  <cm-page-header
+    eyebrow="Pflege deine magische Begleiterin und wachse durch echte Produktivität."
+    title="Carly"
+  />
 
   @if (!carlyService.settings().enabled) {
     <article class="carly-disabled">
       <span class="material-symbols-outlined" aria-hidden="true">pets</span>
-      <div><h2>Carly ist deaktiviert</h2><p>Aktiviere Carly in den Einstellungen, um das Dashboard und das globale Maskottchen zu verwenden.</p></div>
-      <button type="button" (click)="carlyService.updateSettings({ enabled: true })">Carly aktivieren</button>
+      <div>
+        <h2>Carly ist deaktiviert</h2>
+        <p>
+          Aktiviere Carly in den Einstellungen, um das Dashboard und das globale Maskottchen zu
+          verwenden.
+        </p>
+      </div>
+      <button type="button" (click)="carlyService.updateSettings({ enabled: true })">
+        Carly aktivieren
+      </button>
     </article>
   } @else {
     <div class="carly-dashboard">
       <article class="carly-habitat">
-        <div class="carly-stage" aria-hidden="true">
-          <div class="carly-stage__backdrop">
+        <div class="carly-stage">
+          <div class="carly-stage__backdrop" aria-hidden="true">
             <span class="carly-stage__glow"></span>
             <span class="carly-stage__stars carly-stage__stars--near"></span>
             <span class="carly-stage__stars carly-stage__stars--far"></span>
           </div>
+
           <div class="carly-stage__mascot">
-            <span class="carly-stage__orbit carly-stage__orbit--outer"></span>
-            <span class="carly-stage__orbit carly-stage__orbit--inner"></span>
-            <div class="carly-stage__cat">
-              <span class="carly-stage__ear carly-stage__ear--left"></span>
-              <span class="carly-stage__ear carly-stage__ear--right"></span>
-              <div class="carly-stage__face">
-                <span class="carly-stage__eye carly-stage__eye--left"><i></i></span>
-                <span class="carly-stage__eye carly-stage__eye--right"><i></i></span>
-                <span class="carly-stage__muzzle"></span>
-              </div>
-            </div>
-            <span class="carly-stage__spark carly-stage__spark--one"></span>
-            <span class="carly-stage__spark carly-stage__spark--two"></span>
-            <span class="carly-stage__spark carly-stage__spark--three"></span>
+            <span class="carly-stage__orbit carly-stage__orbit--outer" aria-hidden="true"></span>
+            <span class="carly-stage__orbit carly-stage__orbit--inner" aria-hidden="true"></span>
+
+            <cm-carly-character
+              class="carly-stage__character"
+              mode="full"
+              [animateTail]="true"
+              [reduced]="carlyService.settings().reduceAnimations"
+            />
+
+            <span class="carly-stage__spark carly-stage__spark--one" aria-hidden="true"></span>
+            <span class="carly-stage__spark carly-stage__spark--two" aria-hidden="true"></span>
+            <span class="carly-stage__spark carly-stage__spark--three" aria-hidden="true"></span>
           </div>
         </div>
+
         <div class="carly-habitat__level">Level {{ carlyService.progress().level }}</div>
-        <p class="carly-habitat__message">{{ carlyService.progress().lastMessage }}</p>
+        <p class="carly-habitat__message" role="status">{{ carlyService.displayMessage() }}</p>
       </article>
 
       <article class="carly-panel carly-panel--status">
-        <header><div><p>Status</p><h2>{{ carlyService.progress().mood }}</h2></div><span class="material-symbols-outlined">auto_awesome</span></header>
-        <div class="carly-meter"><span><b>Zuneigung</b><em>{{ carlyService.progress().affection }} %</em></span><i><b [style.width.%]="carlyService.progress().affection"></b></i></div>
-        <div class="carly-meter"><span><b>Energie</b><em>{{ carlyService.progress().energy }} %</em></span><i><b [style.width.%]="carlyService.progress().energy"></b></i></div>
-        <div class="carly-meter"><span><b>Sättigung</b><em>{{ carlyService.progress().satiety }} %</em></span><i><b [style.width.%]="carlyService.progress().satiety"></b></i></div>
+        <header>
+          <div>
+            <p>Status</p>
+            <h2>{{ carlyService.progress().mood }}</h2>
+          </div>
+          <span class="material-symbols-outlined">auto_awesome</span>
+        </header>
+        <div class="carly-meter">
+          <span
+            ><b>Zuneigung</b><em>{{ carlyService.progress().affection }} %</em></span
+          ><i><b [style.width.%]="carlyService.progress().affection"></b></i>
+        </div>
+        <div class="carly-meter">
+          <span
+            ><b>Energie</b><em>{{ carlyService.progress().energy }} %</em></span
+          ><i><b [style.width.%]="carlyService.progress().energy"></b></i>
+        </div>
+        <div class="carly-meter">
+          <span
+            ><b>Sättigung</b><em>{{ carlyService.progress().satiety }} %</em></span
+          ><i><b [style.width.%]="carlyService.progress().satiety"></b></i>
+        </div>
       </article>
 
       <article class="carly-panel carly-panel--level">
-        <header><div><p>Fortschritt</p><h2>Magische Entwicklung</h2></div><span class="material-symbols-outlined">workspace_premium</span></header>
-        <div class="carly-level-ring"><strong>{{ carlyService.progress().level }}</strong><span>Level</span></div>
-        <div class="carly-meter"><span><b>Erfahrung</b><em>{{ carlyService.levelProgress() }} / 100 XP</em></span><i><b [style.width.%]="carlyService.levelProgress()"></b></i></div>
-        <p class="carly-streak"><span class="material-symbols-outlined">local_fire_department</span><strong>{{ carlyService.progress().streak }} Tage</strong> Produktivitätsstreak</p>
+        <header>
+          <div>
+            <p>Fortschritt</p>
+            <h2>Magische Entwicklung</h2>
+          </div>
+          <span class="material-symbols-outlined">workspace_premium</span>
+        </header>
+        <div class="carly-level-ring">
+          <strong>{{ carlyService.progress().level }}</strong><span>Level</span>
+        </div>
+        <div class="carly-meter">
+          <span
+            ><b>Erfahrung</b><em>{{ carlyService.levelProgress() }} / 100 XP</em></span
+          ><i><b [style.width.%]="carlyService.levelProgress()"></b></i>
+        </div>
+        <p class="carly-streak">
+          <span class="material-symbols-outlined">local_fire_department</span
+          ><strong>{{ carlyService.progress().streak }} Tage</strong> Produktivitätsstreak
+        </p>
       </article>
 
       <article class="carly-panel carly-panel--actions">
-        <header><div><p>Interaktion</p><h2>Carly-Aktionen</h2></div><span class="material-symbols-outlined">touch_app</span></header>
+        <header>
+          <div>
+            <p>Interaktion</p>
+            <h2>Carly-Aktionen</h2>
+          </div>
+          <span class="material-symbols-outlined">touch_app</span>
+        </header>
         <div class="carly-actions">
-          <button type="button" [disabled]="carlyService.progress().isSleeping" (click)="pet()"><span class="material-symbols-outlined">waving_hand</span><strong>Streicheln</strong><small>+5 Zuneigung</small></button>
-          <button type="button" [disabled]="carlyService.progress().isSleeping" (click)="carlyService.play()"><span class="material-symbols-outlined">sports_esports</span><strong>Spielen</strong><small>+8 XP</small></button>
+          <button type="button" (click)="pet()">
+            <span class="material-symbols-outlined">waving_hand</span>
+            <strong>Streicheln</strong>
+            <small>
+              {{
+                carlyService.progress().isSleeping
+                  ? 'Hat im Schlaf keinen Effekt'
+                  : '+5 Zuneigung'
+              }}
+            </small>
+          </button>
+          <button
+            type="button"
+            [disabled]="carlyService.progress().isSleeping"
+            (click)="carlyService.play()"
+          >
+            <span class="material-symbols-outlined">sports_esports</span>
+            <strong>Spielen</strong>
+            <small>+8 XP</small>
+          </button>
+
           @if (carlyService.progress().isSleeping) {
-            <button type="button" (click)="carlyService.wake()"><span class="material-symbols-outlined">bedtime_off</span><strong>Aufwecken</strong><small>Energie auffüllen</small></button>
+            <button type="button" (click)="carlyService.wake()">
+              <span class="material-symbols-outlined">bedtime_off</span>
+              <strong>Aufwecken</strong>
+              <small>Energie auffüllen</small>
+            </button>
           } @else {
-            <button type="button" (click)="carlyService.sleep()"><span class="material-symbols-outlined">bedtime</span><strong>Schlafen</strong><small>Ruhemodus</small></button>
+            <button type="button" (click)="carlyService.sleep()">
+              <span class="material-symbols-outlined">bedtime</span>
+              <strong>Schlafen</strong>
+              <small>Ruhemodus</small>
+            </button>
           }
         </div>
       </article>
 
       <article class="carly-panel carly-panel--food">
-        <header><div><p>Inventar</p><h2>Carly füttern</h2></div><span class="material-symbols-outlined">restaurant</span></header>
+        <header>
+          <div>
+            <p>Inventar</p>
+            <h2>Carly füttern</h2>
+          </div>
+          <span class="material-symbols-outlined">restaurant</span>
+        </header>
         <div class="carly-food-grid">
           @for (food of foods; track food.id) {
-            <button type="button" [disabled]="carlyService.progress().isSleeping" (click)="carlyService.feed(food.id)"><span>{{ food.emoji }}</span><strong>{{ food.label }}</strong></button>
+            <button
+              type="button"
+              [disabled]="carlyService.progress().isSleeping"
+              (click)="carlyService.feed(food.id)"
+            >
+              <span>{{ food.emoji }}</span><strong>{{ food.label }}</strong>
+            </button>
           }
         </div>
       </article>

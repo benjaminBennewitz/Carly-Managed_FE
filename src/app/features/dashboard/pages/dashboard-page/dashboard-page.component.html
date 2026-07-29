@@ -122,7 +122,9 @@
     </article>
 
     <aside class="dashboard-carly">
-      <div class="dashboard-carly__visual"><cm-carly-face [sleeping]="carlyService.progress().isSleeping" /></div>
+      <div class="dashboard-carly__visual">
+        <cm-carly-face [reduced]="carlyService.settings().reduceAnimations" />
+      </div>
       <div class="dashboard-carly__content">
         <span>Carly Kurzstatus</span>
         <div class="dashboard-carly__title"><h2>{{ moodLabel() }}</h2><strong>Level {{ carlyService.progress().level }}</strong></div>

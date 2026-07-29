@@ -3,12 +3,12 @@ Carly-Managed_FE/
 │   └── ...
 ├── .vscode/
 │   └── ...
-├── dist/
-│   └── ...
 ├── node_modules/
 │   └── ...
 ├── public/
 │   ├── assets/
+│   │   ├── carly/
+│   │   │   └── carly.svg
 │   │   ├── fonts/
 │   │   │   ├── archivo/
 │   │   │   │   ├── .gitkeep
@@ -228,6 +228,10 @@ Carly-Managed_FE/
 │   │   │               └── settings-page.forms.scss
 │   │   ├── shared/
 │   │   │   ├── ui/
+│   │   │   │   ├── carly-character/
+│   │   │   │   │   ├── carly-character.component.html
+│   │   │   │   │   ├── carly-character.component.scss
+│   │   │   │   │   └── carly-character.component.ts
 │   │   │   │   ├── carly-face/
 │   │   │   │   │   ├── carly-face.component.html
 │   │   │   │   │   ├── carly-face.component.scss

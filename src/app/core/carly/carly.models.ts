@@ -2,6 +2,8 @@
 
 export type CarlyMood = 'glücklich' | 'neugierig' | 'müde' | 'hungrig';
 export type CarlyFoodId = 'fish' | 'berry' | 'cookie' | 'potion';
+export type CarlyVisualTransition = 'none' | 'sleeping' | 'waking';
+export type CarlyReaction = 'none' | 'petted' | 'dizzy';
 
 export interface CarlySettings {
   enabled: boolean;

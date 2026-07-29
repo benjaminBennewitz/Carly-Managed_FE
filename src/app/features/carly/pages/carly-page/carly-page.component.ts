@@ -1,14 +1,15 @@
 // src/app/features/carly/pages/carly-page/carly-page.component.ts
 
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { CarlyFoodId } from '../../../../core/carly/carly.models';
 import { CarlyService } from '../../../../core/carly/carly.service';
+import { CarlyCharacterComponent } from '../../../../shared/ui/carly-character/carly-character.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 
 @Component({
   selector: 'cm-carly-page',
-  imports: [PageHeaderComponent],
+  imports: [CarlyCharacterComponent, PageHeaderComponent],
   templateUrl: './carly-page.component.html',
   styleUrls: [
     './carly-page.component.scss',
@@ -22,7 +23,6 @@ import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-head
 })
 export class CarlyPageComponent {
   protected readonly carlyService: CarlyService;
-  protected readonly petted = signal(false);
   protected readonly foods: readonly { id: CarlyFoodId; emoji: string; label: string }[] = [
     { id: 'fish', emoji: '🐟', label: 'Mondfisch' },
     { id: 'berry', emoji: '🫐', label: 'Mystikbeeren' },
@@ -30,8 +30,12 @@ export class CarlyPageComponent {
     { id: 'potion', emoji: '🧪', label: 'Energietrank' },
   ];
 
-  constructor(carlyService: CarlyService) { this.carlyService = carlyService; }
+  constructor(carlyService: CarlyService) {
+    this.carlyService = carlyService;
+  }
 
-  /** Streichelt Carly und zeigt eine kurze Herzanimation. */
-  protected pet(): void { this.carlyService.pet(); this.petted.set(true); window.setTimeout(() => this.petted.set(false), 1_800); }
+  /** Streichelt Carly oder zeigt im Schlaf den Hinweis ohne Serveraktion. */
+  protected pet(): void {
+    this.carlyService.pet();
+  }
 }

@@ -2,7 +2,7 @@
 ###
 ###     carly-page.animations.scss
 ###     Produktion App
-###     BASED ON: Angular  21.02.0, SCSS,
+###     BASED ON: Angular 21.2.19, SCSS
 ###     AUTHOR: Benjamin Bennewitz
 ###
 ###
@@ -16,41 +16,20 @@
 ###
 #################################*/
 
-/* ========================================================================== 
+/* ==========================================================================
    INHALTSVERZEICHNIS
 
-   01   Animationen und reduzierte Bewegung
+   01   Animationen
+   02   Reduzierte Bewegung
    ========================================================================== */
 
-/* ========================================================================== 
-   01   Animationen und reduzierte Bewegung
+/* ==========================================================================
+   01   Animationen
    ========================================================================== */
 
 @keyframes carly-stage-idle {
-  0%, 100% { transform: translateY(0) rotate(-1deg); }
-  50% { transform: translateY(-0.7rem) rotate(1deg); }
-}
-
-@keyframes carly-stage-blink {
-  0%, 88%, 94%, 100% { height: 0; }
-  91% { height: 100%; }
-}
-
-@keyframes carly-stage-look {
-  0%, 55%, 100% { transform: translate(0); }
-  10%, 30% { transform: translate(50%, -22%); }
-  38%, 50% { transform: translate(-95%, -22%); }
-}
-
-@keyframes carly-stage-orbit { to { transform: rotate(360deg); } }
-@keyframes carly-stage-orbit-reverse { to { transform: rotate(-360deg); } }
-@keyframes carly-stage-stars {
-  0% { opacity: 0.5; transform: scale(1); }
-  100% { opacity: 1; transform: scale(1.018); }
-}
-@keyframes carly-stage-glow {
-  0% { opacity: 0.45; transform: scaleX(0.92); }
-  100% { opacity: 0.9; transform: scaleX(1.08); }
+  0%, 100% { transform: translateY(0) rotate(-0.45deg); }
+  50% { transform: translateY(-0.38rem) rotate(0.45deg); }
 }
 
 @keyframes carly-stage-spark {
@@ -58,36 +37,34 @@
   50% { opacity: 1; transform: scale(1.2) rotate(45deg); }
 }
 
+/* ==========================================================================
+   02   Reduzierte Bewegung
+   ========================================================================== */
+
 :host-context(:root[data-motion='off']) .carly-stage__mascot,
 :host-context(:root[data-motion='reduced']) .carly-stage__mascot,
-:host-context(:root[data-motion='off']) .carly-stage__mascot::before,
-:host-context(:root[data-motion='reduced']) .carly-stage__mascot::before,
-:host-context(:root[data-motion='off']) .carly-stage__mascot::after,
-:host-context(:root[data-motion='reduced']) .carly-stage__mascot::after,
-:host-context(:root[data-motion='off']) .carly-stage__eye::after,
-:host-context(:root[data-motion='reduced']) .carly-stage__eye::after,
-:host-context(:root[data-motion='off']) .carly-stage__eye i,
-:host-context(:root[data-motion='reduced']) .carly-stage__eye i,
 :host-context(:root[data-motion='off']) .carly-stage__spark,
 :host-context(:root[data-motion='reduced']) .carly-stage__spark,
-:host-context(:root[data-neuro='true']) .carly-stage__mascot,
-:host-context(:root[data-neuro='true']) .carly-stage__mascot::before,
-:host-context(:root[data-neuro='true']) .carly-stage__mascot::after,
-:host-context(:root[data-neuro='true']) .carly-stage__eye::after,
-:host-context(:root[data-neuro='true']) .carly-stage__eye i,
-:host-context(:root[data-neuro='true']) .carly-stage__spark,
-:host-context(:root[data-motion='off']) .carly-habitat::before,
-:host-context(:root[data-motion='reduced']) .carly-habitat::before,
-:host-context(:root[data-neuro='true']) .carly-habitat::before,
-:host-context(:root[data-motion='off']) .carly-habitat::after,
-:host-context(:root[data-motion='reduced']) .carly-habitat::after,
-:host-context(:root[data-neuro='true']) .carly-habitat::after { animation: none; }
-
+:host-context(:root[data-motion='off']) .carly-stage__glow,
 :host-context(:root[data-motion='reduced']) .carly-stage__glow,
+:host-context(:root[data-motion='off']) .carly-stage__stars,
 :host-context(:root[data-motion='reduced']) .carly-stage__stars,
+:host-context(:root[data-motion='off']) .carly-stage__orbit,
 :host-context(:root[data-motion='reduced']) .carly-stage__orbit,
+:host-context(:root[data-neuro='true']) .carly-stage__mascot,
+:host-context(:root[data-neuro='true']) .carly-stage__spark,
 :host-context(:root[data-neuro='true']) .carly-stage__glow,
 :host-context(:root[data-neuro='true']) .carly-stage__stars,
 :host-context(:root[data-neuro='true']) .carly-stage__orbit {
   animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carly-stage__mascot,
+  .carly-stage__spark,
+  .carly-stage__glow,
+  .carly-stage__stars,
+  .carly-stage__orbit {
+    animation: none;
+  }
 }

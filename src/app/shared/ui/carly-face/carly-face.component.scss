@@ -2,7 +2,7 @@
 ###
 ###     carly-face.component.scss
 ###     Produktion App
-###     BASED ON: Angular  21.02.0, SCSS,
+###     BASED ON: Angular 21.2.19, SCSS
 ###     AUTHOR: Benjamin Bennewitz
 ###
 ###
@@ -16,226 +16,29 @@
 ###
 #################################*/
 
-/* ========================================================================== 
+/* ==========================================================================
    INHALTSVERZEICHNIS
 
-   01   Grundform
-   02   Ohren und Gesicht
-   03   Augen und Pupillen
-   04   Zustände und Animationen
+   01   Kopfansicht
    ========================================================================== */
 
-/* ========================================================================== 
-   01   Grundform
+/* ==========================================================================
+   01   Kopfansicht
    ========================================================================== */
 
-:host { display: block; }
+:host {
+  display: block;
+}
 
 .carly-face {
-  --carly-size: 5rem;
-  position: relative;
-  width: calc(var(--carly-size) * 1.13);
-  height: var(--carly-size);
+  width: 5.7rem;
 }
 
-.carly-face--large { --carly-size: 10rem; }
-
-.cat {
-  position: absolute;
-  width: calc(var(--carly-size) * 1.13);
-  height: var(--carly-size);
-  filter: drop-shadow(0 0.32rem 0.28rem rgb(18 12 24 / 0.22));
-  transition: filter 220ms var(--motion-easing-standard);
+.carly-face--large {
+  width: 10.5rem;
 }
 
-.cat:hover {
-  filter: drop-shadow(0 0.5rem 0.5rem rgb(18 12 24 / 0.34));
-}
-
-/* ========================================================================== 
-   02   Ohren und Gesicht
-   ========================================================================== */
-
-.ear {
-  position: absolute;
-  top: -30%;
-  z-index: 1;
-  width: 35%;
-  height: 80%;
-  border-top: 0.3125rem solid #21172a;
-  background: #3b2a49;
-}
-
-.ear::before,
-.ear::after {
-  content: '';
-  position: absolute;
-  bottom: 30%;
-  width: 6%;
-  height: 35%;
-  background: #21172a;
-}
-
-.ear::after { transform-origin: 40% 80%; }
-
-.ear--left {
-  left: -5%;
-  border-radius: 70% 30% 0 0 / 100% 100% 0 0;
-  transform: rotate(-15deg);
-}
-
-.ear--left::before,
-.ear--left::after { right: 20%; }
-.ear--left::after { transform: rotate(-45deg); }
-
-.ear--right {
-  right: -5%;
-  border-radius: 30% 70% 0 0 / 100% 100% 0 0;
-  transform: rotate(15deg);
-}
-
-.ear--right::before,
-.ear--right::after { left: 20%; }
-.ear--right::after { transform: rotate(45deg); }
-
-.face {
-  position: absolute;
-  z-index: 2;
+.carly-face cm-carly-character {
+  display: block;
   width: 100%;
-  height: 100%;
-  border-radius: 45%;
-  background: #21172a;
 }
-
-.muzzle {
-  position: absolute;
-  top: 60%;
-  left: 50%;
-  width: 10%;
-  height: 6%;
-  border-radius: 50%;
-  background: #000;
-  transform: translateX(-50%);
-}
-
-/* ========================================================================== 
-   03   Augen und Pupillen
-   ========================================================================== */
-
-.eye {
-  position: absolute;
-  top: 35%;
-  width: 31%;
-  height: 30%;
-  overflow: hidden;
-  border-radius: 50%;
-  background: #fff;
-}
-
-.eye::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 0;
-  border-radius: 0 0 50% 50%;
-  background: #21172a;
-  animation: carly-blink 4s infinite ease-in;
-}
-
-.eye::before {
-  content: '';
-  position: absolute;
-  top: 60%;
-  width: 15%;
-  height: 10%;
-  border-radius: 50%;
-  background: #fff;
-}
-
-.eye--left { left: 0; }
-.eye--left::before { right: -5%; }
-.eye--right { right: 0; }
-.eye--right::before { left: -5%; }
-
-.eye-pupil {
-  position: absolute;
-  top: 25%;
-  width: 30%;
-  height: 50%;
-  border-radius: 50%;
-  background: #000;
-  animation: carly-look-around 4s infinite;
-}
-
-.eye--left .eye-pupil { right: 30%; }
-.eye--right .eye-pupil { left: 30%; }
-
-.eye-pupil::after {
-  content: '';
-  position: absolute;
-  top: 30%;
-  right: -5%;
-  width: 45%;
-  height: 30%;
-  border-radius: 50%;
-  background: #fff;
-}
-
-/* ========================================================================== 
-   04   Zustände und Animationen
-   ========================================================================== */
-
-.carly-face--sleeping .eye::after {
-  height: 100%;
-  animation: none;
-}
-
-.carly-face--petted .cat { animation: carly-pet 0.7s ease-in-out 3; }
-
-.sleeping-zs,
-.heart-container {
-  position: absolute;
-  z-index: 4;
-  display: flex;
-  color: var(--color-accent);
-  font-family: var(--font-family-highlight);
-  font-weight: var(--font-weight-bold);
-}
-
-.sleeping-zs {
-  top: -35%;
-  right: -18%;
-  align-items: flex-end;
-  gap: 0.08rem;
-  animation: carly-float 1.8s infinite;
-}
-
-.sleeping-zs span:nth-child(2) { font-size: 0.8em; }
-.sleeping-zs span:nth-child(3) { font-size: 0.62em; }
-
-.heart-container {
-  top: -34%;
-  left: 8%;
-  gap: 0.1rem;
-  animation: carly-float 0.8s infinite alternate;
-}
-
-@keyframes carly-blink {
-  0%, 90%, 95%, 100% { height: 0; }
-  97.5% { height: 100%; }
-}
-
-@keyframes carly-look-around {
-  0%, 55%, 100% { transform: translate(0); }
-  5%, 30% { transform: translate(50%, -25%); }
-  35%, 50% { transform: translate(-100%, -25%); }
-}
-
-@keyframes carly-pet { 50% { transform: translateY(-0.35rem) rotate(-2deg); } }
-@keyframes carly-float { to { opacity: 0.6; transform: translateY(-0.5rem); } }
-
-:host-context(:root[data-motion='reduced']) .carly-face *,
-:host-context(:root[data-neuro='true']) .carly-face *,
-.carly-face[data-reduced='true'] * { animation: none !important; }

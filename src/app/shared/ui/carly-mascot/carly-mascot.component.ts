@@ -1,22 +1,15 @@
 // src/app/shared/ui/carly-mascot/carly-mascot.component.ts
 
-import {
-  afterNextRender,
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  DestroyRef,
-  ElementRef,
-  HostListener,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, HostListener, signal, untracked, viewChild } from '@angular/core';
 
 import { CarlyService } from '../../../core/carly/carly.service';
 import { CarlyFaceComponent } from '../carly-face/carly-face.component';
 
 const VIEWPORT_GUTTER_PX = 12;
-const DEFAULT_MASCOT_WIDTH_PX = 90;
+const DEFAULT_MASCOT_WIDTH_PX = 92;
+const DIRECTION_CHANGE_WINDOW_MS = 1_100;
+const DIRECTION_CHANGE_THRESHOLD = 2;
+const DRAG_DIRECTION_MIN_DELTA_PX = 6;
 
 @Component({
   selector: 'cm-carly-mascot',
@@ -28,8 +21,8 @@ const DEFAULT_MASCOT_WIDTH_PX = 90;
 export class CarlyMascotComponent {
   protected readonly carlyService: CarlyService;
   protected readonly menuOpen = signal(false);
-  protected readonly petted = signal(false);
   protected readonly messageVisible = signal(false);
+  protected readonly messageText = signal('');
   protected readonly leftPositionPx = computed(() => {
     const availableWidth = Math.max(
       0,
@@ -37,21 +30,56 @@ export class CarlyMascotComponent {
     );
     return VIEWPORT_GUTTER_PX + this.carlyService.progress().positionX * availableWidth;
   });
+
   private readonly wrapper = viewChild<ElementRef<HTMLElement>>('wrapper');
   private readonly viewportWidth = signal(window.innerWidth);
   private readonly mascotWidth = signal(DEFAULT_MASCOT_WIDTH_PX);
   private dragging = false;
   private dragOffset = 0;
+  private lastDragX: number | null = null;
+  private lastDragDirection = 0;
+  private directionChanges: number[] = [];
   private autoSleepTimer: number | null = null;
   private messageTimer: number | null = null;
 
   constructor(carlyService: CarlyService, destroyRef: DestroyRef) {
     this.carlyService = carlyService;
+
     const resetAutoSleep = (): void => this.scheduleAutoSleep();
     window.addEventListener('pointerdown', resetAutoSleep, { passive: true });
     window.addEventListener('keydown', resetAutoSleep);
+
+    effect(() => {
+      const sequence = this.carlyService.messageSequence();
+      if (sequence === 0) return;
+
+      untracked(() => {
+        const text = this.carlyService.activeMessage();
+        if (text) {
+          this.showMessage(text, this.carlyService.messageDurationMs());
+        }
+      });
+    });
+
+    effect(() => {
+      const autoSleep = this.carlyService.settings().autoSleep;
+      const sleeping = this.carlyService.isSleeping();
+
+      untracked(() => {
+        if (!autoSleep || sleeping) {
+          if (this.autoSleepTimer !== null) {
+            window.clearTimeout(this.autoSleepTimer);
+            this.autoSleepTimer = null;
+          }
+          return;
+        }
+
+        this.scheduleAutoSleep();
+      });
+    });
+
     afterNextRender(() => this.updateMascotWidth());
-    this.scheduleAutoSleep();
+
     destroyRef.onDestroy(() => {
       window.removeEventListener('pointerdown', resetAutoSleep);
       window.removeEventListener('keydown', resetAutoSleep);
@@ -64,6 +92,7 @@ export class CarlyMascotComponent {
   private scheduleAutoSleep(): void {
     if (this.autoSleepTimer !== null) window.clearTimeout(this.autoSleepTimer);
     if (!this.carlyService.settings().autoSleep || this.carlyService.progress().isSleeping) return;
+
     this.autoSleepTimer = window.setTimeout(() => this.carlyService.sleep(), 300_000);
   }
 
@@ -72,52 +101,60 @@ export class CarlyMascotComponent {
     this.menuOpen.update((open) => !open);
   }
 
-  /** Führt die Streichelreaktion aus. */
+  /** Führt die Streichelreaktion aus oder zeigt im Schlaf den vorgesehenen Hinweis. */
   protected pet(): void {
     this.carlyService.pet();
-    this.petted.set(true);
-    this.showMessage();
-    window.setTimeout(() => this.petted.set(false), 1_800);
   }
 
-  /** Legt Carly schlafen und zeigt die Reaktion kurzzeitig an. */
+  /** Legt Carly schlafen. */
   protected sleep(): void {
     this.carlyService.sleep();
-    this.showMessage();
   }
 
-  /** Weckt Carly auf und zeigt die Reaktion kurzzeitig an. */
+  /** Weckt Carly auf. */
   protected wake(): void {
     this.carlyService.wake();
-    this.showMessage();
   }
 
-  /** Zeigt Carlys Sprachbox nur zeitlich begrenzt an. */
-  private showMessage(): void {
-    if (!this.carlyService.settings().messagesEnabled) return;
+  /** Zeigt Carlys Hinweisbox für die übergebene Dauer. */
+  private showMessage(message: string, durationMs: number): void {
+    if (!this.carlyService.settings().messagesEnabled && message !== 'Streicheln hat keinen Effekt') {
+      return;
+    }
+
     if (this.messageTimer !== null) window.clearTimeout(this.messageTimer);
+    this.messageText.set(message);
     this.messageVisible.set(true);
     this.messageTimer = window.setTimeout(() => {
       this.messageVisible.set(false);
       this.messageTimer = null;
-    }, 4_500);
+    }, Math.max(1_400, durationMs));
   }
 
   /** Beginnt das horizontale Verschieben. */
   protected startDrag(event: PointerEvent): void {
     const element = this.wrapper()?.nativeElement;
     if (!element) return;
+
     event.preventDefault();
     this.updateMascotWidth();
     this.dragging = true;
     this.dragOffset = event.clientX - element.getBoundingClientRect().left;
+    this.lastDragX = event.clientX;
+    const now = performance.now();
+    this.directionChanges = this.directionChanges.filter(
+      (timestamp) => now - timestamp <= DIRECTION_CHANGE_WINDOW_MS,
+    );
     element.setPointerCapture(event.pointerId);
   }
 
-  /** Verschiebt Carly lokal und ausschließlich horizontal. */
+  /** Verschiebt Carly lokal, ausschließlich horizontal, und erkennt schnelle Richtungswechsel. */
   @HostListener('window:pointermove', ['$event'])
   protected move(event: PointerEvent): void {
     if (!this.dragging) return;
+
+    this.detectDirectionChange(event.clientX);
+
     const availableWidth = Math.max(
       1,
       this.viewportWidth() - this.mascotWidth() - VIEWPORT_GUTTER_PX * 2,
@@ -133,7 +170,9 @@ export class CarlyMascotComponent {
   @HostListener('window:pointerup')
   protected stopDrag(): void {
     if (!this.dragging) return;
+
     this.dragging = false;
+    this.lastDragX = null;
     this.carlyService.persistPositionX();
   }
 
@@ -142,6 +181,35 @@ export class CarlyMascotComponent {
   protected updateViewportBounds(): void {
     this.viewportWidth.set(window.innerWidth);
     this.updateMascotWidth();
+  }
+
+  /** Erkennt zwei schnelle Richtungswechsel und löst Carlys Schwindelreaktion aus. */
+  private detectDirectionChange(clientX: number): void {
+    if (this.lastDragX === null) {
+      this.lastDragX = clientX;
+      return;
+    }
+
+    const delta = clientX - this.lastDragX;
+    if (Math.abs(delta) < DRAG_DIRECTION_MIN_DELTA_PX) return;
+
+    const direction = delta > 0 ? 1 : -1;
+    const now = performance.now();
+
+    if (this.lastDragDirection !== 0 && direction !== this.lastDragDirection) {
+      this.directionChanges = this.directionChanges.filter(
+        (timestamp) => now - timestamp <= DIRECTION_CHANGE_WINDOW_MS,
+      );
+      this.directionChanges.push(now);
+
+      if (this.directionChanges.length >= DIRECTION_CHANGE_THRESHOLD) {
+        this.carlyService.triggerDizzy();
+        this.directionChanges = [];
+      }
+    }
+
+    this.lastDragDirection = direction;
+    this.lastDragX = clientX;
   }
 
   /** Ermittelt Carlys tatsächlich gerenderte Breite. */

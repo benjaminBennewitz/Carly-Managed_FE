@@ -1,0 +1,42 @@
+<!-- src/app/shared/ui/carly-character/carly-character.component.html -->
+
+<div
+  class="carly-character"
+  [class.carly-character--reduced]="reduced() || carlyService.settings().reduceAnimations"
+  [attr.data-mode]="mode()"
+  [attr.data-reaction]="carlyService.reaction()"
+  aria-hidden="true"
+>
+  <div #svgHost class="carly-character__svg"></div>
+
+  @if (assetFailed()) {
+    <span class="carly-character__fallback material-symbols-outlined">pets</span>
+  }
+
+  @if (carlyService.reaction() === 'petted') {
+    <span class="carly-character__hearts">
+      <i>♥</i>
+      <i>♥</i>
+      <i>♥</i>
+      <i>♥</i>
+      <i>♥</i>
+    </span>
+  }
+
+  @if (carlyService.isSleeping() && carlyService.visualTransition() === 'none') {
+    <span class="carly-character__sleep-zzz">
+      <i>Z</i>
+      <i>Z</i>
+      <i>Z</i>
+    </span>
+  }
+
+  @if (carlyService.reaction() === 'dizzy') {
+    <span class="carly-character__dizzy-stars">
+      <i>★</i>
+      <i>✦</i>
+      <i>★</i>
+      <i>✦</i>
+    </span>
+  }
+</div>
