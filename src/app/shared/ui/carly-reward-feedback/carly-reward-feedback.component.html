@@ -1,0 +1,14 @@
+<!-- src/app/shared/ui/carly-reward-feedback/carly-reward-feedback.component.html -->
+
+<div class="carly-reward-layer" aria-live="polite" aria-atomic="false">
+  @for (popup of feedback.popups(); track popup.id) {
+    <div class="carly-reward-popup" [style.left.px]="popup.x" [style.top.px]="popup.y">
+      @if (popup.xp > 0) {
+        <strong>+{{ popup.xp }} XP</strong>
+      }
+      @if (popup.credits > 0) {
+        <span>+{{ popup.credits }} Credits</span>
+      }
+    </div>
+  }
+</div>

@@ -246,3 +246,19 @@
     opacity: 0.72;
   }
 }
+
+
+.carly-character--energized .carly-character__svg {
+  filter:
+    drop-shadow(0 0 0.55rem rgb(198 86 255 / 0.62))
+    drop-shadow(0 0 1.25rem rgb(132 71 255 / 0.34));
+}
+
+.carly-character--energized:not(.carly-character--reduced) .carly-character__svg {
+  animation: carly-energy-glow 3600ms ease-in-out infinite alternate;
+}
+
+@keyframes carly-energy-glow {
+  from { filter: drop-shadow(0 0 0.45rem rgb(198 86 255 / 0.52)) drop-shadow(0 0 1rem rgb(132 71 255 / 0.26)); }
+  to { filter: drop-shadow(0 0 0.8rem rgb(216 112 255 / 0.78)) drop-shadow(0 0 1.7rem rgb(132 71 255 / 0.46)); }
+}

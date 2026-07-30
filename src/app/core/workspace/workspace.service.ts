@@ -56,7 +56,12 @@ export type WorkspaceActivityKind =
   | 'task-completed'
   | 'task-reopened'
   | 'project-created'
+  | 'project-updated'
   | 'project-completed'
+  | 'task-updated'
+  | 'task-moved'
+  | 'subtask-completed'
+  | 'comment-created'
   | 'message-sent';
 
 export interface WorkspaceActivityEvent {
@@ -332,6 +337,7 @@ export class WorkspaceService {
         next: (updated) => this.patchProjectState(updated),
         error: () => this.reload(),
       });
+    this.emitActivity('project-updated', optimistic.name, optimistic.name);
     return clone(optimistic);
   }
 
@@ -585,7 +591,10 @@ export class WorkspaceService {
         version: task.version ?? 1,
       })
       .subscribe({
-        next: (updated) => this.updateLocalTask(updated, targetColumnId),
+        next: (updated) => {
+          this.updateLocalTask(updated, targetColumnId);
+          this.emitActivity('task-moved', updated.title, updated.projectTitle);
+        },
         error: () => this.reload(),
       });
     return this.getBoard(projectId);
@@ -775,6 +784,7 @@ export class WorkspaceService {
         version: task.version ?? 1,
       })
       .subscribe({ next: (updated) => this.updateLocalTask(updated), error: () => this.reload() });
+    this.emitActivity('task-updated', optimistic.title, optimistic.projectTitle);
     return this.getBoard(projectId);
   }
 
@@ -907,6 +917,7 @@ export class WorkspaceService {
         next: (saved) => this.replaceComment(taskId, saved),
         error: () => this.reload(),
       });
+    this.emitActivity('comment-created', task.title, task.projectTitle);
     return this.getBoard(projectId);
   }
 
@@ -1250,6 +1261,7 @@ export class WorkspaceService {
     task: WorkspaceTask,
     subtask: WorkspaceSubtask,
   ): WorkspaceColumn[] {
+    const previous = task.subtasks.find((item) => item.id === subtask.id);
     this.replaceSubtask(task.id, subtask);
     this.http
       .patch<WorkspaceSubtask>(
@@ -1265,6 +1277,9 @@ export class WorkspaceService {
         next: (saved) => this.replaceSubtask(task.id, saved),
         error: () => this.reload(),
       });
+    if (subtask.isDone && !previous?.isDone) {
+      this.emitActivity('subtask-completed', subtask.title, task.projectTitle);
+    }
     return this.getBoard(projectId);
   }
 

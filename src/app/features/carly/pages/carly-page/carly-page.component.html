@@ -23,7 +23,11 @@
   } @else {
     <div class="carly-dashboard">
       <article class="carly-habitat">
-        <div class="carly-stage">
+        <div
+          class="carly-stage"
+          [class.carly-stage--moon]="carlyService.moonActive()"
+          [class.carly-stage--aura]="carlyService.auraActive()"
+        >
           <button
             class="carly-stage__story-button"
             type="button"
@@ -35,6 +39,8 @@
 
           <div class="carly-stage__backdrop" aria-hidden="true">
             <span class="carly-stage__glow"></span>
+            <span class="carly-stage__moon" aria-hidden="true"></span>
+            <span class="carly-stage__aura" aria-hidden="true"></span>
             <span class="carly-stage__stars carly-stage__stars--near"></span>
             <span class="carly-stage__stars carly-stage__stars--far"></span>
           </div>
@@ -53,6 +59,12 @@
             <span class="carly-stage__spark carly-stage__spark--one" aria-hidden="true"></span>
             <span class="carly-stage__spark carly-stage__spark--two" aria-hidden="true"></span>
             <span class="carly-stage__spark carly-stage__spark--three" aria-hidden="true"></span>
+
+            @if (carlyService.specialEffect() === 'cookie-stars') {
+              <span class="carly-stage__cookie-stars" aria-hidden="true">
+                <i>★</i><i>✦</i><i>★</i><i>✧</i><i>✦</i><i>★</i>
+              </span>
+            }
           </div>
         </div>
 
@@ -98,12 +110,16 @@
         </div>
         <div class="carly-meter">
           <span
-            ><b>Erfahrung</b><em>{{ carlyService.levelProgress() }} / 100 XP</em></span
+            ><b>Erfahrung</b><em>{{ carlyService.progress().levelExperience }} / {{ carlyService.progress().nextLevelExperience }} XP</em></span
           ><i><b [style.width.%]="carlyService.levelProgress()"></b></i>
         </div>
         <p class="carly-streak">
           <span class="material-symbols-outlined">local_fire_department</span
           ><strong>{{ carlyService.progress().streak }} Tage</strong> Produktivitätsstreak
+        </p>
+        <p class="carly-credits">
+          <span class="material-symbols-outlined" aria-hidden="true">toll</span>
+          <strong>{{ carlyService.progress().credits }}</strong> Credits
         </p>
       </article>
 
@@ -163,13 +179,51 @@
         </header>
         <div class="carly-food-grid">
           @for (food of foods; track food.id) {
-            <button
-              type="button"
-              [disabled]="carlyService.progress().isSleeping"
-              (click)="carlyService.feed(food.id)"
-            >
-              <span>{{ food.emoji }}</span><strong>{{ food.label }}</strong>
-            </button>
+            <article class="carly-food-card">
+              <span class="carly-food-card__emoji">{{ food.emoji }}</span>
+              <strong>{{ food.label }}</strong>
+              <div class="carly-food-card__meta">
+                <span>Vorrat <b>× {{ foodCount(food.id) }}</b></span>
+                <span>Kosten <b>{{ foodCost(food) }} C</b></span>
+              </div>
+              <div class="carly-food-card__actions">
+                <button
+                  type="button"
+                  [disabled]="carlyService.progress().credits < foodCost(food)"
+                  (click)="carlyService.buyFood(food.id)"
+                >
+                  Kaufen
+                </button>
+                <button
+                  type="button"
+                  [disabled]="carlyService.progress().isSleeping || foodCount(food.id) <= 0"
+                  (click)="carlyService.feed(food.id)"
+                >
+                  Füttern
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      </article>
+
+      <article class="carly-panel carly-panel--history">
+        <header>
+          <div>
+            <p>Ledger</p>
+            <h2>Letzte Belohnungen</h2>
+          </div>
+          <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>
+        </header>
+        <div class="carly-reward-history">
+          @for (reward of carlyService.rewardHistory().slice(0, 6); track reward.id) {
+            <div>
+              <strong>{{ rewardLabel(reward.eventType) }}</strong>
+              <span>+{{ reward.xp }} XP</span>
+              <span>+{{ reward.credits }} Credits</span>
+            </div>
+          } @empty {
+            <p>Noch keine Belohnungen heute. Carly führt sehr genau Buch.</p>
           }
         </div>
       </article>

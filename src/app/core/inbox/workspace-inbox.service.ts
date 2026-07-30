@@ -18,6 +18,7 @@ export class WorkspaceInboxService {
   private readonly systemNotificationsState = signal<WorkspaceSystemNotification[]>([]);
   private readonly conversationsState = signal<WorkspaceConversation[]>([]);
   private readonly workspaceIdState = signal<string | null>(null);
+  private readonly outgoingActivitySequenceState = signal(0);
 
   readonly systemNotifications = computed(() =>
     [...this.systemNotificationsState()].sort(
@@ -41,6 +42,7 @@ export class WorkspaceInboxService {
   readonly totalUnreadCount = computed(
     () => this.unreadSystemCount() + this.unreadConversationCount(),
   );
+  readonly outgoingActivitySequence = this.outgoingActivitySequenceState.asReadonly();
 
   constructor(private readonly http: HttpClient) {}
 
@@ -158,7 +160,10 @@ export class WorkspaceInboxService {
         body: payload.body,
       })
       .subscribe({
-        next: (saved) => this.replaceConversation(conversation.id, saved),
+        next: (saved) => {
+          this.replaceConversation(conversation.id, saved);
+          this.markOutgoingActivity();
+        },
         error: () => this.reloadCurrent(),
       });
     return structuredClone(conversation);
@@ -183,7 +188,10 @@ export class WorkspaceInboxService {
         { body: body.trim() },
       )
       .subscribe({
-        next: (saved) => this.replaceConversation(conversationId, saved),
+        next: (saved) => {
+          this.replaceConversation(conversationId, saved);
+          this.markOutgoingActivity();
+        },
         error: () => this.reloadCurrent(),
       });
     return conversation;
@@ -285,6 +293,11 @@ export class WorkspaceInboxService {
   getConversation(conversationId: string): WorkspaceConversation | null {
     const conversation = this.conversationsState().find((item) => item.id === conversationId);
     return conversation ? structuredClone(conversation) : null;
+  }
+
+  /** Signalisiert eine serverseitig bestätigte ausgehende Nachricht für Carly-Rewards. */
+  private markOutgoingActivity(): void {
+    this.outgoingActivitySequenceState.update((sequence) => sequence + 1);
   }
 
   /** Ersetzt eine optimistische Unterhaltung durch die Serverantwort. */

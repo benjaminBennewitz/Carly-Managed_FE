@@ -6,7 +6,8 @@ import { computed, DestroyRef, effect, Injectable, signal, untracked } from '@an
 import { API_BASE_URL } from '../api/api.config';
 import { WorkspaceInboxService } from '../inbox/workspace-inbox.service';
 import { WorkspaceActivityEvent, WorkspaceService } from '../workspace/workspace.service';
-import { CarlyFoodId, CarlyMessageDurationSeconds, CarlyReaction, CarlySettings, CarlyState, CarlyVisualTransition } from './carly.models';
+import { CarlyRewardFeedbackService } from './carly-reward-feedback.service';
+import { CarlyFoodId, CarlyMessageDurationSeconds, CarlyReaction, CarlyReward, CarlyRewardHistoryItem, CarlyRewardRules, CarlySettings, CarlySpecialEffect, CarlyState, CarlyVisualTransition } from './carly.models';
 
 type CarlySettingsPatch = Partial<CarlySettings> & { positionX?: number };
 const MIN_VISUAL_TRANSITION_MS = 1_100;
@@ -21,18 +22,35 @@ const EMPTY_STATE: CarlyState = {
     taskReactionsEnabled: true,
     autoSleep: true,
     reduceAnimations: false,
+    rewardPopupsEnabled: true,
+    showXpRewards: true,
+    showCreditRewards: true,
   },
   progress: {
     level: 1,
     experience: 0,
+    levelExperience: 0,
+    nextLevelExperience: 100,
+    credits: 40,
+    inventory: { fish: 1, berry: 0, cookie: 0, potion: 0 },
     affection: 50,
-    energy: 50,
-    satiety: 50,
+    energy: 80,
+    satiety: 70,
     streak: 0,
     mood: 'neugierig',
     isSleeping: false,
     lastMessage: '',
-    positionX: 0.5,
+    positionX: 0.85,
+    auraUntil: null,
+    moonUntil: null,
+    dailyRewards: {
+      xpEarned: 0,
+      xpSoftCap: 200,
+      xpHardCap: 300,
+      creditsEarned: 0,
+      creditsSoftCap: 500,
+      creditsHardCap: 650,
+    },
   },
   version: 1,
 };
@@ -50,6 +68,10 @@ export class CarlyService {
   private readonly messageDisplaySecondsValue = signal<CarlyMessageDurationSeconds>(
     this.readStoredMessageDuration(),
   );
+  private readonly rewardRulesValue = signal<CarlyRewardRules | null>(null);
+  private readonly rewardHistoryValue = signal<CarlyRewardHistoryItem[]>([]);
+  private readonly specialEffectValue = signal<CarlySpecialEffect>(null);
+  private readonly clockValue = signal(Date.now());
 
   private queuedPatch: CarlySettingsPatch = {};
   private patchRunning = false;
@@ -59,8 +81,14 @@ export class CarlyService {
   private speechTimer: number | null = null;
   private messageTimer: number | null = null;
   private activityReactionTimer: number | null = null;
+  private rewardSyncTimer: number | null = null;
+  private effectTimer: number | null = null;
+  private clockTimer: number | null = null;
+  private stateRefreshTimer: number | null = null;
+  private readonly seenRewardIds = new Set<string>();
   private lastObservedMessage = '';
   private lastWorkspaceActivitySequence = 0;
+  private lastInboxOutgoingSequence = 0;
   private lastUnreadCount: number | null = null;
 
   readonly state = this.stateValue.asReadonly();
@@ -69,9 +97,10 @@ export class CarlyService {
   readonly visibleGlobally = computed(
     () => this.settings().enabled && this.settings().showGlobally,
   );
-  readonly levelProgress = computed(() =>
-    Math.max(0, Math.min(100, this.progress().experience % 100)),
-  );
+  readonly levelProgress = computed(() => {
+    const progress = this.progress();
+    return Math.max(0, Math.min(100, (progress.levelExperience / Math.max(1, progress.nextLevelExperience)) * 100));
+  });
   readonly isSleeping = computed(() => this.progress().isSleeping);
   readonly visualTransition = this.visualTransitionValue.asReadonly();
   readonly reaction = this.reactionValue.asReadonly();
@@ -84,11 +113,23 @@ export class CarlyService {
   readonly displayMessage = computed(
     () => this.activeMessageValue() || this.progress().lastMessage,
   );
+  readonly rewardRules = this.rewardRulesValue.asReadonly();
+  readonly rewardHistory = this.rewardHistoryValue.asReadonly();
+  readonly specialEffect = this.specialEffectValue.asReadonly();
+  readonly auraActive = computed(() => {
+    const until = this.progress().auraUntil;
+    return Boolean(until && new Date(until).getTime() > this.clockValue());
+  });
+  readonly moonActive = computed(() => {
+    const until = this.progress().moonUntil;
+    return Boolean(until && new Date(until).getTime() > this.clockValue());
+  });
 
   constructor(
     private readonly http: HttpClient,
     private readonly workspaceService: WorkspaceService,
     private readonly inboxService: WorkspaceInboxService,
+    private readonly rewardFeedback: CarlyRewardFeedbackService,
     destroyRef: DestroyRef,
   ) {
     effect(() => {
@@ -119,6 +160,14 @@ export class CarlyService {
     });
 
     effect(() => {
+      const sequence = this.inboxService.outgoingActivitySequence();
+      if (sequence === this.lastInboxOutgoingSequence) return;
+
+      this.lastInboxOutgoingSequence = sequence;
+      untracked(() => this.scheduleRewardSync());
+    });
+
+    effect(() => {
       const unreadCount = this.inboxService.totalUnreadCount();
 
       untracked(() => {
@@ -136,6 +185,8 @@ export class CarlyService {
     });
 
     this.reload();
+    this.clockTimer = window.setInterval(() => this.clockValue.set(Date.now()), 30_000);
+    this.stateRefreshTimer = window.setInterval(() => this.reloadStateOnly(), 5 * 60_000);
 
     destroyRef.onDestroy(() => {
       this.clearTimer('transition');
@@ -143,6 +194,10 @@ export class CarlyService {
       this.clearTimer('speech');
       this.clearTimer('message');
       if (this.activityReactionTimer !== null) window.clearTimeout(this.activityReactionTimer);
+      if (this.rewardSyncTimer !== null) window.clearTimeout(this.rewardSyncTimer);
+      if (this.effectTimer !== null) window.clearTimeout(this.effectTimer);
+      if (this.clockTimer !== null) window.clearInterval(this.clockTimer);
+      if (this.stateRefreshTimer !== null) window.clearInterval(this.stateRefreshTimer);
     });
   }
 
@@ -151,6 +206,17 @@ export class CarlyService {
     this.http.get<CarlyState>(`${API_BASE_URL}/preferences/carly/`).subscribe({
       next: (state) => this.stateValue.set(this.applyPatch(state, this.queuedPatch)),
     });
+    this.http.get<CarlyRewardRules>(`${API_BASE_URL}/preferences/carly/rules/`).subscribe({
+      next: (rules) => this.rewardRulesValue.set(rules),
+    });
+    this.http
+      .get<{ items: CarlyRewardHistoryItem[] }>(`${API_BASE_URL}/preferences/carly/rewards/?limit=12`)
+      .subscribe({
+        next: ({ items }) => {
+          items.forEach((item) => this.seenRewardIds.add(item.id ?? ''));
+          this.rewardHistoryValue.set(items);
+        },
+      });
   }
 
   /** Aktualisiert ausschließlich nutzersteuerbare Carly-Einstellungen. */
@@ -182,10 +248,16 @@ export class CarlyService {
     return true;
   }
 
-  /** Füttert Carly mit einer serverseitig validierten Auswahl. */
+  /** Füttert Carly aus dem serverseitigen Inventar und startet die passende Reaktion. */
   feed(food: CarlyFoodId): void {
-    if (this.progress().isSleeping) return;
-    this.performAction('feed', { food });
+    if (this.progress().isSleeping || this.progress().inventory[food] <= 0) return;
+    this.startReaction('feeding', 1_450);
+    this.performAction('feed', { food }, (state) => this.handleFoodEffect(state.effect ?? null));
+  }
+
+  /** Kauft ein Futter ausschließlich über die serverseitige Economy. */
+  buyFood(food: CarlyFoodId): void {
+    this.performAction('buy-food', { food });
   }
 
   /** Startet eine begrenzte Spielaktion. */
@@ -324,6 +396,22 @@ export class CarlyService {
   private handleWorkspaceActivity(activity: WorkspaceActivityEvent): void {
     if (!this.settings().enabled) return;
 
+    const rewardableKinds: readonly WorkspaceActivityEvent['kind'][] = [
+      'task-created',
+      'task-completed',
+      'task-updated',
+      'task-moved',
+      'subtask-completed',
+      'project-created',
+      'project-updated',
+      'project-completed',
+      'comment-created',
+      'message-sent',
+    ];
+    if (rewardableKinds.includes(activity.kind)) {
+      this.scheduleRewardSync();
+    }
+
     if (activity.kind === 'task-completed' && this.settings().taskReactionsEnabled) {
       this.celebrate(`„${activity.title}“ erledigt. Sehr schön. Das verdient ein wenig Sternenstaub.`);
       return;
@@ -361,6 +449,75 @@ export class CarlyService {
         speakAfterWake();
       }, MIN_VISUAL_TRANSITION_MS + 220);
     }
+  }
+
+  /** Lädt nach einer Workspace-Aktion neu entstandene Server-Rewards mit kurzen Retries. */
+  private scheduleRewardSync(attempt = 0): void {
+    if (this.rewardSyncTimer !== null) window.clearTimeout(this.rewardSyncTimer);
+    const delay = attempt === 0 ? 650 : 850 + attempt * 350;
+
+    this.rewardSyncTimer = window.setTimeout(() => {
+      this.rewardSyncTimer = null;
+      this.http
+        .get<{ items: CarlyRewardHistoryItem[] }>(
+          `${API_BASE_URL}/preferences/carly/rewards/?limit=8`,
+        )
+        .subscribe({
+          next: ({ items }) => {
+            const fresh = items.filter((item) => item.id && !this.seenRewardIds.has(item.id));
+            fresh.forEach((item) => {
+              if (item.id) this.seenRewardIds.add(item.id);
+              this.showRewardFeedback(item);
+            });
+            if (fresh.length) {
+              this.rewardHistoryValue.update((history) => [...fresh, ...history].slice(0, 12));
+              this.reloadStateOnly();
+              return;
+            }
+            if (attempt < 2) {
+              this.scheduleRewardSync(attempt + 1);
+            }
+          },
+        });
+    }, delay);
+  }
+
+  /** Aktualisiert Carlys Zustand ohne Rules/History erneut zu laden. */
+  private reloadStateOnly(): void {
+    this.http.get<CarlyState>(`${API_BASE_URL}/preferences/carly/`).subscribe({
+      next: (state) => this.stateValue.set(this.applyPatch(state, this.queuedPatch)),
+    });
+  }
+
+  /** Zeigt eine serverbestätigte XP-/Credit-Belohnung gemäß Nutzereinstellung. */
+  private showRewardFeedback(reward: CarlyReward): void {
+    const settings = this.settings();
+    if (!settings.rewardPopupsEnabled) return;
+    this.rewardFeedback.show(reward, {
+      showXp: settings.showXpRewards,
+      showCredits: settings.showCreditRewards,
+    });
+  }
+
+  /** Startet einmalige Spezialreaktionen des verfütterten Items. */
+  private handleFoodEffect(effect: CarlySpecialEffect): void {
+    this.specialEffectValue.set(effect);
+    if (this.effectTimer !== null) window.clearTimeout(this.effectTimer);
+
+    if (effect === 'berry-dizzy') {
+      this.effectTimer = window.setTimeout(() => {
+        this.startReaction('dizzy', 6_000);
+        this.effectTimer = window.setTimeout(() => this.specialEffectValue.set(null), 6_000);
+      }, 1_250);
+      return;
+    }
+
+    if (effect === 'cookie-stars') {
+      this.effectTimer = window.setTimeout(() => this.specialEffectValue.set(null), 2_400);
+      return;
+    }
+
+    this.effectTimer = window.setTimeout(() => this.specialEffectValue.set(null), 1_800);
   }
 
   /** Liest die lokale Dialogdauer defensiv aus dem Browser-Speicher. */
@@ -525,7 +682,7 @@ export class CarlyService {
   private performAction(
     action: string,
     payload: { food?: CarlyFoodId } = {},
-    onSuccess?: () => void,
+    onSuccess?: (state: CarlyState) => void,
     onError?: () => void,
   ): void {
     const current = this.stateValue();
@@ -552,7 +709,8 @@ export class CarlyService {
             }
           }
 
-          onSuccess?.();
+          if (state.reward) this.showRewardFeedback(state.reward);
+          onSuccess?.(state);
         },
         error: () => {
           onError?.();

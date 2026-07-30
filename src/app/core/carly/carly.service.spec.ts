@@ -16,10 +16,17 @@ const createState = (version: number, positionX = 0.5): CarlyState => ({
     taskReactionsEnabled: true,
     autoSleep: true,
     reduceAnimations: false,
+    rewardPopupsEnabled: true,
+    showXpRewards: true,
+    showCreditRewards: true,
   },
   progress: {
     level: 1,
     experience: 0,
+    levelExperience: 0,
+    nextLevelExperience: 100,
+    credits: 40,
+    inventory: { fish: 1, berry: 0, cookie: 0, potion: 0 },
     affection: 50,
     energy: 80,
     satiety: 70,
@@ -28,6 +35,16 @@ const createState = (version: number, positionX = 0.5): CarlyState => ({
     isSleeping: false,
     lastMessage: 'Carly ist bereit.',
     positionX,
+    auraUntil: null,
+    moonUntil: null,
+    dailyRewards: {
+      xpEarned: 0,
+      xpSoftCap: 200,
+      xpHardCap: 300,
+      creditsEarned: 0,
+      creditsSoftCap: 500,
+      creditsHardCap: 650,
+    },
   },
   version,
 });
@@ -44,6 +61,13 @@ describe('CarlyService', () => {
     service = TestBed.inject(CarlyService);
     httpTesting = TestBed.inject(HttpTestingController);
     httpTesting.expectOne('/api/v1/preferences/carly/').flush(createState(1));
+    httpTesting.expectOne('/api/v1/preferences/carly/rules/').flush({
+      dailyCaps: { xpSoft: 200, xpHard: 300, creditsSoft: 500, creditsHard: 650 },
+      rewards: [],
+      foods: [],
+      today: createState(1).progress.dailyRewards,
+    });
+    httpTesting.expectOne('/api/v1/preferences/carly/rewards/?limit=12').flush({ items: [] });
   });
 
   afterEach(() => {

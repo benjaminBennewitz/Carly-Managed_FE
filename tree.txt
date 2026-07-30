@@ -65,7 +65,8 @@ Carly-Managed_FE/
 │   │   │   │   ├── carly.service.spec.ts
 │   │   │   │   ├── carly.service.ts
 │   │   │   │   ├── carly-message.catalog.ts
-│   │   │   │   └── carly-message.service.ts
+│   │   │   │   ├── carly-message.service.ts
+│   │   │   │   └── carly-reward-feedback.service.ts
 │   │   │   ├── demo/
 │   │   │   │   ├── demo-data.service.spec.ts
 │   │   │   │   └── demo-data.service.ts
@@ -253,6 +254,10 @@ Carly-Managed_FE/
 │   │   │   │   │   ├── carly-mascot.component.html
 │   │   │   │   │   ├── carly-mascot.component.scss
 │   │   │   │   │   └── carly-mascot.component.ts
+│   │   │   │   ├── carly-reward-feedback/
+│   │   │   │   │   ├── carly-reward-feedback.component.html
+│   │   │   │   │   ├── carly-reward-feedback.component.scss
+│   │   │   │   │   └── carly-reward-feedback.component.ts
 │   │   │   │   ├── dropdown/
 │   │   │   │   │   ├── dropdown-coordinator.service.spec.ts
 │   │   │   │   │   └── dropdown-coordinator.service.ts

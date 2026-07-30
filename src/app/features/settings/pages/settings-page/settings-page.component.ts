@@ -17,7 +17,7 @@ import { WorkspaceDisplayPreferencesService } from '../../../../core/workspace/w
 import { WorkspaceService } from '../../../../core/workspace/workspace.service';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 
-type SettingsTab = 'carly' | 'accessibility' | 'general' | 'tools' | 'themes' | 'testdata';
+type SettingsTab = 'carly' | 'rewards' | 'accessibility' | 'general' | 'tools' | 'themes' | 'testdata';
 type AccessibilityBooleanKey =
   'neuroMode' | 'reduceMotion' | 'reduceHover' | 'magnifier' | 'highContrast';
 type GeneralBooleanKey = 'dynamicNewColumns' | 'tooltipsEnabled' | 'allowInvites';
@@ -84,6 +84,12 @@ export class SettingsPageComponent {
       label: 'Carly',
       icon: 'pets',
       description: 'Maskottchen und Reaktionen',
+    },
+    {
+      id: 'rewards',
+      label: 'Regeln & Belohnungen',
+      icon: 'military_tech',
+      description: 'XP, Credits und Anti-Spam-Regeln',
     },
     {
       id: 'accessibility',

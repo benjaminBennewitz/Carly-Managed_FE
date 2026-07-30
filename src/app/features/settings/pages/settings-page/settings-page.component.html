@@ -200,6 +200,95 @@
     </section>
   }
 
+
+  @if (activeTab() === 'rewards') {
+    <section id="settings-panel-rewards" class="settings-panel" role="tabpanel" aria-label="Regeln und Belohnungen">
+      <article class="settings-section settings-section--wide">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">military_tech</span>
+          <div>
+            <p>Feedback</p>
+            <h2>XP und Credits</h2>
+          </div>
+        </div>
+        <p class="settings-history-note">
+          Belohnungen werden ausschließlich vom Server berechnet. Wiederholte Aktionen verlieren im Tagesverlauf an Wert und künstliche Wiederholungen werden nicht mehrfach voll vergütet.
+        </p>
+        <div class="settings-list">
+          <label class="settings-switch-row">
+            <span><strong>Belohnungs-Popups</strong><small>Zeigt verdiente XP und Credits kurz nahe der ausgeführten Aktion.</small></span>
+            <input type="checkbox" [checked]="carlyService.settings().rewardPopupsEnabled" (change)="setCarlySetting('rewardPopupsEnabled', $event)" />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+          <label class="settings-switch-row">
+            <span><strong>XP anzeigen</strong><small>XP-Anteil in Belohnungs-Popups anzeigen.</small></span>
+            <input type="checkbox" [disabled]="!carlyService.settings().rewardPopupsEnabled" [checked]="carlyService.settings().showXpRewards" (change)="setCarlySetting('showXpRewards', $event)" />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+          <label class="settings-switch-row">
+            <span><strong>Credits anzeigen</strong><small>Credit-Anteil in Belohnungs-Popups anzeigen.</small></span>
+            <input type="checkbox" [disabled]="!carlyService.settings().rewardPopupsEnabled" [checked]="carlyService.settings().showCreditRewards" (change)="setCarlySetting('showCreditRewards', $event)" />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </label>
+        </div>
+      </article>
+
+      <article class="settings-section">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">speed</span>
+          <div><p>Heute</p><h2>Tageslimits</h2></div>
+        </div>
+        <div class="settings-reward-progress">
+          <div>
+            <span><strong>XP</strong><em>{{ carlyService.progress().dailyRewards.xpEarned }} / {{ carlyService.progress().dailyRewards.xpHardCap }}</em></span>
+            <i><b [style.width.%]="(carlyService.progress().dailyRewards.xpEarned / carlyService.progress().dailyRewards.xpHardCap) * 100"></b></i>
+          </div>
+          <div>
+            <span><strong>Credits</strong><em>{{ carlyService.progress().dailyRewards.creditsEarned }} / {{ carlyService.progress().dailyRewards.creditsHardCap }}</em></span>
+            <i><b [style.width.%]="(carlyService.progress().dailyRewards.creditsEarned / carlyService.progress().dailyRewards.creditsHardCap) * 100"></b></i>
+          </div>
+        </div>
+      </article>
+
+      <article class="settings-section settings-section--wide">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">rule</span>
+          <div><p>Serverregeln</p><h2>Wie Belohnungen entstehen</h2></div>
+        </div>
+        <div class="settings-reward-rules">
+          @for (rule of carlyService.rewardRules()?.rewards ?? []; track rule.eventType) {
+            <div class="settings-reward-rule">
+              <strong>{{ rule.label }}</strong>
+              <span>+{{ rule.xp }} XP</span>
+              <span>+{{ rule.credits }} Credits</span>
+              <small>100 % bis {{ rule.fullUntil }} · 50 % bis {{ rule.halfUntil }} · 25 % bis {{ rule.quarterUntil }} · danach Minimalreward</small>
+              @for (bonus of rule.bonuses; track bonus) {
+                <small>{{ bonus }}</small>
+              }
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="settings-section settings-section--wide">
+        <div class="settings-section__head">
+          <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">restaurant</span>
+          <div><p>Shop</p><h2>Futterkosten und Wirkung</h2></div>
+        </div>
+        <div class="settings-reward-rules settings-reward-rules--food">
+          @for (food of carlyService.rewardRules()?.foods ?? []; track food.id) {
+            <div class="settings-reward-rule">
+              <strong>{{ food.label }}</strong>
+              <span>{{ food.cost }} Credits</span>
+              <span>+{{ food.satiety }} Sättigung</span>
+              <small>+{{ food.affection }} Zuneigung · Spezialeffekt nach dem Füttern</small>
+            </div>
+          }
+        </div>
+      </article>
+    </section>
+  }
+
   @if (activeTab() === 'accessibility') {
     <section
       id="settings-panel-accessibility"

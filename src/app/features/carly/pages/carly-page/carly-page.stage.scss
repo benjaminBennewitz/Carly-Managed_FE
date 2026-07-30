@@ -151,3 +151,79 @@
   50% { opacity: 0.7; }
   to { opacity: 0.32; transform: rotate(360deg) scale(1.03); }
 }
+
+/* ==========================================================================
+   04   Futtereffekte
+   ========================================================================== */
+
+.carly-stage__moon,
+.carly-stage__aura {
+  position: absolute;
+  z-index: 1;
+  display: none;
+  pointer-events: none;
+}
+
+.carly-stage--moon .carly-stage__glow { opacity: 0.16; }
+
+.carly-stage--moon .carly-stage__moon {
+  top: 13%;
+  left: 50%;
+  display: block;
+  width: 58%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: -1.65rem 0 0 0.45rem rgb(255 216 128 / 0.92);
+  filter: drop-shadow(0 0 1.25rem rgb(255 216 128 / 0.72));
+  transform: translateX(-34%);
+}
+
+.carly-stage--aura .carly-stage__aura {
+  inset: 14% 18%;
+  display: block;
+  border-radius: 48% 52% 45% 55% / 56% 45% 55% 44%;
+  background:
+    radial-gradient(circle at 50% 65%, rgb(212 92 255 / 0.2), transparent 58%),
+    conic-gradient(from 220deg, transparent, rgb(152 82 255 / 0.48), rgb(210 99 255 / 0.28), transparent 76%);
+  filter: blur(0.7rem);
+  animation: carly-energy-aura 4200ms ease-in-out infinite alternate;
+}
+
+.carly-stage__cookie-stars {
+  position: absolute;
+  inset: 6%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.carly-stage__cookie-stars i {
+  position: absolute;
+  color: #ffd96a;
+  font-style: normal;
+  opacity: 0;
+  animation: carly-cookie-star 1900ms cubic-bezier(0.15, 0.7, 0.25, 1) forwards;
+}
+
+.carly-stage__cookie-stars i:nth-child(1) { top: 48%; left: 48%; --star-x: -7rem; --star-y: -6rem; }
+.carly-stage__cookie-stars i:nth-child(2) { top: 48%; left: 48%; --star-x: 5rem; --star-y: -7rem; animation-delay: 80ms; }
+.carly-stage__cookie-stars i:nth-child(3) { top: 48%; left: 48%; --star-x: 7.2rem; --star-y: 0.5rem; animation-delay: 130ms; }
+.carly-stage__cookie-stars i:nth-child(4) { top: 48%; left: 48%; --star-x: 5rem; --star-y: 5.8rem; animation-delay: 40ms; }
+.carly-stage__cookie-stars i:nth-child(5) { top: 48%; left: 48%; --star-x: -5.4rem; --star-y: 6.2rem; animation-delay: 170ms; }
+.carly-stage__cookie-stars i:nth-child(6) { top: 48%; left: 48%; --star-x: -7.5rem; --star-y: 0.5rem; animation-delay: 110ms; }
+
+@keyframes carly-energy-aura {
+  from { opacity: 0.48; transform: scale(0.94) rotate(-2deg); }
+  to { opacity: 0.9; transform: scale(1.08) rotate(3deg); }
+}
+
+@keyframes carly-cookie-star {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.35) rotate(0); }
+  18% { opacity: 1; }
+  76% { opacity: 0.92; }
+  100% { opacity: 0; transform: translate(var(--star-x), var(--star-y)) scale(1.35) rotate(120deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carly-stage--aura .carly-stage__aura { animation: none; opacity: 0.72; }
+  .carly-stage__cookie-stars i { animation: none; opacity: 0.85; }
+}

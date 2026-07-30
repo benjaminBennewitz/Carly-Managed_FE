@@ -25,11 +25,11 @@ import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-head
 export class CarlyPageComponent {
   protected readonly carlyService: CarlyService;
   protected readonly storybookOpen = signal(false);
-  protected readonly foods: readonly { id: CarlyFoodId; emoji: string; label: string }[] = [
-    { id: 'fish', emoji: '🐟', label: 'Mondfisch' },
-    { id: 'berry', emoji: '🫐', label: 'Mystikbeeren' },
-    { id: 'cookie', emoji: '🍪', label: 'Sternenkeks' },
-    { id: 'potion', emoji: '🧪', label: 'Energietrank' },
+  protected readonly foods: readonly { id: CarlyFoodId; emoji: string; label: string; fallbackCost: number }[] = [
+    { id: 'fish', emoji: '🐟', label: 'Mondfisch', fallbackCost: 20 },
+    { id: 'berry', emoji: '🫐', label: 'Mystikbeeren', fallbackCost: 35 },
+    { id: 'cookie', emoji: '🍪', label: 'Sternenkeks', fallbackCost: 60 },
+    { id: 'potion', emoji: '🧪', label: 'Energietrank', fallbackCost: 100 },
   ];
 
   constructor(carlyService: CarlyService) {
@@ -39,6 +39,23 @@ export class CarlyPageComponent {
   /** Streichelt Carly oder zeigt im Schlaf den Hinweis ohne Serveraktion. */
   protected pet(): void {
     this.carlyService.pet();
+  }
+
+
+  /** Liefert den serverseitig veröffentlichten Preis mit sicherem UI-Fallback. */
+  protected foodCost(food: { id: CarlyFoodId; fallbackCost: number }): number {
+    return this.carlyService.rewardRules()?.foods.find((rule) => rule.id === food.id)?.cost ?? food.fallbackCost;
+  }
+
+  /** Liefert den aktuellen serverseitigen Inventarbestand. */
+  protected foodCount(food: CarlyFoodId): number {
+    return this.carlyService.progress().inventory[food] ?? 0;
+  }
+
+
+  /** Übersetzt einen Ledger-Ereignistyp über die serverseitige Regelliste. */
+  protected rewardLabel(eventType: string): string {
+    return this.carlyService.rewardRules()?.rewards.find((rule) => rule.eventType === eventType)?.label ?? eventType;
   }
 
   /** Öffnet Carlys vierseitige Hintergrundgeschichte. */

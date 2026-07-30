@@ -308,6 +308,16 @@ export class CarlyCharacterComponent {
       return;
     }
 
+    if (snapshot.reaction === 'feeding' && !snapshot.sleeping) {
+      this.setEyeMode('open');
+      this.setMouthMode('idle');
+      this.setGaze(0, 0.18);
+      if (!motionReduced) this.runChewAnimation();
+      this.stopIdleAnimations();
+      this.configureTail(snapshot);
+      return;
+    }
+
     if ((snapshot.reaction === 'petted' || snapshot.reaction === 'celebrating') && !snapshot.sleeping) {
       this.setEyeMode('closed');
       this.setMouthMode('smile');
@@ -404,6 +414,43 @@ export class CarlyCharacterComponent {
     this.setVisible('_02_BODY', full);
     this.setVisible('_03_TAIL', full);
     this.setVisible('KEYFRAMES', full);
+  }
+
+  /** Simuliert Kauen mit leicht aufgeblähten Backen und kleiner Mundbewegung. */
+  private runChewAnimation(): void {
+    const cheeks = this.svgElement?.querySelector<SVGGraphicsElement>('#cheeks');
+    const mouth = this.svgElement?.querySelector<SVGGraphicsElement>('#mouth-idle');
+    const options: KeyframeAnimationOptions = {
+      duration: 420,
+      iterations: 3,
+      easing: 'ease-in-out',
+    };
+
+    if (cheeks) {
+      cheeks.style.transformBox = 'fill-box';
+      cheeks.style.transformOrigin = 'center';
+    }
+    if (mouth) {
+      mouth.style.transformBox = 'fill-box';
+      mouth.style.transformOrigin = 'center';
+    }
+
+    cheeks?.animate(
+      [
+        { transform: 'scale(1)', transformOrigin: 'center' },
+        { transform: 'scale(1.075, 1.04)', transformOrigin: 'center' },
+        { transform: 'scale(1)', transformOrigin: 'center' },
+      ],
+      options,
+    );
+    mouth?.animate(
+      [
+        { transform: 'translateY(0)' },
+        { transform: 'translateY(1.7px)' },
+        { transform: 'translateY(0)' },
+      ],
+      options,
+    );
   }
 
   /** Führt ein kurzes Doppelblinzeln aus und schließt die Augen anschließend langsam. */

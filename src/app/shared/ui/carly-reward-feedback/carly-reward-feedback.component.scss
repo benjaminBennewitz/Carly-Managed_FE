@@ -1,0 +1,47 @@
+/* src/app/shared/ui/carly-reward-feedback/carly-reward-feedback.component.scss */
+
+/*###############################
+###
+###     carly-reward-feedback.component.scss
+###     Produktion App
+###     BASED ON: Angular 21.2.19, SCSS
+###     AUTHOR: Benjamin Bennewitz
+###
+#################################*/
+
+.carly-reward-layer {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-index-dialog) + 20);
+  pointer-events: none;
+}
+
+.carly-reward-popup {
+  position: absolute;
+  display: grid;
+  gap: 0.08rem;
+  min-width: 6rem;
+  padding: 0.48rem 0.7rem;
+  border: var(--border-width-subtle) solid color-mix(in srgb, var(--color-action-primary) 34%, var(--color-border-subtle));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-surface-elevated) 92%, transparent);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-100);
+  animation: carly-reward-rise 1450ms var(--motion-easing-emphasized) forwards;
+  backdrop-filter: blur(0.45rem);
+}
+
+.carly-reward-popup strong { color: var(--color-action-primary); }
+.carly-reward-popup span { color: var(--color-text-secondary); }
+
+@keyframes carly-reward-rise {
+  0% { opacity: 0; transform: translateY(0.45rem) scale(0.9); }
+  14%, 72% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-2.2rem) scale(1.03); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carly-reward-popup { animation: none; opacity: 1; }
+}
