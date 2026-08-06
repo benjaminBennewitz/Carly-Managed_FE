@@ -58,9 +58,18 @@
 
   <footer class="auth-card__footer">
     <span>Noch kein Konto?</span>
-    <a routerLink="/auth/register">
-      <span>Kostenlos registrieren</span>
-      <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+    <a class="auth-card__register-link" routerLink="/auth/register">
+      <span class="auth-card__magic-trail" aria-hidden="true">
+        <span>✦</span>
+        <span>⋆</span>
+        <span>✧</span>
+        <span>✦</span>
+        <span>⋆</span>
+      </span>
+      <span class="auth-card__register-label">Kostenlos registrieren</span>
+      <span class="material-symbols-outlined auth-card__register-arrow" aria-hidden="true">
+        arrow_forward
+      </span>
     </a>
   </footer>
 </article>
