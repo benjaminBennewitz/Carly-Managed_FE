@@ -37,6 +37,9 @@ const createState = (version: number, positionX = 0.5): CarlyState => ({
     positionX,
     auraUntil: null,
     moonUntil: null,
+    berryFocusUntil: null,
+    berryFocusCharges: 0,
+    cookieUntil: null,
     dailyRewards: {
       xpEarned: 0,
       xpSoftCap: 200,

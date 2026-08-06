@@ -21,6 +21,7 @@
 
    01   Aktionen und Futter
    02   Responsive Verhalten
+   03   Economy und Inventar
    ========================================================================== */
 
 /* ========================================================================== 
@@ -30,11 +31,13 @@
 .carly-panel--actions { grid-column: span 2; }
 .carly-actions, .carly-food-grid { display: grid; gap: var(--space-3); }
 .carly-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.carly-actions button { display: grid; gap: var(--space-1); min-height: 6.5rem; place-items: center; padding: var(--space-4); border: var(--border-width-subtle) solid var(--color-border-subtle); border-radius: var(--radius-xl); background: var(--color-surface-secondary); color: var(--color-text-primary); cursor: pointer; }
-.carly-actions button:hover { border-color: var(--color-accent); background: var(--color-accent-subtle); transform: translateY(-0.15rem); }
+.carly-actions button { display: grid; gap: var(--space-1); min-height: 6.5rem; place-items: center; padding: var(--space-4); border: var(--border-width-subtle) solid var(--color-border-subtle); border-radius: var(--radius-xl); background: var(--color-surface-secondary); color: var(--color-text-primary); cursor: pointer; transition: transform var(--motion-duration-normal) var(--motion-easing-standard), border-color var(--motion-duration-normal) var(--motion-easing-standard), background var(--motion-duration-normal) var(--motion-easing-standard), color var(--motion-duration-normal) var(--motion-easing-standard), box-shadow var(--motion-duration-normal) var(--motion-easing-standard); }
+.carly-actions button:hover:not(:disabled), .carly-actions button:focus-visible { border-color: var(--color-accent); background: var(--color-accent-subtle); color: var(--color-on-accent-subtle, var(--color-accent-text)); box-shadow: var(--shadow-sm); transform: translateY(-0.15rem); }
+.carly-actions button:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus); outline-offset: var(--focus-ring-offset); }
 .carly-actions button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-.carly-actions .material-symbols-outlined { color: var(--color-accent); font-size: 1.8rem; }
-.carly-actions small { color: var(--color-text-muted); }
+.carly-actions .material-symbols-outlined { color: var(--color-accent); font-size: 1.8rem; transition: color var(--motion-duration-normal) var(--motion-easing-standard); }
+.carly-actions small { color: var(--color-text-muted); transition: color var(--motion-duration-normal) var(--motion-easing-standard); }
+.carly-actions button:hover:not(:disabled) .material-symbols-outlined, .carly-actions button:hover:not(:disabled) small, .carly-actions button:focus-visible .material-symbols-outlined, .carly-actions button:focus-visible small { color: currentColor; }
 .carly-panel--food { grid-column: span 3; }
 .carly-food-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
@@ -71,6 +74,8 @@
 
 .carly-food-card__emoji { font-size: 2rem; }
 
+.carly-food-card__effect { min-height: 2.8rem; margin: 0; color: var(--color-text-secondary); font-size: var(--font-size-100); line-height: var(--line-height-body); }
+
 .carly-food-card__meta {
   display: grid;
   gap: var(--space-1);
@@ -103,11 +108,20 @@
   font-size: var(--font-size-100);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
+  transition: border-color var(--motion-duration-normal) var(--motion-easing-standard), background var(--motion-duration-normal) var(--motion-easing-standard), color var(--motion-duration-normal) var(--motion-easing-standard), transform var(--motion-duration-normal) var(--motion-easing-standard);
 }
 
-.carly-food-card__actions button:hover:not(:disabled) {
+.carly-food-card__actions button:hover:not(:disabled),
+.carly-food-card__actions button:focus-visible {
   border-color: var(--color-accent);
   background: var(--color-accent-subtle);
+  color: var(--color-on-accent-subtle, var(--color-accent-text));
+  transform: translateY(-0.08rem);
+}
+
+.carly-food-card__actions button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .carly-food-card__actions button:disabled { opacity: 0.42; cursor: not-allowed; }

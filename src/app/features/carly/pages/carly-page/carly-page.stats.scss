@@ -20,6 +20,8 @@
    INHALTSVERZEICHNIS
 
    01   Panels und Anzeigen
+   02   Energie und aktive Boni
+   03   Animationen
    ========================================================================== */
 
 /* ========================================================================== 
@@ -44,3 +46,23 @@
 .carly-level-ring span { color: var(--color-text-muted); font-size: var(--font-size-100); }
 .carly-streak { display: flex; align-items: center; gap: var(--space-2); margin: 0; color: var(--color-text-secondary); }
 .carly-streak .material-symbols-outlined { color: var(--color-warning); }
+
+/* ==========================================================================
+   02   Energie und aktive Boni
+   ========================================================================== */
+
+.carly-meter--charging > i { box-shadow: 0 0 0 0.0625rem color-mix(in srgb, var(--color-accent) 55%, transparent), 0 0 1rem color-mix(in srgb, var(--color-accent) 38%, transparent); }
+.carly-meter--charging > i > b { background: linear-gradient(90deg, var(--color-action-primary), var(--color-accent), var(--color-warning), var(--color-accent)); background-size: 220% 100%; animation: carly-energy-recovery 1800ms linear infinite; }
+.carly-meter__hint { color: var(--color-text-secondary); font-size: var(--font-size-100); }
+.carly-bonuses { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.carly-bonuses span { display: inline-flex; align-items: center; gap: var(--space-1); min-height: var(--size-control-sm); padding: var(--space-1) var(--space-3); border: var(--border-width-subtle) solid color-mix(in srgb, var(--color-accent) 52%, var(--color-border-subtle)); border-radius: var(--radius-round); background: color-mix(in srgb, var(--color-accent-subtle) 52%, var(--color-surface-primary)); color: var(--color-on-accent-subtle, var(--color-accent-text)); font-size: var(--font-size-100); font-weight: var(--font-weight-semibold); }
+.carly-bonuses .material-symbols-outlined { font-size: var(--size-icon-sm); }
+
+/* ==========================================================================
+   03   Animationen
+   ========================================================================== */
+
+@keyframes carly-energy-recovery {
+  from { background-position: 100% 0; }
+  to { background-position: -120% 0; }
+}

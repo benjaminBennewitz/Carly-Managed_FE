@@ -31,6 +31,20 @@ describe('ThemeService', () => {
     expect(document.documentElement.dataset['mode']).toBe('dark');
     expect(service.label()).toBe('Ocean · Dunkel');
   });
+
+  it('setzt eine dynamisch abgeleitete Kontrastfarbe für Akzentflächen', () => {
+    service.setMode('dark');
+
+    expect([
+      'var(--color-accent-text)',
+      'var(--color-text-primary)',
+      'var(--color-text-inverse)',
+      'var(--color-action-primary-text)',
+    ]).toContain(
+      document.documentElement.style.getPropertyValue('--color-on-accent-subtle'),
+    );
+  });
+
   it('überspringt die Theme-Animation im Neuro-Modus', () => {
     const startViewTransition = vi.fn();
     Object.defineProperty(document, 'startViewTransition', {
@@ -44,5 +58,4 @@ describe('ThemeService', () => {
     expect(startViewTransition).not.toHaveBeenCalled();
     expect(service.mode()).toBe('dark');
   });
-
 });

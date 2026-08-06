@@ -69,6 +69,8 @@ export interface CarlyFoodRule {
   satiety: number;
   affection: number;
   effect: Exclude<CarlySpecialEffect, 'purchase' | null>;
+  bonusDurationSeconds?: number | null;
+  visualDurationSeconds?: number | null;
 }
 
 export interface CarlyRewardRules {
@@ -100,6 +102,9 @@ export interface CarlyProgress {
   positionX: number;
   auraUntil: string | null;
   moonUntil: string | null;
+  berryFocusUntil: string | null;
+  berryFocusCharges: number;
+  cookieUntil: string | null;
   dailyRewards: CarlyDailyRewards;
 }
 

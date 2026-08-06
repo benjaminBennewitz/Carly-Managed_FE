@@ -3,7 +3,7 @@
 <div
   class="carly-character"
   [class.carly-character--reduced]="reduced() || carlyService.settings().reduceAnimations"
-  [class.carly-character--energized]="carlyService.auraActive()"
+  [class.carly-character--energized]="carlyService.energyBonusActive() || carlyService.auraActive()"
   [attr.data-mode]="mode()"
   [attr.data-reaction]="carlyService.reaction()"
   aria-hidden="true"

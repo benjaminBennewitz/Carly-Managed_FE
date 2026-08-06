@@ -43,6 +43,9 @@ const EMPTY_STATE: CarlyState = {
     positionX: 0.85,
     auraUntil: null,
     moonUntil: null,
+    berryFocusUntil: null,
+    berryFocusCharges: 0,
+    cookieUntil: null,
     dailyRewards: {
       xpEarned: 0,
       xpSoftCap: 200,
@@ -124,6 +127,22 @@ export class CarlyService {
     const until = this.progress().moonUntil;
     return Boolean(until && new Date(until).getTime() > this.clockValue());
   });
+  readonly berryFocusActive = computed(() => {
+    const progress = this.progress();
+    return Boolean(
+      progress.berryFocusCharges > 0 &&
+        progress.berryFocusUntil &&
+        new Date(progress.berryFocusUntil).getTime() > this.clockValue(),
+    );
+  });
+  readonly cookieBonusActive = computed(() => {
+    const until = this.progress().cookieUntil;
+    return Boolean(until && new Date(until).getTime() > this.clockValue());
+  });
+  readonly energyBonusActive = computed(() => this.progress().energy >= 100);
+  readonly sleepRecoveryActive = computed(
+    () => this.progress().isSleeping && this.progress().energy < 100,
+  );
 
   constructor(
     private readonly http: HttpClient,
@@ -513,7 +532,12 @@ export class CarlyService {
     }
 
     if (effect === 'cookie-stars') {
-      this.effectTimer = window.setTimeout(() => this.specialEffectValue.set(null), 2_400);
+      this.effectTimer = window.setTimeout(() => this.specialEffectValue.set(null), 6_000);
+      return;
+    }
+
+    if (effect === 'energy-aura') {
+      this.effectTimer = window.setTimeout(() => this.specialEffectValue.set(null), 2_800);
       return;
     }
 

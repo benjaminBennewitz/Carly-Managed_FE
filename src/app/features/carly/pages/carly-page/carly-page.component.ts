@@ -25,11 +25,41 @@ import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-head
 export class CarlyPageComponent {
   protected readonly carlyService: CarlyService;
   protected readonly storybookOpen = signal(false);
-  protected readonly foods: readonly { id: CarlyFoodId; emoji: string; label: string; fallbackCost: number }[] = [
-    { id: 'fish', emoji: '🐟', label: 'Mondfisch', fallbackCost: 20 },
-    { id: 'berry', emoji: '🫐', label: 'Mystikbeeren', fallbackCost: 35 },
-    { id: 'cookie', emoji: '🍪', label: 'Sternenkeks', fallbackCost: 60 },
-    { id: 'potion', emoji: '🧪', label: 'Energietrank', fallbackCost: 100 },
+  protected readonly foods: readonly {
+    id: CarlyFoodId;
+    emoji: string;
+    label: string;
+    fallbackCost: number;
+    effect: string;
+  }[] = [
+    {
+      id: 'fish',
+      emoji: '🐟',
+      label: 'Mondfisch',
+      fallbackCost: 20,
+      effect: '+3 XP auf alle Belohnungen, solange der Mond wirkt',
+    },
+    {
+      id: 'berry',
+      emoji: '🫐',
+      label: 'Mystikbeeren',
+      fallbackCost: 35,
+      effect: 'Mystik-Fokus: nächster Task- oder Unteraufgabenabschluss +5 XP (30 Min.)',
+    },
+    {
+      id: 'cookie',
+      emoji: '🍪',
+      label: 'Sternenkeks',
+      fallbackCost: 60,
+      effect: '+10 XP auf Projektabschlüsse für 60 Minuten',
+    },
+    {
+      id: 'potion',
+      emoji: '🧪',
+      label: 'Energietrank',
+      fallbackCost: 100,
+      effect: '100 % Energie und +3 XP auf alle Abschlüsse, solange sie voll bleibt',
+    },
   ];
 
   constructor(carlyService: CarlyService) {

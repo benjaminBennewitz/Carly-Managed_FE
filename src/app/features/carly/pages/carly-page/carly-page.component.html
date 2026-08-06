@@ -26,7 +26,7 @@
         <div
           class="carly-stage"
           [class.carly-stage--moon]="carlyService.moonActive()"
-          [class.carly-stage--aura]="carlyService.auraActive()"
+          [class.carly-stage--aura]="carlyService.energyBonusActive() || carlyService.auraActive()"
         >
           <button
             class="carly-stage__story-button"
@@ -43,6 +43,14 @@
             <span class="carly-stage__aura" aria-hidden="true"></span>
             <span class="carly-stage__stars carly-stage__stars--near"></span>
             <span class="carly-stage__stars carly-stage__stars--far"></span>
+
+            @if (carlyService.specialEffect() === 'cookie-stars') {
+              <span class="carly-stage__cookie-stars" aria-hidden="true">
+                <i>★</i><i>✦</i><i>✧</i><i>★</i><i>✦</i><i>★</i>
+                <i>✧</i><i>✦</i><i>★</i><i>✧</i><i>★</i><i>✦</i>
+                <i>★</i><i>✧</i><i>✦</i><i>★</i><i>✧</i><i>✦</i>
+              </span>
+            }
           </div>
 
           <div class="carly-stage__mascot">
@@ -60,11 +68,6 @@
             <span class="carly-stage__spark carly-stage__spark--two" aria-hidden="true"></span>
             <span class="carly-stage__spark carly-stage__spark--three" aria-hidden="true"></span>
 
-            @if (carlyService.specialEffect() === 'cookie-stars') {
-              <span class="carly-stage__cookie-stars" aria-hidden="true">
-                <i>★</i><i>✦</i><i>★</i><i>✧</i><i>✦</i><i>★</i>
-              </span>
-            }
           </div>
         </div>
 
@@ -85,16 +88,55 @@
             ><b>Zuneigung</b><em>{{ carlyService.progress().affection }} %</em></span
           ><i><b [style.width.%]="carlyService.progress().affection"></b></i>
         </div>
-        <div class="carly-meter">
+        <div
+          class="carly-meter"
+          [class.carly-meter--charging]="carlyService.sleepRecoveryActive()"
+        >
           <span
             ><b>Energie</b><em>{{ carlyService.progress().energy }} %</em></span
-          ><i><b [style.width.%]="carlyService.progress().energy"></b></i>
+          ><i
+            role="progressbar"
+            aria-label="Carlys Energie"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-valuenow]="carlyService.progress().energy"
+            ><b [style.width.%]="carlyService.progress().energy"></b
+          ></i>
+          @if (carlyService.sleepRecoveryActive()) {
+            <small class="carly-meter__hint">Schlaf regeneriert +1 % pro Stunde</small>
+          }
         </div>
         <div class="carly-meter">
           <span
             ><b>Sättigung</b><em>{{ carlyService.progress().satiety }} %</em></span
           ><i><b [style.width.%]="carlyService.progress().satiety"></b></i>
         </div>
+
+        @if (
+          carlyService.moonActive() ||
+          carlyService.berryFocusActive() ||
+          carlyService.cookieBonusActive() ||
+          carlyService.energyBonusActive() ||
+          carlyService.sleepRecoveryActive()
+        ) {
+          <div class="carly-bonuses" role="status" aria-live="polite" aria-label="Aktive Carly-Effekte">
+            @if (carlyService.moonActive()) {
+              <span><i class="material-symbols-outlined" aria-hidden="true">dark_mode</i>+3 XP auf alles</span>
+            }
+            @if (carlyService.berryFocusActive()) {
+              <span><i class="material-symbols-outlined" aria-hidden="true">blur_on</i>Mystik-Fokus: nächster Abschluss +5 XP</span>
+            }
+            @if (carlyService.cookieBonusActive()) {
+              <span><i class="material-symbols-outlined" aria-hidden="true">star</i>Projektabschlüsse +10 XP</span>
+            }
+            @if (carlyService.energyBonusActive()) {
+              <span><i class="material-symbols-outlined" aria-hidden="true">bolt</i>Abschlüsse +3 XP</span>
+            }
+            @if (carlyService.sleepRecoveryActive()) {
+              <span><i class="material-symbols-outlined" aria-hidden="true">bedtime</i>+1 % Energie pro Stunde</span>
+            }
+          </div>
+        }
       </article>
 
       <article class="carly-panel carly-panel--level">
@@ -145,25 +187,25 @@
           </button>
           <button
             type="button"
-            [disabled]="carlyService.progress().isSleeping"
+            [disabled]="carlyService.progress().isSleeping || carlyService.progress().energy <= 0"
             (click)="carlyService.play()"
           >
             <span class="material-symbols-outlined">sports_esports</span>
             <strong>Spielen</strong>
-            <small>+8 XP</small>
+            <small>+8 XP · verbraucht Energie</small>
           </button>
 
           @if (carlyService.progress().isSleeping) {
             <button type="button" (click)="carlyService.wake()">
               <span class="material-symbols-outlined">bedtime_off</span>
               <strong>Aufwecken</strong>
-              <small>Energie auffüllen</small>
+              <small>Regeneration beenden</small>
             </button>
           } @else {
             <button type="button" (click)="carlyService.sleep()">
               <span class="material-symbols-outlined">bedtime</span>
               <strong>Schlafen</strong>
-              <small>Ruhemodus</small>
+              <small>+1 % Energie pro Stunde</small>
             </button>
           }
         </div>
@@ -182,6 +224,7 @@
             <article class="carly-food-card">
               <span class="carly-food-card__emoji">{{ food.emoji }}</span>
               <strong>{{ food.label }}</strong>
+              <p class="carly-food-card__effect">{{ food.effect }}</p>
               <div class="carly-food-card__meta">
                 <span>Vorrat <b>× {{ foodCount(food.id) }}</b></span>
                 <span>Kosten <b>{{ foodCost(food) }} C</b></span>

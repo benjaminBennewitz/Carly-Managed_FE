@@ -16,6 +16,31 @@ interface OptionalViewTransitionDocument {
   startViewTransition?: (updateCallback: () => void) => ThemeViewTransition;
 }
 
+interface RgbColor {
+  red: number;
+  green: number;
+  blue: number;
+}
+
+interface ContrastTokenConfiguration {
+  backgroundToken: string;
+  outputToken: string;
+  foregroundTokens: readonly string[];
+}
+
+const MINIMUM_TEXT_CONTRAST = 4.5;
+const CONTRAST_TOKEN_CONFIGURATIONS: readonly ContrastTokenConfiguration[] = [
+  {
+    backgroundToken: '--color-accent-subtle',
+    outputToken: '--color-on-accent-subtle',
+    foregroundTokens: [
+      '--color-accent-text',
+      '--color-text-primary',
+      '--color-text-inverse',
+      '--color-action-primary-text',
+    ],
+  },
+];
 const THEME_MODE_STORAGE_KEY = 'carly-managed-theme-mode';
 const THEME_NAME_STORAGE_KEY = 'carly-managed-theme-name';
 const THEME_NAMES: readonly ThemeName[] = [
@@ -126,6 +151,7 @@ export class ThemeService {
       root.dataset['theme'] = theme;
       root.dataset['mode'] = mode;
       root.style.colorScheme = mode;
+      this.updateContrastTokens();
       return;
     }
 
@@ -143,7 +169,119 @@ export class ThemeService {
       root.dataset['theme'] = theme;
       root.dataset['mode'] = mode;
       root.style.colorScheme = mode;
+      this.updateContrastTokens();
     });
+  }
+
+  /**
+   * Ermittelt für kritische Flächen eine kontrastreiche Textfarbe aus erlaubten
+   * semantischen Design-Tokens.
+   */
+  private updateContrastTokens(): void {
+    const root = this.document.documentElement;
+    const host = this.document.body ?? root;
+    const probe = this.document.createElement('span');
+    probe.setAttribute('aria-hidden', 'true');
+    probe.style.position = 'fixed';
+    probe.style.inset = 'auto';
+    probe.style.width = '0';
+    probe.style.height = '0';
+    probe.style.overflow = 'hidden';
+    probe.style.pointerEvents = 'none';
+    probe.style.visibility = 'hidden';
+    host.append(probe);
+
+    CONTRAST_TOKEN_CONFIGURATIONS.forEach((configuration) => {
+      const background = this.resolveTokenColor(probe, configuration.backgroundToken, 'background');
+      const fallbackToken = configuration.foregroundTokens[0];
+      let selectedToken = fallbackToken;
+      let strongestToken = fallbackToken;
+      let strongestContrast = 0;
+
+      for (const token of configuration.foregroundTokens) {
+        const foreground = this.resolveTokenColor(probe, token, 'color');
+        if (!background || !foreground) continue;
+
+        const contrast = this.calculateContrastRatio(background, foreground);
+        if (contrast > strongestContrast) {
+          strongestContrast = contrast;
+          strongestToken = token;
+        }
+        if (contrast >= MINIMUM_TEXT_CONTRAST) {
+          selectedToken = token;
+          break;
+        }
+      }
+
+      if (selectedToken === fallbackToken && strongestContrast > 0) {
+        const fallbackColor = this.resolveTokenColor(probe, fallbackToken, 'color');
+        const fallbackContrast =
+          background && fallbackColor
+            ? this.calculateContrastRatio(background, fallbackColor)
+            : 0;
+        if (fallbackContrast < MINIMUM_TEXT_CONTRAST) {
+          selectedToken = strongestToken;
+        }
+      }
+
+      root.style.setProperty(configuration.outputToken, `var(${selectedToken})`);
+    });
+
+    probe.remove();
+  }
+
+  /** Löst eine CSS-Variable über den Browser in einen RGB-Farbwert auf. */
+  private resolveTokenColor(
+    probe: HTMLElement,
+    token: string,
+    property: 'background' | 'color',
+  ): RgbColor | null {
+    if (property === 'background') {
+      probe.style.backgroundColor = `var(${token})`;
+      return this.parseRgbColor(getComputedStyle(probe).backgroundColor);
+    }
+
+    probe.style.color = `var(${token})`;
+    return this.parseRgbColor(getComputedStyle(probe).color);
+  }
+
+  /** Parst moderne und klassische rgb-/rgba-Ausgaben des Browsers. */
+  private parseRgbColor(value: string): RgbColor | null {
+    const match = value.match(
+      /^rgba?\(\s*([\d.]+)(?:\s*,\s*|\s+)([\d.]+)(?:\s*,\s*|\s+)([\d.]+)/i,
+    );
+    if (!match) return null;
+
+    return {
+      red: Number(match[1]),
+      green: Number(match[2]),
+      blue: Number(match[3]),
+    };
+  }
+
+  /** Berechnet das WCAG-Kontrastverhältnis zweier RGB-Farben. */
+  private calculateContrastRatio(first: RgbColor, second: RgbColor): number {
+    const firstLuminance = this.calculateRelativeLuminance(first);
+    const secondLuminance = this.calculateRelativeLuminance(second);
+    const lighter = Math.max(firstLuminance, secondLuminance);
+    const darker = Math.min(firstLuminance, secondLuminance);
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  /** Berechnet die relative Leuchtdichte nach WCAG 2.x. */
+  private calculateRelativeLuminance(color: RgbColor): number {
+    const convert = (channel: number): number => {
+      const normalized = channel / 255;
+      return normalized <= 0.03928
+        ? normalized / 12.92
+        : ((normalized + 0.055) / 1.055) ** 2.4;
+    };
+
+    return (
+      0.2126 * convert(color.red) +
+      0.7152 * convert(color.green) +
+      0.0722 * convert(color.blue)
+    );
   }
 
   /** Entfernt zuvor gesetzte Inline-Variablen eines alternativen Themes. */

@@ -55,8 +55,26 @@
 :host-context(:root[data-neuro='true']) .carly-stage__spark,
 :host-context(:root[data-neuro='true']) .carly-stage__glow,
 :host-context(:root[data-neuro='true']) .carly-stage__stars,
-:host-context(:root[data-neuro='true']) .carly-stage__orbit {
+:host-context(:root[data-neuro='true']) .carly-stage__orbit,
+:host-context(:root[data-motion='off']) .carly-stage__moon,
+:host-context(:root[data-motion='reduced']) .carly-stage__moon,
+:host-context(:root[data-neuro='true']) .carly-stage__moon,
+:host-context(:root[data-motion='off']) .carly-stage__cookie-stars i,
+:host-context(:root[data-motion='reduced']) .carly-stage__cookie-stars i,
+:host-context(:root[data-neuro='true']) .carly-stage__cookie-stars i,
+:host-context(:root[data-motion='off']) .carly-meter--charging > i > b,
+:host-context(:root[data-motion='reduced']) .carly-meter--charging > i > b,
+:host-context(:root[data-neuro='true']) .carly-meter--charging > i > b {
   animation: none;
+}
+
+
+:host-context(:root[data-motion='off']) .carly-stage__cookie-stars i,
+:host-context(:root[data-motion='reduced']) .carly-stage__cookie-stars i,
+:host-context(:root[data-neuro='true']) .carly-stage__cookie-stars i {
+  top: var(--star-left);
+  opacity: 0.78;
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -64,7 +82,16 @@
   .carly-stage__spark,
   .carly-stage__glow,
   .carly-stage__stars,
-  .carly-stage__orbit {
+  .carly-stage__orbit,
+  .carly-stage__moon,
+  .carly-stage__cookie-stars i,
+  .carly-meter--charging > i > b {
     animation: none;
+  }
+
+  .carly-stage__cookie-stars i {
+    top: var(--star-left);
+    opacity: 0.78;
+    transform: none;
   }
 }
