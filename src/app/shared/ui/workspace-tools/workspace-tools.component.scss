@@ -34,7 +34,13 @@
   right: var(--space-5);
   bottom: var(--space-3);
   z-index: var(--z-index-sticky);
-  transition: right var(--motion-duration-slow) var(--motion-easing-emphasized);
+  transition:
+    right var(--motion-duration-slow) var(--motion-easing-emphasized),
+    bottom var(--motion-duration-normal) var(--motion-easing-emphasized);
+}
+
+:host(.workspace-tools-host--toast-visible) {
+  bottom: calc(var(--space-5) + var(--size-click-target) + var(--space-2));
 }
 
 :host(.workspace-tools-host--drawer-open) {
@@ -207,6 +213,10 @@
     bottom: var(--space-2);
   }
 
+  :host(.workspace-tools-host--toast-visible) {
+    bottom: calc(var(--space-3) + var(--size-click-target) + var(--space-3));
+  }
+
   :host(.workspace-tools-host--drawer-open) {
     opacity: 0;
     pointer-events: none;
@@ -222,3 +232,16 @@
     padding: 0;
   }
 }
+
+:host-context(:root[data-motion='off']),
+:host-context(:root[data-motion='reduced']),
+:host-context(:root[data-neuro='true']) {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    transition: none;
+  }
+}
+

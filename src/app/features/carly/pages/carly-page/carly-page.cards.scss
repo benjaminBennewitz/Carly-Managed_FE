@@ -19,37 +19,211 @@
 /* ========================================================================== 
    INHALTSVERZEICHNIS
 
-   01   Aktionen und Futter
-   02   Responsive Verhalten
-   03   Economy und Inventar
+   01   Aktionen
+   02   Kompakte Futterauswahl
+   03   Economy und Historie
+   04   Responsive Verhalten
    ========================================================================== */
 
 /* ========================================================================== 
-   01   Aktionen und Futter
+   01   Aktionen
    ========================================================================== */
 
-.carly-panel--actions { grid-column: span 2; }
-.carly-actions, .carly-food-grid { display: grid; gap: var(--space-3); }
-.carly-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.carly-actions button { display: grid; gap: var(--space-1); min-height: 6.5rem; place-items: center; padding: var(--space-4); border: var(--border-width-subtle) solid var(--color-border-subtle); border-radius: var(--radius-xl); background: var(--color-surface-secondary); color: var(--color-text-primary); cursor: pointer; transition: transform var(--motion-duration-normal) var(--motion-easing-standard), border-color var(--motion-duration-normal) var(--motion-easing-standard), background var(--motion-duration-normal) var(--motion-easing-standard), color var(--motion-duration-normal) var(--motion-easing-standard), box-shadow var(--motion-duration-normal) var(--motion-easing-standard); }
-.carly-actions button:hover:not(:disabled), .carly-actions button:focus-visible { border-color: var(--color-accent); background: var(--color-accent-subtle); color: var(--color-on-accent-subtle, var(--color-accent-text)); box-shadow: var(--shadow-sm); transform: translateY(-0.15rem); }
-.carly-actions button:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus); outline-offset: var(--focus-ring-offset); }
-.carly-actions button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-.carly-actions .material-symbols-outlined { color: var(--color-accent); font-size: 1.8rem; transition: color var(--motion-duration-normal) var(--motion-easing-standard); }
-.carly-actions small { color: var(--color-text-muted); transition: color var(--motion-duration-normal) var(--motion-easing-standard); }
-.carly-actions button:hover:not(:disabled) .material-symbols-outlined, .carly-actions button:hover:not(:disabled) small, .carly-actions button:focus-visible .material-symbols-outlined, .carly-actions button:focus-visible small { color: currentColor; }
-.carly-panel--food { grid-column: span 3; }
-.carly-food-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.carly-panel--actions {
+  grid-column: span 2;
+}
 
-/* ==========================================================================
-   02   Responsive Verhalten
+.carly-actions,
+.carly-food-quick-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.carly-actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.carly-actions button {
+  display: grid;
+  min-height: 6.5rem;
+  place-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition:
+    transform var(--motion-duration-normal) var(--motion-easing-standard),
+    border-color var(--motion-duration-normal) var(--motion-easing-standard),
+    background var(--motion-duration-normal) var(--motion-easing-standard),
+    color var(--motion-duration-normal) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-normal) var(--motion-easing-standard);
+}
+
+.carly-actions button:hover:not(:disabled),
+.carly-actions button:focus-visible {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  color: var(--color-on-accent-subtle, var(--color-accent-text));
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-0.15rem);
+}
+
+.carly-actions button:focus-visible,
+.carly-actions__back:focus-visible,
+.carly-food-quick-card__actions button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.carly-actions button:disabled,
+.carly-food-quick-card__actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.carly-actions .material-symbols-outlined {
+  color: var(--color-accent);
+  font-size: 1.8rem;
+  transition: color var(--motion-duration-normal) var(--motion-easing-standard);
+}
+
+.carly-actions small {
+  color: var(--color-text-muted);
+  text-align: center;
+  transition: color var(--motion-duration-normal) var(--motion-easing-standard);
+}
+
+.carly-actions button:hover:not(:disabled) .material-symbols-outlined,
+.carly-actions button:hover:not(:disabled) small,
+.carly-actions button:focus-visible .material-symbols-outlined,
+.carly-actions button:focus-visible small {
+  color: currentColor;
+}
+
+.carly-actions__back {
+  display: grid;
+  width: 2.6rem;
+  height: 2.6rem;
+  place-items: center;
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-secondary);
+  color: var(--color-accent-text);
+  cursor: pointer;
+  transition:
+    transform var(--motion-duration-normal) var(--motion-easing-standard),
+    border-color var(--motion-duration-normal) var(--motion-easing-standard),
+    background var(--motion-duration-normal) var(--motion-easing-standard);
+}
+
+.carly-actions__back:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  transform: translateX(-0.12rem);
+}
+
+/* ========================================================================== 
+   02   Kompakte Futterauswahl
    ========================================================================== */
 
-@media (max-width: 72rem) { .carly-dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } .carly-habitat { grid-column: span 2; grid-row: auto; min-height: 28rem; } .carly-panel--food { grid-column: span 2; } }
-@media (max-width: 46rem) { .carly-dashboard { grid-template-columns: 1fr; } .carly-habitat, .carly-panel--actions, .carly-panel--food { grid-column: auto; } .carly-actions, .carly-food-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .carly-disabled { align-items: flex-start; flex-wrap: wrap; } .carly-disabled button { margin-left: 0; } }
+.carly-food-quick-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
 
-/* ==========================================================================
-   03   Economy und Inventar
+.carly-food-quick-card {
+  display: grid;
+  min-width: 0;
+  align-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-secondary);
+}
+
+.carly-food-quick-card__head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.carly-food-quick-card__head > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.125rem;
+}
+
+.carly-food-quick-card__head strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.carly-food-quick-card__head small,
+.carly-food-quick-card > p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+}
+
+.carly-food-quick-card__emoji {
+  flex: 0 0 auto;
+  font-size: 1.7rem;
+}
+
+.carly-food-quick-card > p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: var(--line-height-body);
+}
+
+.carly-food-quick-card__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
+
+.carly-food-quick-card__actions button {
+  min-height: var(--size-click-target);
+  padding: 0 var(--space-3);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition:
+    transform var(--motion-duration-normal) var(--motion-easing-standard),
+    border-color var(--motion-duration-normal) var(--motion-easing-standard),
+    background var(--motion-duration-normal) var(--motion-easing-standard),
+    color var(--motion-duration-normal) var(--motion-easing-standard);
+}
+
+.carly-food-quick-card__actions button:first-child {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  color: var(--color-on-accent-subtle, var(--color-accent-text));
+}
+
+.carly-food-quick-card__actions button:hover:not(:disabled),
+.carly-food-quick-card__actions button:focus-visible {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  color: var(--color-on-accent-subtle, var(--color-accent-text));
+  transform: translateY(-0.08rem);
+}
+
+/* ========================================================================== 
+   03   Economy und Historie
    ========================================================================== */
 
 .carly-credits {
@@ -60,73 +234,13 @@
   color: var(--color-text-secondary);
 }
 
-.carly-credits .material-symbols-outlined { color: var(--color-accent); }
-
-.carly-food-card {
-  display: grid;
-  gap: var(--space-3);
-  min-width: 0;
-  padding: var(--space-4);
-  border: var(--border-width-subtle) solid var(--color-border-subtle);
-  border-radius: var(--radius-xl);
-  background: var(--color-surface-secondary);
+.carly-credits .material-symbols-outlined {
+  color: var(--color-accent);
 }
 
-.carly-food-card__emoji { font-size: 2rem; }
-
-.carly-food-card__effect { min-height: 2.8rem; margin: 0; color: var(--color-text-secondary); font-size: var(--font-size-100); line-height: var(--line-height-body); }
-
-.carly-food-card__meta {
-  display: grid;
-  gap: var(--space-1);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-100);
+.carly-panel--history {
+  grid-column: 1 / -1;
 }
-
-.carly-food-card__meta span {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
-}
-
-.carly-food-card__meta b { color: var(--color-text-primary); }
-
-.carly-food-card__actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
-}
-
-.carly-food-card__actions button {
-  min-height: var(--size-click-target);
-  padding: 0 var(--space-2);
-  border: var(--border-width-subtle) solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-primary);
-  color: var(--color-text-primary);
-  font: inherit;
-  font-size: var(--font-size-100);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: border-color var(--motion-duration-normal) var(--motion-easing-standard), background var(--motion-duration-normal) var(--motion-easing-standard), color var(--motion-duration-normal) var(--motion-easing-standard), transform var(--motion-duration-normal) var(--motion-easing-standard);
-}
-
-.carly-food-card__actions button:hover:not(:disabled),
-.carly-food-card__actions button:focus-visible {
-  border-color: var(--color-accent);
-  background: var(--color-accent-subtle);
-  color: var(--color-on-accent-subtle, var(--color-accent-text));
-  transform: translateY(-0.08rem);
-}
-
-.carly-food-card__actions button:focus-visible {
-  outline: var(--focus-ring-width) solid var(--color-focus);
-  outline-offset: var(--focus-ring-offset);
-}
-
-.carly-food-card__actions button:disabled { opacity: 0.42; cursor: not-allowed; }
-
-.carly-panel--history { grid-column: 1 / -1; }
 
 .carly-reward-history {
   display: grid;
@@ -150,7 +264,67 @@
   font-size: var(--font-size-100);
 }
 
-.carly-reward-history p { margin: 0; color: var(--color-text-muted); }
+.carly-reward-history p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
 
-@media (max-width: 72rem) { .carly-reward-history { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 46rem) { .carly-reward-history { grid-template-columns: 1fr; } }
+/* ========================================================================== 
+   04   Responsive Verhalten
+   ========================================================================== */
+
+@media (max-width: 72rem) {
+  .carly-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .carly-habitat {
+    grid-column: span 2;
+    grid-row: auto;
+    min-height: 28rem;
+  }
+
+  .carly-food-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .carly-reward-history {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 56rem) {
+  .carly-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 46rem) {
+  .carly-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .carly-habitat,
+  .carly-panel--actions {
+    grid-column: auto;
+  }
+
+  .carly-disabled {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .carly-disabled button {
+    margin-left: 0;
+  }
+
+  .carly-reward-history {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 32rem) {
+  .carly-food-quick-grid {
+    grid-template-columns: 1fr;
+  }
+}

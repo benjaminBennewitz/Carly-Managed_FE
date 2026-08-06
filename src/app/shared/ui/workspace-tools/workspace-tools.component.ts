@@ -5,6 +5,7 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, signal } from
 import { AppSettingsService } from '../../../core/settings/app-settings.service';
 
 const POMODORO_DURATION_SECONDS = 25 * 60;
+const BOTTOM_TOAST_SELECTOR = '[data-bottom-toast]';
 
 @Component({
   selector: 'cm-workspace-tools',
@@ -13,12 +14,14 @@ const POMODORO_DURATION_SECONDS = 25 * 60;
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[class.workspace-tools-host--drawer-open]': 'drawerOpen()',
+    '[class.workspace-tools-host--toast-visible]': 'toastVisible()',
   },
 })
 export class WorkspaceToolsComponent {
   protected readonly settingsService: AppSettingsService;
   protected readonly open = signal(false);
   protected readonly drawerOpen = signal(false);
+  protected readonly toastVisible = signal(false);
   protected readonly pomodoroSeconds = signal(POMODORO_DURATION_SECONDS);
   protected readonly pomodoroRunning = signal(false);
   protected readonly taskTimerSeconds = signal(0);
@@ -29,12 +32,13 @@ export class WorkspaceToolsComponent {
   constructor(settingsService: AppSettingsService, destroyRef: DestroyRef) {
     this.settingsService = settingsService;
 
-    const updateDrawerState = (): void => {
+    const updateFloatingUiState = (): void => {
       this.drawerOpen.set(document.querySelector('.task-drawer') !== null);
+      this.toastVisible.set(document.querySelector(BOTTOM_TOAST_SELECTOR) !== null);
     };
-    const drawerObserver = new MutationObserver(updateDrawerState);
-    drawerObserver.observe(document.body, { childList: true, subtree: true });
-    updateDrawerState();
+    const floatingUiObserver = new MutationObserver(updateFloatingUiState);
+    floatingUiObserver.observe(document.body, { childList: true, subtree: true });
+    updateFloatingUiState();
 
     const timerId = window.setInterval(() => {
       if (this.pomodoroRunning()) {
@@ -55,7 +59,7 @@ export class WorkspaceToolsComponent {
 
     destroyRef.onDestroy(() => {
       window.clearInterval(timerId);
-      drawerObserver.disconnect();
+      floatingUiObserver.disconnect();
     });
   }
 

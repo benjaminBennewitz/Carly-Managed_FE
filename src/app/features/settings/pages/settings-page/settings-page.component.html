@@ -14,7 +14,7 @@
   </div>
 
   @if (statusMessage()) {
-    <p class="settings-status" role="status">
+    <p class="settings-status" role="status" data-bottom-toast>
       <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
       {{ statusMessage() }}
     </p>

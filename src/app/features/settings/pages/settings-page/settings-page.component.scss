@@ -100,9 +100,8 @@
   top: calc(var(--layout-topbar-height) + var(--space-3));
   z-index: var(--z-index-raised);
   display: grid;
-  width: fit-content;
-  max-width: 100%;
-  grid-template-columns: repeat(7, minmax(6.6rem, 8.6rem));
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
   gap: var(--space-1);
   padding: var(--space-2);
   border: var(--border-width-subtle) solid var(--color-border-subtle);
@@ -117,10 +116,11 @@
 .settings-tab {
   display: grid;
   min-width: 0;
+  min-height: 4.75rem;
   grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3);
   border: var(--border-width-subtle) solid transparent;
   border-radius: var(--radius-lg);
   background: transparent;
@@ -167,13 +167,14 @@
 
 .settings-tab__copy strong,
 .settings-tab__copy small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: var(--line-height-tight);
 }
 
 .settings-tab__copy small {
-  display: none;
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-body);
 }
 
 .settings-switch-row small,

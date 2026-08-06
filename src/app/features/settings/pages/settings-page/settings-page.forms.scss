@@ -185,11 +185,6 @@ input:focus-visible + .settings-switch {
   font-weight: var(--font-weight-regular);
 }
 
-.settings-segments--four {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-
 .settings-segments,
 .settings-mode-buttons {
   display: grid;
@@ -203,6 +198,14 @@ input:focus-visible + .settings-switch {
 
 .settings-mode-buttons {
   grid-template-columns: repeat(2, minmax(9rem, 1fr));
+}
+
+.settings-segments.settings-segments--four {
+  grid-template-columns: repeat(4, minmax(3.25rem, 1fr));
+}
+
+.settings-segments--four button {
+  white-space: nowrap;
 }
 
 .settings-segments button,

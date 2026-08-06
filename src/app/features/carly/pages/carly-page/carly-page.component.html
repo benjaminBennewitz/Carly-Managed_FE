@@ -168,86 +168,102 @@
       <article class="carly-panel carly-panel--actions">
         <header>
           <div>
-            <p>Interaktion</p>
-            <h2>Carly-Aktionen</h2>
+            <p>{{ foodMenuOpen() ? 'Inventar' : 'Interaktion' }}</p>
+            <h2>{{ foodMenuOpen() ? 'Futter wählen' : 'Carly-Aktionen' }}</h2>
           </div>
-          <span class="material-symbols-outlined">touch_app</span>
-        </header>
-        <div class="carly-actions">
-          <button type="button" (click)="pet()">
-            <span class="material-symbols-outlined">waving_hand</span>
-            <strong>Streicheln</strong>
-            <small>
-              {{
-                carlyService.progress().isSleeping
-                  ? 'Hat im Schlaf keinen Effekt'
-                  : '+5 Zuneigung'
-              }}
-            </small>
-          </button>
-          <button
-            type="button"
-            [disabled]="carlyService.progress().isSleeping || carlyService.progress().energy <= 0"
-            (click)="carlyService.play()"
-          >
-            <span class="material-symbols-outlined">sports_esports</span>
-            <strong>Spielen</strong>
-            <small>+8 XP · verbraucht Energie</small>
-          </button>
-
-          @if (carlyService.progress().isSleeping) {
-            <button type="button" (click)="carlyService.wake()">
-              <span class="material-symbols-outlined">bedtime_off</span>
-              <strong>Aufwecken</strong>
-              <small>Regeneration beenden</small>
+          @if (foodMenuOpen()) {
+            <button
+              class="carly-actions__back"
+              type="button"
+              aria-label="Zurück zu Carlys Aktionen"
+              (click)="closeFoodMenu()"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
             </button>
           } @else {
-            <button type="button" (click)="carlyService.sleep()">
-              <span class="material-symbols-outlined">bedtime</span>
-              <strong>Schlafen</strong>
-              <small>+1 % Energie pro Stunde</small>
-            </button>
+            <span class="material-symbols-outlined" aria-hidden="true">touch_app</span>
           }
-        </div>
-      </article>
-
-      <article class="carly-panel carly-panel--food">
-        <header>
-          <div>
-            <p>Inventar</p>
-            <h2>Carly füttern</h2>
-          </div>
-          <span class="material-symbols-outlined">restaurant</span>
         </header>
-        <div class="carly-food-grid">
-          @for (food of foods; track food.id) {
-            <article class="carly-food-card">
-              <span class="carly-food-card__emoji">{{ food.emoji }}</span>
-              <strong>{{ food.label }}</strong>
-              <p class="carly-food-card__effect">{{ food.effect }}</p>
-              <div class="carly-food-card__meta">
-                <span>Vorrat <b>× {{ foodCount(food.id) }}</b></span>
-                <span>Kosten <b>{{ foodCost(food) }} C</b></span>
-              </div>
-              <div class="carly-food-card__actions">
-                <button
-                  type="button"
-                  [disabled]="carlyService.progress().credits < foodCost(food)"
-                  (click)="carlyService.buyFood(food.id)"
-                >
-                  Kaufen
-                </button>
-                <button
-                  type="button"
-                  [disabled]="carlyService.progress().isSleeping || foodCount(food.id) <= 0"
-                  (click)="carlyService.feed(food.id)"
-                >
-                  Füttern
-                </button>
-              </div>
-            </article>
-          }
-        </div>
+
+        @if (foodMenuOpen()) {
+          <div class="carly-food-quick-grid">
+            @for (food of foods; track food.id) {
+              <article class="carly-food-quick-card">
+                <div class="carly-food-quick-card__head">
+                  <span class="carly-food-quick-card__emoji" aria-hidden="true">{{ food.emoji }}</span>
+                  <div>
+                    <strong>{{ food.label }}</strong>
+                    <small>Vorrat × {{ foodCount(food.id) }}</small>
+                  </div>
+                </div>
+                <p>{{ food.effect }}</p>
+                <div class="carly-food-quick-card__actions">
+                  <button
+                    type="button"
+                    [disabled]="carlyService.progress().isSleeping || foodCount(food.id) <= 0"
+                    (click)="carlyService.feed(food.id)"
+                  >
+                    Füttern
+                  </button>
+                  <button
+                    type="button"
+                    [disabled]="carlyService.progress().credits < foodCost(food)"
+                    (click)="carlyService.buyFood(food.id)"
+                  >
+                    {{ foodCost(food) }} C
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="carly-actions">
+            <button type="button" (click)="pet()">
+              <span class="material-symbols-outlined" aria-hidden="true">waving_hand</span>
+              <strong>Streicheln</strong>
+              <small>
+                {{
+                  carlyService.progress().isSleeping
+                    ? 'Hat im Schlaf keinen Effekt'
+                    : '+5 Zuneigung'
+                }}
+              </small>
+            </button>
+            <button
+              type="button"
+              [disabled]="carlyService.progress().isSleeping || carlyService.progress().energy <= 0"
+              (click)="carlyService.play()"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">sports_esports</span>
+              <strong>Spielen</strong>
+              <small>+8 XP · verbraucht Energie</small>
+            </button>
+
+            @if (carlyService.progress().isSleeping) {
+              <button type="button" (click)="carlyService.wake()">
+                <span class="material-symbols-outlined" aria-hidden="true">bedtime_off</span>
+                <strong>Aufwecken</strong>
+                <small>Regeneration beenden</small>
+              </button>
+            } @else {
+              <button type="button" (click)="carlyService.sleep()">
+                <span class="material-symbols-outlined" aria-hidden="true">bedtime</span>
+                <strong>Schlafen</strong>
+                <small>+1 % Energie pro Stunde</small>
+              </button>
+            }
+
+            <button
+              type="button"
+              [attr.aria-expanded]="foodMenuOpen()"
+              (click)="openFoodMenu()"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true">restaurant</span>
+              <strong>Füttern</strong>
+              <small>{{ totalFoodCount() }} Items im Vorrat</small>
+            </button>
+          </div>
+        }
       </article>
 
       <article class="carly-panel carly-panel--history">

@@ -25,6 +25,7 @@ import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-head
 export class CarlyPageComponent {
   protected readonly carlyService: CarlyService;
   protected readonly storybookOpen = signal(false);
+  protected readonly foodMenuOpen = signal(false);
   protected readonly foods: readonly {
     id: CarlyFoodId;
     emoji: string;
@@ -71,6 +72,20 @@ export class CarlyPageComponent {
     this.carlyService.pet();
   }
 
+  /** Öffnet die kompakte Futterauswahl innerhalb der Carly-Aktionen. */
+  protected openFoodMenu(): void {
+    this.foodMenuOpen.set(true);
+  }
+
+  /** Kehrt von der Futterauswahl zu den regulären Carly-Aktionen zurück. */
+  protected closeFoodMenu(): void {
+    this.foodMenuOpen.set(false);
+  }
+
+  /** Liefert die Gesamtzahl aller aktuell verfügbaren Futteritems. */
+  protected totalFoodCount(): number {
+    return this.foods.reduce((total, food) => total + this.foodCount(food.id), 0);
+  }
 
   /** Liefert den serverseitig veröffentlichten Preis mit sicherem UI-Fallback. */
   protected foodCost(food: { id: CarlyFoodId; fallbackCost: number }): number {
