@@ -1,0 +1,32 @@
+<!-- src/app/features/auth/pages/verify-email-page/verify-email-page.component.html -->
+
+<article class="auth-card" aria-labelledby="verify-email-title">
+  <header class="auth-card__header">
+    <p class="auth-card__eyebrow">E-Mail-Bestätigung</p>
+    <h2 id="verify-email-title">Adresse bestätigen</h2>
+    <p>Der Link kann nur einmal verwendet werden und läuft automatisch ab.</p>
+  </header>
+
+  @if (pending()) {
+    <div class="auth-card__status auth-card__status--neutral" role="status">
+      <strong>Bestätigung wird geprüft …</strong>
+      <p>Der Einmal-Link wird serverseitig validiert.</p>
+    </div>
+  } @else if (verified()) {
+    <div class="auth-card__status auth-card__status--success" role="status">
+      <strong>E-Mail-Adresse bestätigt</strong>
+      <p>Deine Adresse wurde erfolgreich verifiziert.</p>
+    </div>
+  } @else {
+    <div class="auth-card__status" role="alert">
+      <strong>Bestätigung nicht möglich</strong>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  }
+
+  <footer class="auth-card__footer">
+    <a class="auth-card__register-link" routerLink="/dashboard">Zur Anwendung</a>
+    <span>·</span>
+    <a class="auth-card__register-link" routerLink="/auth/login">Zur Anmeldung</a>
+  </footer>
+</article>

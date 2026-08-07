@@ -34,6 +34,7 @@
    13   Spaltenfarben
    14   Task-Formulare und Zusammenarbeit
    15   Kompakte Darstellung
+   16   Realtime-Zusammenarbeit
    ========================================================================== */
 
 /* ==========================================================================
@@ -1122,6 +1123,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+  position: relative;
   overflow: hidden;
 }
 
@@ -1666,7 +1668,10 @@
   white-space: pre-wrap;
 }
 
-.task-attachment-list article,
+.task-attachment-list article {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+
 .task-history-list article {
   grid-template-columns: auto minmax(0, 1fr) auto;
 }
@@ -1699,6 +1704,7 @@
   overflow: hidden;
   clip: rect(0 0 0 0);
 }
+
 
 .task-inline-delete {
   display: grid;
@@ -2103,6 +2109,10 @@
   color: var(--color-icon-muted);
 }
 
+.task-inline-action {
+  text-decoration: none;
+}
+
 .task-inline-action:hover {
   background: var(--color-brand-subtle);
   color: var(--color-action-primary);
@@ -2268,4 +2278,102 @@
 
 .task-drawer--locked :is(.select-menu, .member-select) {
   opacity: 0.72;
+}
+
+
+/* ==========================================================================
+   16   Realtime-Zusammenarbeit
+   ========================================================================== */
+
+.head-chip--presence {
+  gap: var(--space-2);
+}
+
+.head-chip__presence-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-round);
+  background: var(--color-text-muted);
+}
+
+.head-chip--presence.is-connected .head-chip__presence-dot {
+  background: var(--color-success);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--color-success) 16%, transparent);
+}
+
+.board-live-cursor {
+  position: absolute;
+  z-index: var(--z-index-tooltip);
+  display: grid;
+  pointer-events: none;
+  transform: translate(-0.25rem, -0.25rem);
+  transition: left 80ms linear, top 80ms linear;
+}
+
+.board-live-cursor__pointer {
+  font-size: 1.65rem;
+  filter: drop-shadow(0 0.0625rem 0.125rem color-mix(in srgb, var(--color-border-strong) 38%, transparent));
+  transform: rotate(-18deg);
+}
+
+.board-live-cursor__label {
+  width: max-content;
+  max-width: 10rem;
+  margin: -0.15rem 0 0 1.1rem;
+  padding: 0.18rem 0.45rem;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-drawer.task-drawer--editing {
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+}
+
+.task-drawer.task-drawer--locked.task-drawer--editing {
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+}
+
+.task-drawer__editing-notice {
+  display: grid;
+  height: fit-content;
+  padding: var(--space-3) var(--space-5);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  border-bottom: var(--border-width-subtle) solid var(--color-border-subtle);
+  background: color-mix(in srgb, var(--color-warning-surface) 76%, var(--color-surface-primary));
+  color: var(--color-text-secondary);
+}
+
+.task-drawer__editing-notice > .material-symbols-outlined {
+  color: var(--color-warning);
+}
+
+.task-drawer__editing-notice > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.task-drawer__editing-notice strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-200);
+}
+
+.task-drawer__editing-notice span:last-child {
+  overflow: hidden;
+  font-size: var(--font-size-100);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-live-cursor {
+    transition: none;
+  }
 }

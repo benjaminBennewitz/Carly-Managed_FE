@@ -63,6 +63,11 @@ export class WorkspaceInboxService {
       .subscribe({ next: (response) => this.conversationsState.set(unwrapCollection(response)) });
   }
 
+  /** Lädt den aktuellen Inbox-Snapshot nach einem Realtime-Ereignis neu. */
+  refreshCurrent(): void {
+    this.reloadCurrent();
+  }
+
   /** Bleibt als kompatibler Einstieg erhalten; Daten kommen ausschließlich aus der API. */
   initialize(_members: readonly WorkspaceMember[]): void {
     const workspaceId = this.workspaceIdState();

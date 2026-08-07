@@ -541,6 +541,14 @@
                     {{ formatDateTime(attachment.createdAt) }}
                   </span>
                 </div>
+                <a
+                  class="task-inline-action"
+                  [href]="attachment.downloadUrl"
+                  [attr.aria-label]="'Anhang ' + attachment.fileName + ' herunterladen'"
+                  title="Herunterladen"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">download</span>
+                </a>
                 @if (!taskEditingDisabled()) {
                   <button
                     class="task-inline-delete"

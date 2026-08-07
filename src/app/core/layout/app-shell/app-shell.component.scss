@@ -26,6 +26,7 @@
    05   Inboxmodus
    06   Routenfläche
    07   Mobile Navigation
+   08   Konflikthinweis
    ========================================================================== */
 
 /* ==========================================================================
@@ -157,5 +158,48 @@
     border: 0;
     background: var(--color-backdrop);
     cursor: default;
+  }
+}
+
+
+/* ==========================================================================
+   08   Konflikthinweis
+   ========================================================================== */
+
+.app-shell__conflict {
+  position: fixed;
+  z-index: var(--z-index-toast);
+  right: var(--space-5);
+  bottom: var(--space-5);
+  display: grid;
+  width: min(34rem, calc(100vw - 2rem));
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-subtle) solid var(--color-warning);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-lg);
+}
+
+.app-shell__conflict > .material-symbols-outlined {
+  color: var(--color-warning);
+}
+
+.app-shell__conflict > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.app-shell__conflict span:not(.material-symbols-outlined) {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-200);
+}
+
+@media (max-width: 38rem) {
+  .app-shell__conflict {
+    right: var(--space-3);
+    bottom: var(--space-3);
   }
 }

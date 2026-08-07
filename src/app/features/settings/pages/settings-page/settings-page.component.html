@@ -464,6 +464,8 @@
       role="tabpanel"
       aria-label="Allgemein"
     >
+      <cm-account-settings />
+
       <article class="settings-section">
         <div class="settings-section__head">
           <span class="settings-section__icon material-symbols-outlined" aria-hidden="true">
@@ -691,10 +693,10 @@
           <span class="settings-tool-card__icon material-symbols-outlined" aria-hidden="true">
             partly_cloudy_day
           </span>
-          <span class="settings-tool-card__status">API vorbereitet</span>
+          <span class="settings-tool-card__status">Open-Meteo</span>
         </div>
         <h2>Wetter</h2>
-        <p>Zeigt später aktuelle Wetterdaten über eine serverseitig angebundene Wetter-API.</p>
+        <p>Zeigt aktuelle Wetterdaten für einen frei gewählten Ort ohne eigenen API-Schlüssel.</p>
         <label class="settings-text-field settings-text-field--compact">
           <span>Standort</span>
           <input
@@ -704,6 +706,9 @@
             (change)="setWeatherLocation($event)"
           />
         </label>
+        <p>
+          Wetterdaten: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Ortssuche: <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+        </p>
         <label class="settings-tool-card__toggle">
           <span>{{ settingsService.tools().weather ? 'Aktiv' : 'Deaktiviert' }}</span>
           <input
@@ -720,8 +725,8 @@
         <div>
           <strong>Aktive Tools erscheinen in einer kompakten Werkzeugleiste.</strong>
           <p>
-            Pomodoro und Task-Timer funktionieren lokal. Wetterdaten werden erst mit einer
-            geschützten API-Anbindung geladen.
+            Pomodoro und Task-Timer funktionieren lokal. Wetter und Ortssuche werden direkt über
+            Open-Meteo geladen; der Anbieter benötigt für diese Nutzung keinen API-Schlüssel.
           </p>
         </div>
       </aside>

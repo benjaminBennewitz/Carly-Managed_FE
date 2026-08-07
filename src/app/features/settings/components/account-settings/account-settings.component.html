@@ -1,0 +1,124 @@
+<!-- src/app/features/settings/components/account-settings/account-settings.component.html -->
+
+<section class="account-settings" aria-label="Konto und Sicherheit">
+  @if (statusMessage()) {
+    <p class="account-settings__status" role="status">
+      <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+      {{ statusMessage() }}
+    </p>
+  }
+  @if (errorMessage()) {
+    <p class="account-settings__status account-settings__status--error" role="alert">
+      <span class="material-symbols-outlined" aria-hidden="true">error</span>
+      {{ errorMessage() }}
+    </p>
+  }
+
+  <article class="account-settings__card">
+    <header>
+      <span class="material-symbols-outlined" aria-hidden="true">person</span>
+      <div>
+        <p>Konto</p>
+        <h2>Profil</h2>
+      </div>
+    </header>
+
+    <form [formGroup]="profileForm" novalidate (ngSubmit)="saveProfile()">
+      <cm-text-field
+        [control]="profileForm.controls.displayName"
+        inputId="account-display-name"
+        label="Anzeigename"
+        autocomplete="name"
+        [required]="true"
+        [submitted]="profileSubmitted()"
+        [maxlength]="60"
+      />
+      <div class="account-settings__readonly">
+        <span>E-Mail-Adresse</span>
+        <strong>{{ currentUser()?.email }}</strong>
+      </div>
+      <button class="account-settings__action" type="submit" [disabled]="profilePending()">
+        {{ profilePending() ? 'Speichert …' : 'Profil speichern' }}
+      </button>
+    </form>
+  </article>
+
+  <article class="account-settings__card">
+    <header>
+      <span class="material-symbols-outlined" aria-hidden="true">mark_email_read</span>
+      <div>
+        <p>Verifizierung</p>
+        <h2>E-Mail-Adresse</h2>
+      </div>
+    </header>
+
+    @if (currentUser()?.emailVerified) {
+      <p class="account-settings__verified">
+        <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+        Deine E-Mail-Adresse ist bestätigt.
+      </p>
+    } @else {
+      <p>Deine Adresse ist noch nicht bestätigt. Der neue Link ersetzt ältere, noch offene Links.</p>
+      <button
+        class="account-settings__action account-settings__action--secondary"
+        type="button"
+        [disabled]="verificationPending()"
+        (click)="resendVerification()"
+      >
+        {{ verificationPending() ? 'Wird angefordert …' : 'Bestätigungslink erneut senden' }}
+      </button>
+    }
+  </article>
+
+  <article class="account-settings__card account-settings__card--wide">
+    <header>
+      <span class="material-symbols-outlined" aria-hidden="true">password</span>
+      <div>
+        <p>Sicherheit</p>
+        <h2>Passwort ändern</h2>
+      </div>
+    </header>
+
+    <form [formGroup]="passwordForm" novalidate (ngSubmit)="changePassword()">
+      <div class="account-settings__password-grid">
+        <cm-text-field
+          [control]="passwordForm.controls.currentPassword"
+          inputId="account-current-password"
+          label="Aktuelles Passwort"
+          type="password"
+          autocomplete="current-password"
+          [required]="true"
+          [submitted]="passwordSubmitted()"
+          [allowPasswordToggle]="true"
+          [maxlength]="128"
+        />
+        <cm-text-field
+          [control]="passwordForm.controls.newPassword"
+          inputId="account-new-password"
+          label="Neues Passwort"
+          type="password"
+          autocomplete="new-password"
+          [required]="true"
+          [submitted]="passwordSubmitted()"
+          [allowPasswordToggle]="true"
+          [maxlength]="128"
+        />
+        <cm-text-field
+          [control]="passwordForm.controls.confirmation"
+          inputId="account-new-password-confirmation"
+          label="Neues Passwort wiederholen"
+          type="password"
+          autocomplete="new-password"
+          [required]="true"
+          [submitted]="passwordSubmitted()"
+          [allowPasswordToggle]="true"
+          [maxlength]="128"
+        />
+      </div>
+      <p class="account-settings__hint">Mindestens 12 Zeichen. Das Backend prüft zusätzlich die konfigurierten Django-Passwortregeln.</p>
+      <button class="account-settings__action" type="submit" [disabled]="passwordPending()">
+        {{ passwordPending() ? 'Passwort wird geändert …' : 'Passwort ändern' }}
+      </button>
+    </form>
+  </article>
+</section>

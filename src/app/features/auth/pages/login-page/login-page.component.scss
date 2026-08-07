@@ -110,6 +110,25 @@ form {
   font-size: var(--font-size-200);
 }
 
+.auth-card__status--success {
+  border-color: var(--color-success);
+  background: var(--color-success-surface);
+}
+
+.auth-card__status--success strong {
+  color: var(--color-success);
+}
+
+.auth-card__status--neutral {
+  border-color: var(--color-border-subtle);
+  background: var(--color-surface-secondary);
+}
+
+.auth-card__status--neutral strong {
+  color: var(--color-text-primary);
+}
+
+
 /* ========================================================================== 
    05   Aktionen
    ========================================================================== */

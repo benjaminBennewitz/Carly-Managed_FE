@@ -1,6 +1,6 @@
 // src/app/core/workspace/workspace.service.ts
 
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, Injectable, signal } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 
@@ -98,10 +98,14 @@ export class WorkspaceService {
   private readonly archivedTaskState = signal<WorkspaceTask[]>([]);
   private readonly loadingState = signal(false);
   private readonly lastActivityState = signal<WorkspaceActivityEvent | null>(null);
+  private readonly conflictNoticeState = signal<string | null>(null);
+  private readonly conflictRevisionState = signal(0);
   private activitySequence = 0;
 
   readonly loading = this.loadingState.asReadonly();
   readonly lastActivity = this.lastActivityState.asReadonly();
+  readonly conflictNotice = this.conflictNoticeState.asReadonly();
+  readonly conflictRevision = this.conflictRevisionState.asReadonly();
   readonly workspaceId = this.workspaceIdState.asReadonly();
   readonly projects = computed(() =>
     this.projectsState()
@@ -194,7 +198,14 @@ export class WorkspaceService {
           ),
         }).pipe(
           tap(({ members, projects, boards, joinRequests, archivedTasks }) => {
-            this.membersState.set(members);
+            const onlineIds = new Set(
+              this.membersState()
+                .filter((member) => member.isOnline)
+                .map((member) => member.id),
+            );
+            this.membersState.set(
+              members.map((member) => ({ ...member, isOnline: onlineIds.has(member.id) })),
+            );
             this.projectsState.set(unwrapCollection(projects));
             this.joinRequestsState.set(
               unwrapCollection(joinRequests).filter(
@@ -249,6 +260,38 @@ export class WorkspaceService {
     return clone(this.boardsState()[projectId] ?? []);
   }
 
+  /** Lädt gezielt einen einzelnen Board-Snapshot nach einem Realtime-Ereignis neu. */
+  refreshBoard(projectId: string): Observable<WorkspaceColumn[]> {
+    const boardId = this.getBoardApiId(projectId);
+    if (!boardId) return of(this.getBoard(projectId));
+
+    return this.http.get<BoardApiModel>(`${API_BASE_URL}/workspaces/boards/${boardId}/`).pipe(
+      tap((board) => this.applyBoardSnapshot(board)),
+      map(() => this.getBoard(projectId)),
+      catchError(() => of(this.getBoard(projectId))),
+    );
+  }
+
+  /** Übernimmt einen vollständigen Presence-Snapshot des aktuell geöffneten Boards. */
+  setOnlineMembers(userIds: readonly string[]): void {
+    const onlineIds = new Set(userIds);
+    this.membersState.update((members) =>
+      members.map((member) => ({ ...member, isOnline: onlineIds.has(member.id) })),
+    );
+  }
+
+  /** Aktualisiert den Presence-Zustand eines einzelnen Workspace-Mitglieds. */
+  setMemberOnline(userId: string, isOnline: boolean): void {
+    this.membersState.update((members) =>
+      members.map((member) => (member.id === userId ? { ...member, isOnline } : member)),
+    );
+  }
+
+  /** Entfernt den sichtbaren Hinweis auf einen bereits behandelten Versionskonflikt. */
+  dismissConflictNotice(): void {
+    this.conflictNoticeState.set(null);
+  }
+
   /** Übernimmt einen bereits über Einzelaktionen persistierten Boardzustand lokal. */
   saveBoard(projectId: string, columns: WorkspaceColumn[]): void {
     this.boardsState.update((boards) => ({ ...boards, [projectId]: clone(columns) }));
@@ -295,7 +338,7 @@ export class WorkspaceService {
       })
       .subscribe({
         next: (updated) => this.patchProjectState(updated),
-        error: () => this.reload(),
+        error: (error) => this.handleMutationError(error),
       });
   }
 
@@ -305,7 +348,7 @@ export class WorkspaceService {
     if (project) this.patchProjectState({ ...project, lastOpenedAt: new Date().toISOString() });
     this.http
       .post<void>(`${API_BASE_URL}/workspaces/projects/${projectId}/mark-opened/`, {})
-      .subscribe({ error: () => this.reload() });
+      .subscribe({ error: (error) => this.handleMutationError(error) });
   }
 
   /** Speichert bearbeitbare Projektdaten mit Versionsprüfung. */
@@ -335,7 +378,7 @@ export class WorkspaceService {
       })
       .subscribe({
         next: (updated) => this.patchProjectState(updated),
-        error: () => this.reload(),
+        error: (error) => this.handleMutationError(error),
       });
     this.emitActivity('project-updated', optimistic.name, optimistic.name);
     return clone(optimistic);
@@ -365,7 +408,7 @@ export class WorkspaceService {
       .delete<void>(
         `${API_BASE_URL}/workspaces/projects/${projectId}/?version=${project.version ?? 1}`,
       )
-      .subscribe({ error: () => this.reload() });
+      .subscribe({ error: (error) => this.handleMutationError(error) });
     return true;
   }
 
@@ -418,7 +461,7 @@ export class WorkspaceService {
           icon: project.icon,
           slugLabel: project.slugLabel,
         })
-        .subscribe({ next: () => this.reload(), error: () => this.reload() });
+        .subscribe({ next: () => this.reload(), error: (error) => this.handleMutationError(error) });
     }
     this.emitActivity('project-created', project.name, project.name);
     return clone(project);
@@ -448,7 +491,7 @@ export class WorkspaceService {
         role: payload.role,
         avatarColor: payload.avatarColor,
       })
-      .subscribe({ next: (updated) => this.replaceMember(updated), error: () => this.reload() });
+      .subscribe({ next: (updated) => this.replaceMember(updated), error: (error) => this.handleMutationError(error) });
     return clone(optimistic);
   }
 
@@ -461,7 +504,7 @@ export class WorkspaceService {
       .request<void>('DELETE', `${API_BASE_URL}/workspaces/${workspaceId}/members/`, {
         body: { memberId },
       })
-      .subscribe({ error: () => this.reload() });
+      .subscribe({ error: (error) => this.handleMutationError(error) });
     return true;
   }
 
@@ -472,7 +515,7 @@ export class WorkspaceService {
     this.joinRequestsState.update((items) => items.filter((item) => item.id !== requestId));
     this.http
       .post<WorkspaceMember>(`${API_BASE_URL}/workspaces/join-requests/${requestId}/approve/`, {})
-      .subscribe({ next: () => this.reload(), error: () => this.reload() });
+      .subscribe({ next: () => this.reload(), error: (error) => this.handleMutationError(error) });
     return {
       id: createUuid(),
       fullName: request.fullName,
@@ -491,7 +534,7 @@ export class WorkspaceService {
     this.joinRequestsState.update((items) => items.filter((item) => item.id !== requestId));
     this.http
       .post<void>(`${API_BASE_URL}/workspaces/join-requests/${requestId}/reject/`, {})
-      .subscribe({ error: () => this.reload() });
+      .subscribe({ error: (error) => this.handleMutationError(error) });
     return true;
   }
 
@@ -554,7 +597,7 @@ export class WorkspaceService {
         `${API_BASE_URL}/workspaces/tasks/${taskId}/${isDone ? 'complete' : 'reopen'}/`,
         { version: found.task.version ?? 1 },
       )
-      .subscribe({ next: (task) => this.updateLocalTask(task), error: () => this.reload() });
+      .subscribe({ next: (task) => this.updateLocalTask(task), error: (error) => this.handleMutationError(error) });
     return this.getBoard(projectId);
   }
 
@@ -595,7 +638,7 @@ export class WorkspaceService {
           this.updateLocalTask(updated, targetColumnId);
           this.emitActivity('task-moved', updated.title, updated.projectTitle);
         },
-        error: () => this.reload(),
+        error: (error) => this.handleMutationError(error),
       });
     return this.getBoard(projectId);
   }
@@ -667,7 +710,7 @@ export class WorkspaceService {
       .delete<void>(
         `${API_BASE_URL}/workspaces/columns/${columnId}/?version=${column.version ?? 1}`,
       )
-      .subscribe({ error: () => this.reload() });
+      .subscribe({ error: (error) => this.handleMutationError(error) });
     return this.getBoard(projectId);
   }
 
@@ -715,7 +758,7 @@ export class WorkspaceService {
             recurrenceLabel: rule.summary,
             isRecurring: true,
           }),
-        error: () => this.reload(),
+        error: (error) => this.handleMutationError(error),
       });
     return this.getBoard(projectId);
   }
@@ -751,7 +794,7 @@ export class WorkspaceService {
       .delete<void>(
         `${API_BASE_URL}/workspaces/tasks/${taskId}/recurrence/?version=${rule.version ?? 1}`,
       )
-      .subscribe({ error: () => this.reload() });
+      .subscribe({ error: (error) => this.handleMutationError(error) });
     return this.getBoard(projectId);
   }
 
@@ -783,7 +826,7 @@ export class WorkspaceService {
         reviewHint: changes.reviewHint,
         version: task.version ?? 1,
       })
-      .subscribe({ next: (updated) => this.updateLocalTask(updated), error: () => this.reload() });
+      .subscribe({ next: (updated) => this.updateLocalTask(updated), error: (error) => this.handleMutationError(error) });
     this.emitActivity('task-updated', optimistic.title, optimistic.projectTitle);
     return this.getBoard(projectId);
   }
@@ -795,7 +838,7 @@ export class WorkspaceService {
     this.removeLocalTask(taskId);
     this.http
       .delete<void>(`${API_BASE_URL}/workspaces/tasks/${taskId}/?version=${task.version ?? 1}`)
-      .subscribe({ error: () => this.reload() });
+      .subscribe({ error: (error) => this.handleMutationError(error) });
     return this.getBoard(projectId);
   }
 
@@ -829,7 +872,7 @@ export class WorkspaceService {
       })
       .subscribe({
         next: (saved) => this.replaceSubtask(taskId, saved),
-        error: () => this.reload(),
+        error: (error) => this.handleMutationError(error),
       });
     return this.getBoard(projectId);
   }
@@ -887,7 +930,7 @@ export class WorkspaceService {
       .delete<void>(
         `${API_BASE_URL}/workspaces/tasks/${taskId}/subtasks/${subtaskId}/?version=${subtask.version ?? 1}`,
       )
-      .subscribe({ error: () => this.reload() });
+      .subscribe({ error: (error) => this.handleMutationError(error) });
     return this.getBoard(projectId);
   }
 
@@ -915,7 +958,7 @@ export class WorkspaceService {
       })
       .subscribe({
         next: (saved) => this.replaceComment(taskId, saved),
-        error: () => this.reload(),
+        error: (error) => this.handleMutationError(error),
       });
     this.emitActivity('comment-created', task.title, task.projectTitle);
     return this.getBoard(projectId);
@@ -931,7 +974,7 @@ export class WorkspaceService {
     });
     this.http
       .delete<void>(`${API_BASE_URL}/workspaces/tasks/${taskId}/comments/${commentId}/`)
-      .subscribe({ error: () => this.reload() });
+      .subscribe({ error: (error) => this.handleMutationError(error) });
     return this.getBoard(projectId);
   }
 
@@ -953,7 +996,7 @@ export class WorkspaceService {
             attachments: [...task.attachments, ...attachments],
             attachmentCount: task.attachmentCount + attachments.length,
           }),
-        error: () => this.reload(),
+        error: (error) => this.handleMutationError(error),
       });
     return this.getBoard(projectId);
   }
@@ -962,13 +1005,15 @@ export class WorkspaceService {
   deleteAttachment(projectId: string, taskId: string, attachmentId: string): WorkspaceColumn[] {
     const task = this.getTaskById(taskId);
     if (!task) return this.getBoard(projectId);
+    const attachments = task.attachments.filter((item) => item.id !== attachmentId);
     this.updateLocalTask({
       ...task,
-      attachments: task.attachments.filter((item) => item.id !== attachmentId),
+      attachments,
+      attachmentCount: attachments.length,
     });
     this.http
       .delete<void>(`${API_BASE_URL}/workspaces/tasks/${taskId}/attachments/${attachmentId}/`)
-      .subscribe({ error: () => this.reload() });
+      .subscribe({ error: (error) => this.handleMutationError(error) });
     return this.getBoard(projectId);
   }
 
@@ -995,12 +1040,27 @@ export class WorkspaceService {
     const columnsByKey: Record<string, WorkspaceColumn[]> = {};
     const metaByKey: Record<string, BoardMeta> = {};
     for (const board of boards) {
-      const key = board.kind === 'personal' ? PERSONAL_BOARD_KEY : (board.projectId ?? board.id);
+      const key = this.boardKey(board);
       columnsByKey[key] = board.columns;
       metaByKey[key] = { id: board.id, version: board.version };
     }
     this.boardsState.set(columnsByKey);
     this.boardMetaState.set(metaByKey);
+  }
+
+  /** Ersetzt genau einen Board-Snapshot ohne andere geladene Boards anzufassen. */
+  private applyBoardSnapshot(board: BoardApiModel): void {
+    const key = this.boardKey(board);
+    this.boardsState.update((boards) => ({ ...boards, [key]: board.columns }));
+    this.boardMetaState.update((meta) => ({
+      ...meta,
+      [key]: { id: board.id, version: board.version },
+    }));
+  }
+
+  /** Ermittelt den Frontend-Schlüssel eines persistierten Boards. */
+  private boardKey(board: BoardApiModel): string {
+    return board.kind === 'personal' ? PERSONAL_BOARD_KEY : (board.projectId ?? board.id);
   }
 
   /** Setzt alle Workspace-Signale auf einen leeren Zustand. */
@@ -1033,7 +1093,7 @@ export class WorkspaceService {
       })
       .subscribe({
         next: (updated) => this.patchProjectState(updated),
-        error: () => this.reload(),
+        error: (error) => this.handleMutationError(error),
       });
     return clone(optimistic);
   }
@@ -1173,7 +1233,7 @@ export class WorkspaceService {
         })
         .subscribe({
           next: (saved) => this.updateLocalTask(saved, columnId),
-          error: () => this.reload(),
+          error: (error) => this.handleMutationError(error),
         });
     }
     this.emitActivity('task-created', task.title, task.projectTitle);
@@ -1201,7 +1261,7 @@ export class WorkspaceService {
         sortMode: changes.sortMode,
         version: current.version ?? 1,
       })
-      .subscribe({ next: () => this.reload(), error: () => this.reload() });
+      .subscribe({ next: () => this.reload(), error: (error) => this.handleMutationError(error) });
     return this.getBoard(projectId);
   }
 
@@ -1275,7 +1335,7 @@ export class WorkspaceService {
       )
       .subscribe({
         next: (saved) => this.replaceSubtask(task.id, saved),
-        error: () => this.reload(),
+        error: (error) => this.handleMutationError(error),
       });
     if (subtask.isDone && !previous?.isDone) {
       this.emitActivity('subtask-completed', subtask.title, task.projectTitle);
@@ -1313,6 +1373,21 @@ export class WorkspaceService {
         : [...task.comments, comment],
       commentCount: exists ? task.commentCount : task.commentCount + 1,
     });
+  }
+
+  /** Behandelt veraltete Versionen sichtbar und synchronisiert anschließend den Serverstand. */
+  private handleMutationError(error: unknown): void {
+    if (
+      error instanceof HttpErrorResponse &&
+      error.status === 409 &&
+      error.error?.code === 'version_conflict'
+    ) {
+      this.conflictNoticeState.set(
+        'Die Ressource wurde inzwischen von einer anderen Person geändert. Der aktuelle Stand wurde neu geladen.',
+      );
+      this.conflictRevisionState.update((revision) => revision + 1);
+    }
+    this.reload();
   }
 
   /** Formatiert Initialen aus einem Anzeigenamen. */

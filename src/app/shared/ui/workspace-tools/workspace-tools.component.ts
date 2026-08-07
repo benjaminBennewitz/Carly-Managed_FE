@@ -1,14 +1,17 @@
 // src/app/shared/ui/workspace-tools/workspace-tools.component.ts
 
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, signal } from '@angular/core';
 
 import { AppSettingsService } from '../../../core/settings/app-settings.service';
+import { WeatherService } from '../../../core/weather/weather.service';
 
 const POMODORO_DURATION_SECONDS = 25 * 60;
 const BOTTOM_TOAST_SELECTOR = '[data-bottom-toast]';
 
 @Component({
   selector: 'cm-workspace-tools',
+  imports: [DecimalPipe],
   templateUrl: './workspace-tools.component.html',
   styleUrl: './workspace-tools.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,6 +22,7 @@ const BOTTOM_TOAST_SELECTOR = '[data-bottom-toast]';
 })
 export class WorkspaceToolsComponent {
   protected readonly settingsService: AppSettingsService;
+  protected readonly weatherService: WeatherService;
   protected readonly open = signal(false);
   protected readonly drawerOpen = signal(false);
   protected readonly toastVisible = signal(false);
@@ -29,8 +33,22 @@ export class WorkspaceToolsComponent {
   protected readonly pomodoroLabel = computed(() => this.formatTime(this.pomodoroSeconds()));
   protected readonly taskTimerLabel = computed(() => this.formatTime(this.taskTimerSeconds()));
 
-  constructor(settingsService: AppSettingsService, destroyRef: DestroyRef) {
+  constructor(
+    settingsService: AppSettingsService,
+    weatherService: WeatherService,
+    destroyRef: DestroyRef,
+  ) {
     this.settingsService = settingsService;
+    this.weatherService = weatherService;
+
+    effect(() => {
+      const tools = this.settingsService.tools();
+      if (tools.weather) {
+        this.weatherService.load(tools.weatherLocation);
+      } else {
+        this.weatherService.clear();
+      }
+    });
 
     const updateFloatingUiState = (): void => {
       this.drawerOpen.set(document.querySelector('.task-drawer') !== null);
@@ -92,6 +110,11 @@ export class WorkspaceToolsComponent {
   protected resetTaskTimer(): void {
     this.taskTimerRunning.set(false);
     this.taskTimerSeconds.set(0);
+  }
+
+  /** Lädt den Wetterstand für den gespeicherten Standort erneut. */
+  protected refreshWeather(): void {
+    this.weatherService.load(this.settingsService.tools().weatherLocation, true);
   }
 
   /** Formatiert Sekunden als kompakte Zeitangabe. */

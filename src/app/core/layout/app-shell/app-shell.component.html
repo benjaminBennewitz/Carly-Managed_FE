@@ -38,4 +38,22 @@
   @if (carlyService.visibleGlobally()) {
     <cm-carly-mascot />
   }
+
+  @if (workspaceService.conflictNotice(); as conflictNotice) {
+    <div class="app-shell__conflict" role="alert" data-bottom-toast>
+      <span class="material-symbols-outlined" aria-hidden="true">sync_problem</span>
+      <div>
+        <strong>Änderungskonflikt erkannt</strong>
+        <span>{{ conflictNotice }}</span>
+      </div>
+      <button
+        class="ui-close-button"
+        type="button"
+        aria-label="Konflikthinweis schließen"
+        (click)="workspaceService.dismissConflictNotice()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </div>
+  }
 </div>

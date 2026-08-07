@@ -105,6 +105,9 @@ Carly-Managed_FE/
 │   │   │   │       └── topbar.component.ts
 │   │   │   ├── legal/
 │   │   │   │   └── legal.config.ts
+│   │   │   ├── realtime/
+│   │   │   │   ├── realtime.models.ts
+│   │   │   │   └── realtime.service.ts
 │   │   │   ├── search/
 │   │   │   │   ├── global-search.models.ts
 │   │   │   │   ├── global-search.service.spec.ts
@@ -127,6 +130,9 @@ Carly-Managed_FE/
 │   │   │   │   ├── theme-monochrome.spec.ts
 │   │   │   │   ├── theme-monochrome.ts
 │   │   │   │   └── theme-palettes.ts
+│   │   │   ├── weather/
+│   │   │   │   ├── weather.models.ts
+│   │   │   │   └── weather.service.ts
 │   │   │   └── workspace/
 │   │   │       ├── task-rules.spec.ts
 │   │   │       ├── task-rules.ts
@@ -147,14 +153,23 @@ Carly-Managed_FE/
 │   │   │   │           └── archive-page.component.ts
 │   │   │   ├── auth/
 │   │   │   │   └── pages/
+│   │   │   │       ├── forgot-password-page/
+│   │   │   │       │   ├── forgot-password-page.component.html
+│   │   │   │       │   └── forgot-password-page.component.ts
 │   │   │   │       ├── login-page/
 │   │   │   │       │   ├── login-page.component.html
 │   │   │   │       │   ├── login-page.component.scss
 │   │   │   │       │   └── login-page.component.ts
-│   │   │   │       └── register-page/
-│   │   │   │           ├── register-page.component.html
-│   │   │   │           ├── register-page.component.scss
-│   │   │   │           └── register-page.component.ts
+│   │   │   │       ├── register-page/
+│   │   │   │       │   ├── register-page.component.html
+│   │   │   │       │   ├── register-page.component.scss
+│   │   │   │       │   └── register-page.component.ts
+│   │   │   │       ├── reset-password-page/
+│   │   │   │       │   ├── reset-password-page.component.html
+│   │   │   │       │   └── reset-password-page.component.ts
+│   │   │   │       └── verify-email-page/
+│   │   │   │           ├── verify-email-page.component.html
+│   │   │   │           └── verify-email-page.component.ts
 │   │   │   ├── board/
 │   │   │   │   ├── components/
 │   │   │   │   │   ├── automation-rule-modal/
@@ -239,6 +254,11 @@ Carly-Managed_FE/
 │   │   │   │           ├── projects-page.component.scss
 │   │   │   │           └── projects-page.component.ts
 │   │   │   └── settings/
+│   │   │       ├── components/
+│   │   │       │   └── account-settings/
+│   │   │       │       ├── account-settings.component.html
+│   │   │       │       ├── account-settings.component.scss
+│   │   │       │       └── account-settings.component.ts
 │   │   │       └── pages/
 │   │   │           └── settings-page/
 │   │   │               ├── settings-page.cards.scss

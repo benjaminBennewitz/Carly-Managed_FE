@@ -6,6 +6,9 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 import { CarlyService } from '../../carly/carly.service';
+import { WorkspaceInboxService } from '../../inbox/workspace-inbox.service';
+import { RealtimeService } from '../../realtime/realtime.service';
+import { WorkspaceService } from '../../workspace/workspace.service';
 import { AppSettingsService } from '../../settings/app-settings.service';
 import { CarlyMascotComponent } from '../../../shared/ui/carly-mascot/carly-mascot.component';
 import { ScreenMagnifierComponent } from '../../../shared/ui/screen-magnifier/screen-magnifier.component';
@@ -32,6 +35,7 @@ const DESKTOP_SIDEBAR_QUERY = '(min-width: 56.001rem)';
 export class AppShellComponent {
   protected readonly carlyService: CarlyService;
   protected readonly settingsService: AppSettingsService;
+  protected readonly workspaceService: WorkspaceService;
   protected readonly sidebarOpen = signal(window.matchMedia(DESKTOP_SIDEBAR_QUERY).matches);
   protected readonly isBoardRoute = signal(false);
   protected readonly isProjectSettingsRoute = signal(false);
@@ -40,11 +44,19 @@ export class AppShellComponent {
   constructor(
     carlyService: CarlyService,
     destroyRef: DestroyRef,
+    inboxService: WorkspaceInboxService,
+    realtimeService: RealtimeService,
     router: Router,
     settingsService: AppSettingsService,
+    workspaceService: WorkspaceService,
   ) {
     this.carlyService = carlyService;
     this.settingsService = settingsService;
+    this.workspaceService = workspaceService;
+    realtimeService.connectInbox();
+    realtimeService.inboxEvents.pipe(takeUntilDestroyed(destroyRef)).subscribe((event) => {
+      if (event.type !== 'heartbeat.ack') inboxService.refreshCurrent();
+    });
     const desktopMediaQuery = window.matchMedia(DESKTOP_SIDEBAR_QUERY);
     const updateSidebarForViewport = (event: MediaQueryListEvent): void => {
       this.sidebarOpen.set(event.matches);
@@ -69,6 +81,7 @@ export class AppShellComponent {
 
     destroyRef.onDestroy(() => {
       desktopMediaQuery.removeEventListener('change', updateSidebarForViewport);
+      realtimeService.disconnectInbox();
     });
   }
 

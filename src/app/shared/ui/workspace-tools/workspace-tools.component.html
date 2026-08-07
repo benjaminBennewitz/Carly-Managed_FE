@@ -63,12 +63,28 @@
 
       @if (settingsService.tools().weather) {
         <article class="workspace-tools__item workspace-tools__item--weather">
-          <span class="material-symbols-outlined" aria-hidden="true">partly_cloudy_day</span>
-          <div>
-            <small>{{ settingsService.tools().weatherLocation }}</small>
-            <strong>API folgt</strong>
-          </div>
-          <span class="workspace-tools__beta">Beta</span>
+          @if (weatherService.current(); as weather) {
+            <span class="material-symbols-outlined" aria-hidden="true">{{ weather.icon }}</span>
+            <div>
+              <small>{{ weather.locationLabel }} · {{ weather.conditionLabel }}</small>
+              <strong>{{ weather.temperatureCelsius | number: '1.0-0' }} °C</strong>
+            </div>
+          } @else {
+            <span class="material-symbols-outlined" aria-hidden="true">partly_cloudy_day</span>
+            <div>
+              <small>{{ settingsService.tools().weatherLocation || 'Kein Standort' }}</small>
+              <strong>{{ weatherService.loading() ? 'Lädt …' : weatherService.error() || '–' }}</strong>
+            </div>
+          }
+          <button
+            class="workspace-tools__weather-refresh"
+            type="button"
+            aria-label="Wetter aktualisieren"
+            [disabled]="weatherService.loading()"
+            (click)="refreshWeather()"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
+          </button>
         </article>
       }
     </section>

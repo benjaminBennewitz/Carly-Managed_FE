@@ -67,6 +67,7 @@ export interface WorkspaceAttachment {
   sizeBytes: number;
   uploadedBy: WorkspaceMember;
   createdAt: string;
+  downloadUrl: string;
 }
 
 export interface WorkspaceHistoryEntry {

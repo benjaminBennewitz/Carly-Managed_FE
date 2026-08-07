@@ -46,6 +46,8 @@
       label="Auf diesem Gerät angemeldet bleiben"
     />
 
+    <a class="auth-card__register-link" routerLink="/auth/forgot-password">Passwort vergessen?</a>
+
     <button class="auth-card__submit" type="submit" [disabled]="pending()">
       @if (pending()) {
         <span>Anmeldung wird geprüft …</span>

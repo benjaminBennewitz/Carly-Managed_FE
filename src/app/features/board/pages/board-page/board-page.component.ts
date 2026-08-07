@@ -1,9 +1,20 @@
 // src/app/features/board/pages/board-page/board-page.component.ts
 
 import { CdkDragDrop, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+
+import { SessionService } from '../../../../core/auth/services/session.service';
+import {
+  RealtimeCursorPayload,
+  RealtimeEditingPayload,
+  RealtimePresenceJoinedPayload,
+  RealtimePresenceLeftPayload,
+  RealtimePresenceSnapshotPayload,
+} from '../../../../core/realtime/realtime.models';
+import { RealtimeService } from '../../../../core/realtime/realtime.service';
 
 import { canReleaseTaskToPool, isOnDemandReadyTask } from '../../../../core/workspace/task-rules';
 import { WorkspaceAutomationService } from '../../../../core/workspace/workspace-automation.service';
@@ -57,6 +68,15 @@ const MAX_TASK_TAG_LENGTH = 32;
 
 type TaskDrawerTab = 'details' | 'subtasks' | 'comments' | 'attachments' | 'history';
 
+interface RemoteBoardCursor {
+  userId: string;
+  x: number;
+  y: number;
+  label: string;
+  avatarColor: string;
+  avatarTextColor: string;
+}
+
 @Component({
   selector: 'cm-board-page',
   imports: [
@@ -104,6 +124,8 @@ export class BoardPageComponent {
   protected readonly automationModalOpen = signal(false);
   protected readonly recurrenceModalOpen = signal(false);
   protected readonly recurrenceEditorTaskId = signal<string | null>(null);
+  protected readonly remoteCursors = signal<RemoteBoardCursor[]>([]);
+  protected readonly taskEditors = signal<Record<string, string[]>>({});
 
   protected readonly project = computed(() =>
     this.projectId() === 'personal' ? null : this.workspaceService.getProject(this.projectId()),
@@ -158,6 +180,21 @@ export class BoardPageComponent {
     return `${this.formatDate(project.startedAt)} – ${this.formatDate(project.dueAt)}`;
   });
 
+  protected readonly boardApiId = computed(() =>
+    this.workspaceService.getBoardApiId(this.projectId()),
+  );
+  protected readonly onlineMembers = computed(() =>
+    this.workspaceService.members().filter((member) => member.isOnline),
+  );
+  protected readonly activeTaskEditors = computed(() => {
+    const taskId = this.selectedTask()?.id;
+    if (!taskId) return [];
+    const editorIds = this.taskEditors()[taskId] ?? [];
+    return editorIds
+      .map((userId) => this.workspaceService.members().find((member) => member.id === userId))
+      .filter((member): member is WorkspaceMember => !!member);
+  });
+
   protected readonly availableCollaborators = computed(() => {
     const task = this.selectedTask();
     if (!task) {
@@ -185,11 +222,16 @@ export class BoardPageComponent {
   });
 
   private closeTimerId: number | null = null;
+  private realtimeRefreshTimerId: number | null = null;
   private requestedTaskId: string | null = null;
+  private lastCursorSentAt = 0;
+  private readonly cursorExpiryTimers = new Map<string, number>();
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    protected readonly realtimeService: RealtimeService,
+    private readonly sessionService: SessionService,
     workspaceService: WorkspaceService,
     displayPreferences: WorkspaceDisplayPreferencesService,
     automationService: WorkspaceAutomationService,
@@ -217,10 +259,47 @@ export class BoardPageComponent {
       this.openRequestedTask();
     });
 
+    this.realtimeService.boardEvents
+      .pipe(takeUntilDestroyed(destroyRef))
+      .subscribe((event) => this.handleRealtimeEvent(event.type, event.payload));
+
+    effect((onCleanup) => {
+      const boardId = this.boardApiId();
+      if (!boardId) return;
+      this.realtimeService.connectBoard(boardId);
+      onCleanup(() => {
+        const taskId = this.selectedTask()?.id ?? null;
+        if (taskId) this.realtimeService.sendEditing(taskId, false);
+        this.realtimeService.disconnectBoard();
+        this.workspaceService.setOnlineMembers([]);
+        this.remoteCursors.set([]);
+        this.taskEditors.set({});
+      });
+    });
+
+    effect(() => {
+      const conflictNotice = this.workspaceService.conflictNotice();
+      const conflictRevision = this.workspaceService.conflictRevision();
+      if (!conflictNotice || conflictRevision === 0) return;
+      const projectId = this.projectId();
+      this.workspaceService.refreshBoard(projectId).subscribe((columns) => {
+        this.columns.set(columns);
+        const taskId = this.selectedTask()?.id;
+        if (taskId) this.syncSelectedTask(taskId);
+      });
+    });
+
     destroyRef.onDestroy(() => {
       if (this.closeTimerId !== null) {
         window.clearTimeout(this.closeTimerId);
       }
+      if (this.realtimeRefreshTimerId !== null) {
+        window.clearTimeout(this.realtimeRefreshTimerId);
+      }
+      for (const timerId of this.cursorExpiryTimers.values()) {
+        window.clearTimeout(timerId);
+      }
+      this.cursorExpiryTimers.clear();
     });
   }
 
@@ -272,9 +351,14 @@ export class BoardPageComponent {
         ? this.workspaceService.getTaskById(task.sourceTaskId)
         : null;
     const drawerTask = sourceTask ?? task;
+    const previousTaskId = this.selectedTask()?.id ?? null;
+    if (previousTaskId && previousTaskId !== drawerTask.id) {
+      this.realtimeService.sendEditing(previousTaskId, false);
+    }
 
     this.drawerClosing.set(false);
     this.selectedTask.set(this.cloneTask(drawerTask));
+    this.realtimeService.sendEditing(drawerTask.id, true);
     this.taskTitleDraft.set(drawerTask.title);
     this.taskDescriptionDraft.set(drawerTask.description);
     this.taskTagsDraft.set(drawerTask.tags.join(', '));
@@ -303,6 +387,7 @@ export class BoardPageComponent {
       return;
     }
 
+    this.realtimeService.sendEditing(this.selectedTask()?.id ?? null, false);
     this.drawerClosing.set(true);
     this.closeTimerId = window.setTimeout(() => {
       this.resetDrawerImmediately();
@@ -961,6 +1046,149 @@ export class BoardPageComponent {
     if (sizeBytes < 1024) return `${sizeBytes} B`;
     if (sizeBytes < 1_048_576) return `${(sizeBytes / 1024).toFixed(1)} KB`;
     return `${(sizeBytes / 1_048_576).toFixed(1)} MB`;
+  }
+
+  /** Überträgt Mauspositionen sparsam und relativ zur sichtbaren Boardfläche. */
+  trackBoardCursor(event: PointerEvent): void {
+    if (!this.realtimeService.boardConnected() || event.pointerType === 'touch') return;
+    const now = performance.now();
+    if (now - this.lastCursorSentAt < 50) return;
+    const host = event.currentTarget as HTMLElement;
+    const rect = host.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    this.lastCursorSentAt = now;
+    this.realtimeService.sendCursor(
+      (event.clientX - rect.left) / rect.width,
+      (event.clientY - rect.top) / rect.height,
+    );
+  }
+
+  /** Verarbeitet flüchtige und persistente Board-Ereignisse getrennt. */
+  private handleRealtimeEvent(type: string, payload: unknown): void {
+    if (type === 'heartbeat.ack' || type === 'error') return;
+    if (type === 'presence.snapshot') {
+      const snapshot = payload as RealtimePresenceSnapshotPayload | undefined;
+      const users = snapshot?.users ?? [];
+      const onlineIds = new Set(users.map((user) => user.id));
+      this.workspaceService.setOnlineMembers([...onlineIds]);
+      this.remoteCursors.update((items) => items.filter((item) => onlineIds.has(item.userId)));
+      this.applyEditingSnapshot(snapshot?.editing ?? [], onlineIds);
+      return;
+    }
+    if (type === 'presence.joined') {
+      const user = (payload as RealtimePresenceJoinedPayload | undefined)?.user;
+      if (user) this.workspaceService.setMemberOnline(user.id, true);
+      return;
+    }
+    if (type === 'presence.left') {
+      const userId = (payload as RealtimePresenceLeftPayload | undefined)?.userId;
+      if (userId) this.removeRealtimeUser(userId);
+      return;
+    }
+    if (type === 'cursor.moved') {
+      this.applyRemoteCursor(payload as RealtimeCursorPayload);
+      return;
+    }
+    if (type === 'editing.changed') {
+      this.applyRemoteEditing(payload as RealtimeEditingPayload);
+      return;
+    }
+    if (type.startsWith('carly.coop.')) return;
+
+    this.scheduleRealtimeRefresh(type.startsWith('project.'));
+  }
+
+  /** Ersetzt Bearbeitungshinweise nach Connect oder Reconnect durch den Server-Snapshot. */
+  private applyEditingSnapshot(
+    editing: readonly RealtimeEditingPayload[],
+    onlineIds: ReadonlySet<string>,
+  ): void {
+    const currentUserId = this.sessionService.currentUser()?.id;
+    const next: Record<string, string[]> = {};
+    for (const item of editing) {
+      if (
+        !item.active ||
+        !item.taskId ||
+        item.userId === currentUserId ||
+        !onlineIds.has(item.userId)
+      ) {
+        continue;
+      }
+      next[item.taskId] = [...new Set([...(next[item.taskId] ?? []), item.userId])];
+    }
+    this.taskEditors.set(next);
+  }
+
+  /** Aktualisiert einen entfernten Cursor und entfernt ihn nach kurzer Inaktivität wieder. */
+  private applyRemoteCursor(payload: RealtimeCursorPayload): void {
+    if (!payload?.userId || payload.userId === this.sessionService.currentUser()?.id) return;
+    const member = this.workspaceService.members().find((item) => item.id === payload.userId);
+    if (!member) return;
+    const cursor: RemoteBoardCursor = {
+      userId: payload.userId,
+      x: Math.max(0, Math.min(1, Number(payload.x))),
+      y: Math.max(0, Math.min(1, Number(payload.y))),
+      label: member.fullName.split(' ')[0] ?? member.fullName,
+      avatarColor: member.avatarColor,
+      avatarTextColor: member.avatarTextColor,
+    };
+    this.remoteCursors.update((items) => [
+      ...items.filter((item) => item.userId !== cursor.userId),
+      cursor,
+    ]);
+    const previousTimer = this.cursorExpiryTimers.get(cursor.userId);
+    if (previousTimer !== undefined) window.clearTimeout(previousTimer);
+    const timerId = window.setTimeout(() => {
+      this.remoteCursors.update((items) => items.filter((item) => item.userId !== cursor.userId));
+      this.cursorExpiryTimers.delete(cursor.userId);
+    }, 2_500);
+    this.cursorExpiryTimers.set(cursor.userId, timerId);
+  }
+
+  /** Spiegelt aktive Taskbearbeitungen anderer Personen für den Drawer. */
+  private applyRemoteEditing(payload: RealtimeEditingPayload): void {
+    if (!payload?.userId || payload.userId === this.sessionService.currentUser()?.id) return;
+    this.taskEditors.update((state) => {
+      const next: Record<string, string[]> = {};
+      for (const [taskId, userIds] of Object.entries(state)) {
+        const filtered = userIds.filter((userId) => userId !== payload.userId);
+        if (filtered.length > 0) next[taskId] = filtered;
+      }
+      if (payload.active && payload.taskId) {
+        next[payload.taskId] = [...new Set([...(next[payload.taskId] ?? []), payload.userId])];
+      }
+      return next;
+    });
+  }
+
+  /** Entfernt alle flüchtigen Realtime-Daten einer abgemeldeten Person. */
+  private removeRealtimeUser(userId: string): void {
+    this.workspaceService.setMemberOnline(userId, false);
+    this.remoteCursors.update((items) => items.filter((item) => item.userId !== userId));
+    this.applyRemoteEditing({ userId, taskId: null, active: false });
+    const timerId = this.cursorExpiryTimers.get(userId);
+    if (timerId !== undefined) window.clearTimeout(timerId);
+    this.cursorExpiryTimers.delete(userId);
+  }
+
+  /** Bündelt schnelle Serverereignisse zu höchstens einem Snapshot-Request. */
+  private scheduleRealtimeRefresh(includeProjects: boolean): void {
+    if (this.realtimeRefreshTimerId !== null) return;
+    this.realtimeRefreshTimerId = window.setTimeout(() => {
+      this.realtimeRefreshTimerId = null;
+      const projectId = this.projectId();
+      const request = includeProjects
+        ? this.workspaceService.loadData().pipe(
+            map(() => this.workspaceService.getBoard(projectId)),
+          )
+        : this.workspaceService.refreshBoard(projectId);
+      request.subscribe((columns) => {
+        this.columns.set(columns);
+        const taskId = this.selectedTask()?.id;
+        if (taskId) this.syncSelectedTask(taskId);
+        this.openRequestedTask();
+      });
+    }, 90);
   }
 
   /** Persistiert eine neue Boardkopie. */

@@ -16,6 +16,7 @@ import { ThemeMode, ThemeName, ThemeService } from '../../../../core/theme/theme
 import { WorkspaceDisplayPreferencesService } from '../../../../core/workspace/workspace-display-preferences.service';
 import { WorkspaceService } from '../../../../core/workspace/workspace.service';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import { AccountSettingsComponent } from '../../components/account-settings/account-settings.component';
 
 type SettingsTab = 'carly' | 'rewards' | 'accessibility' | 'general' | 'tools' | 'themes' | 'testdata';
 type AccessibilityBooleanKey =
@@ -53,7 +54,7 @@ interface ThemeOption {
 
 @Component({
   selector: 'cm-settings-page',
-  imports: [PageHeaderComponent],
+  imports: [AccountSettingsComponent, PageHeaderComponent],
   templateUrl: './settings-page.component.html',
   styleUrls: [
     './settings-page.component.scss',

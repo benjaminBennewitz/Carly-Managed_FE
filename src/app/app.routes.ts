@@ -24,7 +24,6 @@ export const routes: Routes = [
   },
   {
     path: 'auth',
-    canActivate: [guestGuard],
     loadComponent: () =>
       import('./core/layout/auth-layout/auth-layout.component').then(
         (module) => module.AuthLayoutComponent,
@@ -38,6 +37,7 @@ export const routes: Routes = [
       {
         path: 'login',
         title: 'Anmelden | Carly Managed',
+        canActivate: [guestGuard],
         loadComponent: () =>
           import('./features/auth/pages/login-page/login-page.component').then(
             (module) => module.LoginPageComponent,
@@ -46,9 +46,35 @@ export const routes: Routes = [
       {
         path: 'register',
         title: 'Registrieren | Carly Managed',
+        canActivate: [guestGuard],
         loadComponent: () =>
           import('./features/auth/pages/register-page/register-page.component').then(
             (module) => module.RegisterPageComponent,
+          ),
+      },
+      {
+        path: 'forgot-password',
+        title: 'Passwort vergessen | Carly Managed',
+        canActivate: [guestGuard],
+        loadComponent: () =>
+          import('./features/auth/pages/forgot-password-page/forgot-password-page.component').then(
+            (module) => module.ForgotPasswordPageComponent,
+          ),
+      },
+      {
+        path: 'reset-password',
+        title: 'Passwort zurücksetzen | Carly Managed',
+        loadComponent: () =>
+          import('./features/auth/pages/reset-password-page/reset-password-page.component').then(
+            (module) => module.ResetPasswordPageComponent,
+          ),
+      },
+      {
+        path: 'verify-email',
+        title: 'E-Mail bestätigen | Carly Managed',
+        loadComponent: () =>
+          import('./features/auth/pages/verify-email-page/verify-email-page.component').then(
+            (module) => module.VerifyEmailPageComponent,
           ),
       },
     ],

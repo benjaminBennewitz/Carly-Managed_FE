@@ -1,6 +1,10 @@
 <!-- src/app/features/board/pages/board-page/board-page.component.html -->
 
-<section class="project-board-page" [class.project-board-page--personal]="!project()">
+<section
+  class="project-board-page"
+  [class.project-board-page--personal]="!project()"
+  (pointermove)="trackBoardCursor($event)"
+>
   <header class="board-page-head">
     <div class="board-page-head__copy">
       @if (subtitle()) {
@@ -117,6 +121,15 @@
           {{ columns().length }} Spalten
         </span>
         <span class="head-chip">{{ taskCount() }} Aufgaben</span>
+
+        <span
+          class="head-chip head-chip--presence"
+          [class.is-connected]="realtimeService.boardConnected()"
+          role="status"
+        >
+          <span class="head-chip__presence-dot" aria-hidden="true"></span>
+          {{ realtimeService.boardConnected() ? onlineMembers().length + ' online' : 'Realtime offline' }}
+        </span>
 
         @if (project()) {
           <a class="head-chip head-chip--link" routerLink="/projects">
@@ -262,6 +275,25 @@
       </div>
     </section>
   }
+
+  @for (cursor of remoteCursors(); track cursor.userId) {
+    <div
+      class="board-live-cursor"
+      [style.left.%]="cursor.x * 100"
+      [style.top.%]="cursor.y * 100"
+      aria-hidden="true"
+    >
+      <span
+        class="material-symbols-outlined board-live-cursor__pointer"
+        [style.color]="cursor.avatarColor"
+      >near_me</span>
+      <span
+        class="board-live-cursor__label"
+        [style.background]="cursor.avatarColor"
+        [style.color]="cursor.avatarTextColor"
+      >{{ cursor.label }}</span>
+    </div>
+  }
 </section>
 
 @if (selectedTask(); as task) {
@@ -277,6 +309,7 @@
     class="task-drawer"
     [class.task-drawer--closing]="drawerClosing()"
     [class.task-drawer--locked]="task.isDone"
+    [class.task-drawer--editing]="activeTaskEditors().length > 0"
     aria-label="Aufgabendetails"
   >
     <header class="task-drawer__head">
@@ -354,6 +387,20 @@
         Verlauf
       </button>
     </nav>
+
+    @if (activeTaskEditors().length > 0) {
+      <div class="task-drawer__editing-notice" role="status">
+        <span class="material-symbols-outlined" aria-hidden="true">edit_note</span>
+        <div>
+          <strong>Wird gerade bearbeitet</strong>
+          <span>
+            @for (member of activeTaskEditors(); track member.id; let last = $last) {
+              {{ member.fullName }}{{ last ? '' : ', ' }}
+            }
+          </span>
+        </div>
+      </div>
+    }
 
     @if (task.isDone) {
       <div class="task-drawer__locked-notice" role="status">
@@ -813,6 +860,14 @@
                     {{ formatDateTime(attachment.createdAt) }}
                   </span>
                 </div>
+                <a
+                  class="task-inline-action"
+                  [href]="attachment.downloadUrl"
+                  [attr.aria-label]="'Anhang ' + attachment.fileName + ' herunterladen'"
+                  title="Herunterladen"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">download</span>
+                </a>
                 @if (!taskEditingDisabled()) {
                   <button
                     class="task-inline-delete"

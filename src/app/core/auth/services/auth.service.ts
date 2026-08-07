@@ -52,6 +52,61 @@ export class AuthService {
     );
   }
 
+  /** Setzt ein Passwort mit einem kurzlebigen Einmal-Token zurück. */
+  confirmPasswordReset(token: string, newPassword: string): Observable<void> {
+    return this.ensureCsrfCookie().pipe(
+      switchMap(() =>
+        this.http.post<void>(`${API_BASE_URL}/auth/password/reset/confirm/`, {
+          token,
+          newPassword,
+        }),
+      ),
+    );
+  }
+
+  /** Bestätigt die E-Mail-Adresse mit einem kurzlebigen Einmal-Token. */
+  confirmEmailVerification(token: string): Observable<AuthenticationResult> {
+    return this.ensureCsrfCookie().pipe(
+      switchMap(() =>
+        this.http.post<AuthenticationResult>(`${API_BASE_URL}/auth/email/verify/confirm/`, { token }),
+      ),
+      tap(({ user }) => {
+        if (this.sessionService.currentUser()?.id === user.id) {
+          this.sessionService.startSession(user);
+        }
+      }),
+    );
+  }
+
+  /** Fordert für das angemeldete Konto einen neuen Bestätigungslink an. */
+  requestEmailVerification(): Observable<void> {
+    return this.ensureCsrfCookie().pipe(
+      switchMap(() => this.http.post<void>(`${API_BASE_URL}/auth/email/verify/request/`, {})),
+    );
+  }
+
+  /** Aktualisiert den Anzeigenamen und synchronisiert den lokalen Sitzungszustand. */
+  updateProfile(displayName: string): Observable<AuthenticationResult> {
+    return this.ensureCsrfCookie().pipe(
+      switchMap(() =>
+        this.http.patch<AuthenticationResult>(`${API_BASE_URL}/auth/me/`, { displayName }),
+      ),
+      tap(({ user }) => this.sessionService.startSession(user)),
+    );
+  }
+
+  /** Ändert das Passwort nach erneuter Kenntnisprüfung des aktuellen Passworts. */
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.ensureCsrfCookie().pipe(
+      switchMap(() =>
+        this.http.post<void>(`${API_BASE_URL}/auth/password/change/`, {
+          currentPassword,
+          newPassword,
+        }),
+      ),
+    );
+  }
+
   /** Setzt vor der ersten schreibenden Anfrage das lesbare CSRF-Cookie. */
   private ensureCsrfCookie(): Observable<{ csrfToken: string }> {
     return this.http.get<{ csrfToken: string }>(`${API_BASE_URL}/auth/csrf/`);
