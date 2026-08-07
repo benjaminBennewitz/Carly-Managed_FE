@@ -120,8 +120,12 @@ Carly-Managed_FE/
 │   │   │   ├── theme/
 │   │   │   │   ├── theme.service.spec.ts
 │   │   │   │   ├── theme.service.ts
+│   │   │   │   ├── theme-color-vision.spec.ts
+│   │   │   │   ├── theme-color-vision.ts
 │   │   │   │   ├── theme-contrast.spec.ts
 │   │   │   │   ├── theme-contrast.ts
+│   │   │   │   ├── theme-monochrome.spec.ts
+│   │   │   │   ├── theme-monochrome.ts
 │   │   │   │   └── theme-palettes.ts
 │   │   │   └── workspace/
 │   │   │       ├── task-rules.spec.ts

@@ -4,16 +4,10 @@ import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { computed, Inject, Injectable, signal } from '@angular/core';
 
-import {
-  AccessibilitySettings,
-  AppSettings,
-  GeneralSettings,
-  ToolSettings,
-  WorkspaceAlarmCategory,
-  WorkspaceAlarmSettings,
-} from './app-settings.models';
+import { AccessibilitySettings, AppSettings, GeneralSettings, ToolSettings, WorkspaceAlarmCategory, WorkspaceAlarmSettings } from './app-settings.models';
 
 import { API_BASE_URL } from '../api/api.config';
+import { ThemeService } from '../theme/theme.service';
 
 const DEFAULT_ALARMS: WorkspaceAlarmSettings = {
   assignment: true,
@@ -92,6 +86,7 @@ export class AppSettingsService {
   constructor(
     @Inject(DOCUMENT) private readonly document: Document,
     private readonly http: HttpClient,
+    private readonly themeService: ThemeService,
   ) {
     this.applyDocumentSettings(this.settingsState());
     this.reload();
@@ -195,7 +190,7 @@ export class AppSettingsService {
   /** Überträgt Darstellungs- und Bedienoptionen auf das Wurzeldokument. */
   private applyDocumentSettings(settings: AppSettings): void {
     const root = this.document.documentElement;
-    root.dataset['colorVision'] = settings.accessibility.colorVisionMode;
+    this.themeService.setColorVisionMode(settings.accessibility.colorVisionMode);
     root.dataset['neuro'] = String(settings.accessibility.neuroMode);
     root.dataset['motion'] = settings.accessibility.reduceMotion ? 'reduced' : 'full';
     root.dataset['hover'] = settings.accessibility.reduceHover ? 'reduced' : 'full';

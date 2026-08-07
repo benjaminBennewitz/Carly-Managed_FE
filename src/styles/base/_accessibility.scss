@@ -25,7 +25,7 @@
    04   Erhöhter Kontrast
    05   Reduzierte Bewegung
    06   Reduzierte Hover-Reize
-   07   Farbenblindheitsmodi
+   07   Medien im Schwarzweißmodus
    08   Neuro-Modus
    09   Bildschirmlupe
    10   Tooltips
@@ -143,50 +143,10 @@
 }
 
 /* ==========================================================================
-   07   Farbenblindheitsmodi
+   07   Medien im Schwarzweißmodus
    ========================================================================== */
 
-:root[data-color-vision='protanopia'],
-:root[data-color-vision='deuteranopia'] {
-  --color-success: #2677a8;
-  --color-warning: #c58b25;
-  --color-danger: #8a5aa8;
-  --color-info: #347d91;
-  --color-action-primary: #385fa8;
-  --color-action-primary-hover: #2b4b88;
-  --color-action-primary-active: #203968;
-  --color-focus: #385fa8;
-  --color-accent: #d19b2f;
-}
-
-:root[data-color-vision='tritanopia'] {
-  --color-success: #2f8a68;
-  --color-warning: #b96449;
-  --color-danger: #a23f58;
-  --color-info: #5362ad;
-  --color-action-primary: #6a4ea2;
-  --color-action-primary-hover: #563d86;
-  --color-action-primary-active: #44306a;
-  --color-focus: #6a4ea2;
-  --color-accent: #c5684d;
-}
-
-:root[data-color-vision='monochrome'] {
-  --color-action-primary: #303030;
-  --color-action-primary-hover: #171717;
-  --color-action-primary-active: #000000;
-  --color-action-secondary: #e2e2e2;
-  --color-action-secondary-hover: #d2d2d2;
-  --color-action-secondary-active: #c2c2c2;
-  --color-accent: #707070;
-  --color-success: #4a4a4a;
-  --color-warning: #6b6b6b;
-  --color-danger: #292929;
-  --color-info: #5b5b5b;
-  --color-focus: #000000;
-}
-
-:root[data-color-vision='monochrome'] body {
+:root[data-color-vision='monochrome'] :is(img, video, canvas) {
   filter: grayscale(1);
 }
 

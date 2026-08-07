@@ -1,8 +1,9 @@
 // src/app/core/theme/theme.service.ts
 
 import { DOCUMENT } from '@angular/common';
-import { computed, Inject, Injectable, OnDestroy, signal } from '@angular/core';
+import { computed, Inject, Injectable, signal } from '@angular/core';
 
+import { getColorVisionVariables, isColorVisionMode, type ColorVisionMode } from './theme-color-vision';
 import { CONTRAST_CONFIGURATIONS, parseCssColor, selectContrastCandidate } from './theme-contrast';
 import type { RgbColor } from './theme-contrast';
 
@@ -48,11 +49,11 @@ function isThemeName(value: unknown): value is ThemeName {
 @Injectable({
   providedIn: 'root',
 })
-export class ThemeService implements OnDestroy {
+export class ThemeService {
   private readonly themeState = signal<ThemeName>('default');
   private readonly modeState = signal<ThemeMode>('light');
-  private appliedThemeVariables: string[] = [];
-  private contrastObserver: MutationObserver | null = null;
+  private readonly colorVisionState = signal<ColorVisionMode>('standard');
+  private appliedInlineVariables: string[] = [];
   private themeRequestId = 0;
 
   readonly theme = this.themeState.asReadonly();
@@ -72,18 +73,16 @@ export class ThemeService implements OnDestroy {
     const storedMode = this.readStoredMode();
     const documentTheme = this.document.documentElement.dataset['theme'];
     const documentMode = this.document.documentElement.dataset['mode'];
+    const documentColorVision = this.document.documentElement.dataset['colorVision'];
     const initialTheme = storedTheme ?? (isThemeName(documentTheme) ? documentTheme : 'default');
     const initialMode = storedMode ?? (documentMode === 'dark' ? 'dark' : 'light');
+    const initialColorVision = isColorVisionMode(documentColorVision) ? documentColorVision : 'standard';
 
     this.themeState.set(initialTheme);
     this.modeState.set(initialMode);
+    this.colorVisionState.set(initialColorVision);
+    this.document.documentElement.dataset['colorVision'] = initialColorVision;
     this.applyTheme(initialTheme, initialMode);
-    this.observeContrastRelevantAttributes();
-  }
-
-  /** Beendet die Beobachtung kontrastrelevanter Dokumentattribute. */
-  ngOnDestroy(): void {
-    this.contrastObserver?.disconnect();
   }
 
   /** Wechselt den Darstellungsmodus mit einem horizontalen Übergang. */
@@ -125,6 +124,13 @@ export class ThemeService implements OnDestroy {
     this.applyTheme(this.themeState(), mode);
   }
 
+  /** Setzt den Farbsehmodus und berechnet Theme sowie Kontrast gemeinsam neu. */
+  setColorVisionMode(mode: ColorVisionMode): void {
+    this.colorVisionState.set(mode);
+    this.document.documentElement.dataset['colorVision'] = mode;
+    this.applyTheme(this.themeState(), this.modeState());
+  }
+
   /** Aktiviert Default-Werte direkt oder lädt alternative Farbvariablen bedarfsgerecht. */
   private applyTheme(theme: ThemeName, mode: ThemeMode): void {
     const requestId = ++this.themeRequestId;
@@ -132,10 +138,11 @@ export class ThemeService implements OnDestroy {
     this.persistTheme(theme, mode);
 
     if (theme === 'default') {
-      this.clearAlternativeThemeVariables();
+      this.clearAppliedInlineVariables();
       root.dataset['theme'] = theme;
       root.dataset['mode'] = mode;
       root.style.colorScheme = mode;
+      this.applyColorVisionVariables(mode);
       this.updateContrastTokens();
       return;
     }
@@ -145,15 +152,13 @@ export class ThemeService implements OnDestroy {
         return;
       }
 
-      this.clearAlternativeThemeVariables();
+      this.clearAppliedInlineVariables();
       const variables = getThemeVariables(theme as AlternativeThemeName, mode);
-      Object.entries(variables).forEach(([name, value]) => {
-        root.style.setProperty(name, value);
-      });
-      this.appliedThemeVariables = Object.keys(variables);
+      this.applyInlineVariables(variables);
       root.dataset['theme'] = theme;
       root.dataset['mode'] = mode;
       root.style.colorScheme = mode;
+      this.applyColorVisionVariables(mode);
       this.updateContrastTokens();
     });
   }
@@ -217,25 +222,32 @@ export class ThemeService implements OnDestroy {
     return parseCssColor(getComputedStyle(probe).color);
   }
 
-  /** Aktualisiert Kontrast-Tokens bei geänderten Farbseh-Einstellungen. */
-  private observeContrastRelevantAttributes(): void {
-    const MutationObserverConstructor = this.document.defaultView?.MutationObserver;
-    if (!MutationObserverConstructor) return;
+  /** Wendet den gewählten Farbsehmodus als semantischen Theme-Layer an. */
+  private applyColorVisionVariables(mode: ThemeMode): void {
+    const colorVisionMode = this.colorVisionState();
+    if (colorVisionMode === 'standard') {
+      return;
+    }
 
-    this.contrastObserver = new MutationObserverConstructor(() => {
-      this.updateContrastTokens();
-    });
-    this.contrastObserver.observe(this.document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-color-vision'],
+    this.applyInlineVariables(getColorVisionVariables(colorVisionMode, mode));
+  }
+
+  /** Setzt semantische Farbvariablen inline und merkt sie für den nächsten Wechsel vor. */
+  private applyInlineVariables(variables: Readonly<Record<string, string>>): void {
+    const root = this.document.documentElement;
+    Object.entries(variables).forEach(([name, value]) => {
+      root.style.setProperty(name, value);
+      if (!this.appliedInlineVariables.includes(name)) {
+        this.appliedInlineVariables.push(name);
+      }
     });
   }
 
-  /** Entfernt zuvor gesetzte Inline-Variablen eines alternativen Themes. */
-  private clearAlternativeThemeVariables(): void {
+  /** Entfernt zuvor gesetzte Inline-Variablen von Theme und Farbsehmodus. */
+  private clearAppliedInlineVariables(): void {
     const root = this.document.documentElement;
-    this.appliedThemeVariables.forEach((name) => root.style.removeProperty(name));
-    this.appliedThemeVariables = [];
+    this.appliedInlineVariables.forEach((name) => root.style.removeProperty(name));
+    this.appliedInlineVariables = [];
   }
 
   /** Persistiert Theme und Modus im Browser-Speicher. */

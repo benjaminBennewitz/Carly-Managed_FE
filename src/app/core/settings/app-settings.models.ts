@@ -1,7 +1,8 @@
 // src/app/core/settings/app-settings.models.ts
 
-export type ColorVisionMode =
-  'standard' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'monochrome';
+import type { ColorVisionMode } from '../theme/theme-color-vision';
+
+export type { ColorVisionMode } from '../theme/theme-color-vision';
 
 export type AccessibilityFontSize = 'normal' | 'large' | 'xlarge';
 

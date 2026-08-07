@@ -2,9 +2,9 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { CONTRAST_CONFIGURATIONS, parseCssColor, selectContrastCandidate } from './theme-contrast';
+import { CONTRAST_CONFIGURATIONS, parseCssColor, selectContrastCandidate, type RgbColor } from './theme-contrast';
+import { getColorVisionVariables, type ColorVisionMode } from './theme-color-vision';
 import { getThemeVariables } from './theme-palettes';
-import type { RgbColor } from './theme-contrast';
 import type { ThemeMode, ThemeName } from './theme.service';
 
 const THEME_NAMES: readonly ThemeName[] = [
@@ -17,12 +17,20 @@ const THEME_NAMES: readonly ThemeName[] = [
   'lava',
 ];
 const THEME_MODES: readonly ThemeMode[] = ['light', 'dark'];
+const COLOR_VISION_MODES: readonly ColorVisionMode[] = [
+  'standard',
+  'protanopia',
+  'deuteranopia',
+  'tritanopia',
+  'monochrome',
+];
 const UNIVERSAL_CONTRAST_VARIABLES: Readonly<Record<string, string>> = {
   '--color-text-contrast-dark': '#000000',
   '--color-text-contrast-light': '#ffffff',
 };
 const DEFAULT_THEME_VARIABLES: Readonly<Record<ThemeMode, Readonly<Record<string, string>>>> = {
   light: {
+    '--color-surface-primary': '#ffffff',
     '--color-surface-secondary': '#f0eaf6',
     '--color-surface-hover': '#eee7f7',
     '--color-surface-active': '#e5daef',
@@ -41,6 +49,7 @@ const DEFAULT_THEME_VARIABLES: Readonly<Record<ThemeMode, Readonly<Record<string
     '--color-accent-subtle': '#f1d99b',
   },
   dark: {
+    '--color-surface-primary': '#1d1724',
     '--color-surface-secondary': '#292031',
     '--color-surface-hover': '#31223f',
     '--color-surface-active': '#3c2e49',
@@ -70,10 +79,19 @@ function mixSrgb(first: RgbColor, firstAmount: number, second: RgbColor): RgbCol
   };
 }
 
-/** Löst die in den Theme-Paletten verwendeten Farbwerte für die Tests auf. */
-function resolveColorValue(value: string): RgbColor {
+/** Löst direkte Farben, var()-Referenzen und einfache color-mix()-Werte rekursiv auf. */
+function resolveColorValue(
+  variables: Readonly<Record<string, string>>,
+  value: string,
+  visitedTokens: ReadonlySet<string> = new Set<string>(),
+): RgbColor {
   const directColor = parseCssColor(value);
   if (directColor) return directColor;
+
+  const variableMatch = value.trim().match(/^var\((--[\w-]+)\)$/i);
+  if (variableMatch) {
+    return resolveTokenColor(variables, variableMatch[1], visitedTokens);
+  }
 
   const mixMatch = value.match(
     /^color-mix\(in srgb,\s*(.+?)\s+([\d.]+)%,\s*(.+?)\s*\)$/i,
@@ -82,36 +100,45 @@ function resolveColorValue(value: string): RgbColor {
     throw new Error(`Nicht unterstützter Test-Farbwert: ${value}`);
   }
 
-  const first = parseCssColor(mixMatch[1]);
-  const second = parseCssColor(mixMatch[3]);
-  if (!first || !second) {
-    throw new Error(`Nicht auflösbarer color-mix-Testwert: ${value}`);
-  }
-
+  const first = resolveColorValue(variables, mixMatch[1], visitedTokens);
+  const second = resolveColorValue(variables, mixMatch[3], visitedTokens);
   return mixSrgb(first, Number.parseFloat(mixMatch[2]) / 100, second);
 }
 
 /** Liefert alle für die Kontrastprüfung benötigten Variablen eines Themes. */
-function getVariables(theme: ThemeName, mode: ThemeMode): Record<string, string> {
+function getVariables(
+  theme: ThemeName,
+  mode: ThemeMode,
+  colorVisionMode: ColorVisionMode = 'standard',
+): Record<string, string> {
   const themeVariables =
-    theme === 'default'
-      ? DEFAULT_THEME_VARIABLES[mode]
-      : getThemeVariables(theme, mode);
+    theme === 'default' ? DEFAULT_THEME_VARIABLES[mode] : getThemeVariables(theme, mode);
 
   return {
     ...themeVariables,
+    ...getColorVisionVariables(colorVisionMode, mode),
     ...UNIVERSAL_CONTRAST_VARIABLES,
   };
 }
 
 /** Löst eine einzelne semantische Farbvariable der Testpalette auf. */
-function resolveTokenColor(variables: Readonly<Record<string, string>>, token: string): RgbColor {
+function resolveTokenColor(
+  variables: Readonly<Record<string, string>>,
+  token: string,
+  visitedTokens: ReadonlySet<string> = new Set<string>(),
+): RgbColor {
+  if (visitedTokens.has(token)) {
+    throw new Error(`Zirkuläre Testvariable: ${token}`);
+  }
+
   const value = variables[token];
   if (!value) {
     throw new Error(`Fehlende Testvariable: ${token}`);
   }
 
-  return resolveColorValue(value);
+  const nextVisitedTokens = new Set(visitedTokens);
+  nextVisitedTokens.add(token);
+  return resolveColorValue(variables, value, nextVisitedTokens);
 }
 
 describe('Theme-Kontrast', () => {
@@ -164,24 +191,26 @@ describe('Theme-Kontrast', () => {
 
   for (const theme of THEME_NAMES) {
     for (const mode of THEME_MODES) {
-      it(`hält alle dynamischen Zustände für ${theme} ${mode} bei mindestens 4,5:1`, () => {
-        const variables = getVariables(theme, mode);
+      for (const colorVisionMode of COLOR_VISION_MODES) {
+        it(`hält ${theme} ${mode} mit ${colorVisionMode} bei mindestens 4,5:1`, () => {
+          const variables = getVariables(theme, mode, colorVisionMode);
 
-        for (const configuration of CONTRAST_CONFIGURATIONS) {
-          const selection = selectContrastCandidate(
-            resolveTokenColor(variables, configuration.backgroundToken),
-            configuration.foregroundTokens.map((token) => ({
-              token,
-              color: resolveTokenColor(variables, token),
-            })),
-          );
+          for (const configuration of CONTRAST_CONFIGURATIONS) {
+            const selection = selectContrastCandidate(
+              resolveTokenColor(variables, configuration.backgroundToken),
+              configuration.foregroundTokens.map((token) => ({
+                token,
+                color: resolveTokenColor(variables, token),
+              })),
+            );
 
-          expect(
-            selection?.ratio,
-            `${configuration.backgroundToken} → ${configuration.outputToken}`,
-          ).toBeGreaterThanOrEqual(4.5);
-        }
-      });
+            expect(
+              selection?.ratio,
+              `${configuration.backgroundToken} → ${configuration.outputToken}`,
+            ).toBeGreaterThanOrEqual(4.5);
+          }
+        });
+      }
     }
   }
 });

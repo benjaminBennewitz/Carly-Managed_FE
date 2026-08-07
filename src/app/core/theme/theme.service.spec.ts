@@ -13,11 +13,13 @@ describe('ThemeService', () => {
   });
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     window.localStorage.clear();
+    document.documentElement.removeAttribute('style');
     document.documentElement.dataset['theme'] = 'default';
     document.documentElement.dataset['mode'] = 'light';
+    document.documentElement.dataset['colorVision'] = 'standard';
     document.documentElement.dataset['neuro'] = 'false';
-    TestBed.resetTestingModule();
     TestBed.configureTestingModule({});
     service = TestBed.inject(ThemeService);
   });
@@ -60,6 +62,54 @@ describe('ThemeService', () => {
     expect(document.documentElement.style.getPropertyValue('--color-on-accent-subtle')).toBe(
       'var(--color-text-primary)',
     );
+  });
+
+  it('wendet chromatische Farbsehmodi als Theme-Layer an und stellt das Theme wieder her', async () => {
+    service.setColorVisionMode('deuteranopia');
+    service.setTheme('neon');
+    service.setMode('dark');
+
+    await vi.waitFor(() => {
+      expect(document.documentElement.style.getPropertyValue('--color-action-primary')).toBe(
+        '#93afe6',
+      );
+    });
+    expect(document.documentElement.style.getPropertyValue('--color-accent')).toBe('#e8a160');
+    expect(document.documentElement.style.getPropertyValue('--color-surface-hover')).toContain(
+      '#93afe6',
+    );
+
+    service.setColorVisionMode('standard');
+
+    await vi.waitFor(() => {
+      expect(document.documentElement.style.getPropertyValue('--color-action-primary')).toBe(
+        '#d45cff',
+      );
+    });
+    expect(document.documentElement.style.getPropertyValue('--color-accent')).toBe('#31f3da');
+  });
+
+  it('wendet Schwarzweiß als eigenständige Palette an und stellt das Theme wieder her', async () => {
+    service.setColorVisionMode('monochrome');
+    service.setTheme('neon');
+    service.setMode('dark');
+
+    await vi.waitFor(() => {
+      expect(document.documentElement.style.getPropertyValue('--color-page-background')).toBe(
+        '#111111',
+      );
+    });
+    expect(document.documentElement.style.getPropertyValue('--color-surface-primary')).toBe(
+      '#1b1b1b',
+    );
+
+    service.setColorVisionMode('standard');
+
+    await vi.waitFor(() => {
+      expect(document.documentElement.style.getPropertyValue('--color-page-background')).toBe(
+        '#0b0814',
+      );
+    });
   });
 
   it('überspringt die Theme-Animation im Neuro-Modus', () => {
