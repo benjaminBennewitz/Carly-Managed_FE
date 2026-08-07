@@ -28,7 +28,6 @@ interface SettingsTabOption {
   id: SettingsTab;
   label: string;
   icon: string;
-  description: string;
 }
 
 interface ColorVisionOption {
@@ -83,43 +82,36 @@ export class SettingsPageComponent {
       id: 'carly',
       label: 'Carly',
       icon: 'pets',
-      description: 'Maskottchen und Reaktionen',
     },
     {
       id: 'rewards',
       label: 'Regeln & Belohnungen',
       icon: 'military_tech',
-      description: 'XP, Credits und Anti-Spam-Regeln',
     },
     {
       id: 'accessibility',
       label: 'Barrierefreiheit',
       icon: 'accessibility_new',
-      description: 'Wahrnehmung, Fokus und Bedienung',
     },
     {
       id: 'general',
       label: 'Allgemein',
       icon: 'tune',
-      description: 'Workspace, Hinweise und Privatsphäre',
     },
     {
       id: 'tools',
       label: 'Tools',
       icon: 'construction',
-      description: 'Produktivitätshelfer zuschalten',
     },
     {
       id: 'themes',
       label: 'Themes',
       icon: 'palette',
-      description: 'Farbsets unabhängig vom Modus',
     },
     {
       id: 'testdata',
       label: 'Testdaten',
       icon: 'database',
-      description: 'Demo-Workspace reproduzierbar zurücksetzen',
     },
   ];
 

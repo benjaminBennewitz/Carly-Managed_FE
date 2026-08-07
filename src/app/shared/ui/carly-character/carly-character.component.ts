@@ -163,6 +163,7 @@ export class CarlyCharacterComponent {
       this.initializeVisibility();
 
       host.replaceChildren(svg);
+      this.normalizeEyeHighlights(svg);
       this.configureViewBox();
       this.applyVisualSnapshot(this.createCurrentSnapshot());
       this.scheduleRandomGaze();
@@ -195,6 +196,57 @@ export class CarlyCharacterComponent {
         }
       });
     });
+  }
+
+  /**
+   * Richtet die Lichtreflexe beider Augen auf dieselbe gedachte Lichtquelle aus.
+   * Das rechte Highlight wird dafür horizontal um die Pupillenmitte gespiegelt.
+   */
+  private normalizeEyeHighlights(svg: SVGSVGElement): void {
+    this.mirrorRightEyeHighlight(
+      svg,
+      'eye-right',
+      'normal-pupil-right',
+      'normal-highlight-right',
+    );
+    this.mirrorRightEyeHighlight(
+      svg,
+      'eye-right-half-open',
+      'pupil-right-ho',
+      'highlight-right-ho',
+    );
+  }
+
+  /** Spiegelt einen rechten Lichtreflex um die vertikale Achse seiner Pupille. */
+  private mirrorRightEyeHighlight(
+    svg: SVGSVGElement,
+    eyeGroupId: string,
+    pupilId: string,
+    highlightId: string,
+  ): void {
+    const eyeGroup = svg.querySelector<SVGGraphicsElement>(`#${eyeGroupId}`);
+    const pupil = svg.querySelector<SVGGraphicsElement>(`#${pupilId}`);
+    const highlight = svg.querySelector<SVGGraphicsElement>(`#${highlightId}`);
+
+    if (!eyeGroup || !pupil || !highlight || !highlight.parentNode) return;
+
+    const previousDisplay = eyeGroup.style.display;
+    eyeGroup.style.display = 'inline';
+
+    try {
+      const pupilBox = pupil.getBBox();
+      const pupilCenterX = pupilBox.x + pupilBox.width / 2;
+      const correction = document.createElementNS(SVG_NAMESPACE, 'g');
+
+      correction.id = `${highlightId}-light-direction`;
+      correction.setAttribute('transform', `matrix(-1 0 0 1 ${2 * pupilCenterX} 0)`);
+      highlight.parentNode.insertBefore(correction, highlight);
+      correction.appendChild(highlight);
+    } catch {
+      // Ein fehlender SVG-Messwert darf Carlys Darstellung nicht blockieren.
+    } finally {
+      eyeGroup.style.display = previousDisplay;
+    }
   }
 
   /** Erstellt bewegliche Blickgruppen aus Pupille und zugehörigem Lichtreflex. */

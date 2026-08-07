@@ -116,9 +116,9 @@
 .settings-tab {
   display: grid;
   min-width: 0;
-  min-height: 4.75rem;
+  min-height: 3.5rem;
   grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
+  align-items: center;
   gap: var(--space-2);
   padding: var(--space-3);
   border: var(--border-width-subtle) solid transparent;
@@ -165,16 +165,8 @@
   gap: var(--space-1);
 }
 
-.settings-tab__copy strong,
-.settings-tab__copy small {
+.settings-tab__copy strong {
   line-height: var(--line-height-tight);
-}
-
-.settings-tab__copy small {
-  display: block;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-100);
-  line-height: var(--line-height-body);
 }
 
 .settings-switch-row small,
