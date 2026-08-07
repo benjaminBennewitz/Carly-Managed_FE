@@ -9,6 +9,7 @@ import { SessionService } from '../auth/services/session.service';
 import { WorkspaceInboxService } from '../inbox/workspace-inbox.service';
 import {
   WorkspaceColumn,
+  WorkspaceInvitation,
   WorkspaceJoinRequest,
   WorkspaceMember,
   WorkspaceProject,
@@ -133,6 +134,22 @@ const JOIN_REQUEST: WorkspaceJoinRequest = {
   status: 'pending',
 };
 
+const INVITATION: WorkspaceInvitation = {
+  id: 'invitation-1',
+  fullName: 'Mira Beispiel',
+  email: 'mira@example.test',
+  workspaceId: 'workspace-1',
+  workspaceName: 'Carly Managed Demo',
+  projectId: PROJECT.id,
+  projectName: PROJECT.name,
+  invitedById: MEMBER_BEN.id,
+  invitedByName: MEMBER_BEN.fullName,
+  status: 'pending',
+  expiresAt: '2026-07-24T08:00:00.000Z',
+  acceptedAt: null,
+  createdAt: '2026-07-17T08:00:00.000Z',
+};
+
 describe('WorkspaceService', () => {
   let service: WorkspaceService;
   let httpTesting: HttpTestingController;
@@ -152,6 +169,7 @@ describe('WorkspaceService', () => {
 
   beforeEach(() => {
     TestBed.resetTestingModule();
+    window.localStorage.removeItem('cm-active-workspace-id');
     sessionService.currentUser.mockClear();
     inboxService.reload.mockReset();
     inboxService.createConversation.mockReset();
@@ -172,7 +190,10 @@ describe('WorkspaceService', () => {
   });
 
   /** Beantwortet sämtliche Requests des initialen Workspace-Snapshots. */
-  function flushSnapshot(): void {
+  function flushSnapshot(
+    sentInvitations: WorkspaceInvitation[] = [],
+    receivedInvitations: WorkspaceInvitation[] = [],
+  ): void {
     httpTesting.expectOne('/api/v1/workspaces/').flush([
       {
         id: 'workspace-1',
@@ -203,6 +224,12 @@ describe('WorkspaceService', () => {
         version: 1,
       },
     ]);
+    httpTesting
+      .expectOne('/api/v1/workspaces/invitations/?scope=sent&workspaceId=workspace-1')
+      .flush(sentInvitations);
+    httpTesting
+      .expectOne('/api/v1/workspaces/invitations/?scope=received')
+      .flush(receivedInvitations);
     httpTesting
       .expectOne('/api/v1/workspaces/join-requests/?workspaceId=workspace-1')
       .flush([JOIN_REQUEST]);
@@ -356,6 +383,19 @@ describe('WorkspaceService', () => {
     expect(task?.comments[0]?.version).toBe(1);
   });
 
+  it('lehnt persönliche In-App-Einladungen ohne Mail-Token ab', () => {
+    flushSnapshot([], [INVITATION]);
+
+    service.rejectInvitation(INVITATION.id).subscribe();
+    const request = httpTesting.expectOne(
+      `/api/v1/workspaces/invitations/${INVITATION.id}/reject/`,
+    );
+    expect(request.request.method).toBe('POST');
+    request.flush({ ...INVITATION, status: 'rejected' });
+
+    expect(service.receivedInvitations()).toEqual([]);
+  });
+
   it('verwaltet Mitglieder und Einladungen über den aktiven Workspace', () => {
     flushSnapshot();
 
@@ -384,8 +424,9 @@ describe('WorkspaceService', () => {
     const inviteRequest = httpTesting.expectOne('/api/v1/workspaces/invitations/');
     expect(inviteRequest.request.method).toBe('POST');
     expect(inviteRequest.request.body.workspaceId).toBe('workspace-1');
-    inviteRequest.flush({});
+    inviteRequest.flush(INVITATION);
 
+    expect(service.sentInvitations()).toEqual([INVITATION]);
     expect(service.members().find((member) => member.id === MEMBER_LEA.id)?.role).toBe('manager');
   });
 });

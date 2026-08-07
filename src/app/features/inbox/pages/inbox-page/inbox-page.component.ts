@@ -14,6 +14,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
+import { SessionService } from '../../../../core/auth/services/session.service';
 import {
   WorkspaceConversation,
   WorkspaceSystemNotification,
@@ -37,6 +38,9 @@ export class InboxPageComponent {
   @ViewChild('threadViewport') private readonly threadViewport?: ElementRef<HTMLElement>;
   @ViewChild('messageTextarea') private readonly messageTextarea?: ElementRef<HTMLTextAreaElement>;
 
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly sessionService = inject(SessionService);
+
   protected readonly inboxService: WorkspaceInboxService;
   protected readonly workspaceService: WorkspaceService;
   protected readonly selectedConversationId = signal<string | null>(null);
@@ -52,7 +56,7 @@ export class InboxPageComponent {
   protected readonly emojiPickerOpen = signal(false);
   protected readonly mentionQuery = signal<string | null>(null);
   protected readonly mentionStartIndex = signal<number | null>(null);
-  protected readonly currentMemberId = 'member-ben';
+  protected readonly currentMemberId = computed(() => this.sessionService.currentUser()?.id ?? '');
   protected readonly emojis = [
     '😀',
     '😊',
@@ -76,7 +80,6 @@ export class InboxPageComponent {
     '❤️',
   ] as const;
 
-  private readonly formBuilder = inject(FormBuilder);
   private feedbackTimerId: number | null = null;
 
   protected readonly newConversationForm = this.formBuilder.nonNullable.group({
@@ -99,7 +102,7 @@ export class InboxPageComponent {
     );
   });
   protected readonly availableConversationMembers = computed(() =>
-    this.workspaceService.members().filter((member) => member.id !== this.currentMemberId),
+    this.workspaceService.members().filter((member) => member.id !== this.currentMemberId()),
   );
   protected readonly availableParticipantAdditions = computed(() => {
     const participantIds = new Set(
@@ -110,7 +113,7 @@ export class InboxPageComponent {
       .members()
       .filter(
         (member) =>
-          member.id !== this.currentMemberId &&
+          member.id !== this.currentMemberId() &&
           !participantIds.has(member.id) &&
           !pendingIds.has(member.id),
       );
@@ -325,6 +328,16 @@ export class InboxPageComponent {
     this.scrollThreadToEnd();
   }
 
+  /** Sendet die Nachricht mit Shift+Enter, ohne einen Zeilenumbruch einzufügen. */
+  handleMessageKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' || !event.shiftKey || event.isComposing) {
+      return;
+    }
+
+    event.preventDefault();
+    this.sendMessage();
+  }
+
   /** Öffnet oder schließt die Emoji-Auswahl für die aktuelle Nachricht. */
   toggleEmojiPicker(): void {
     this.mentionQuery.set(null);
@@ -473,7 +486,7 @@ export class InboxPageComponent {
   /** Liefert alle sichtbaren Gesprächspartner ohne das aktuelle Mitglied. */
   getOtherParticipants(conversation: WorkspaceConversation): WorkspaceMember[] {
     return conversation.participants.filter(
-      (participant) => participant.id !== this.currentMemberId,
+      (participant) => participant.id !== this.currentMemberId(),
     );
   }
 
@@ -484,7 +497,7 @@ export class InboxPageComponent {
 
   /** Prüft, ob eine Nachricht vom aktuell angemeldeten Mitglied stammt. */
   isOwnMessage(senderId: string | null | undefined): boolean {
-    return senderId === this.currentMemberId;
+    return senderId === this.currentMemberId();
   }
 
   /** Formatiert einen Zeitstempel kompakt für die Inbox. */

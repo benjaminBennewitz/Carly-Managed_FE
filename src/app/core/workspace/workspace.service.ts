@@ -15,6 +15,7 @@ import {
   WorkspaceColumn,
   WorkspaceColumnSortMode,
   WorkspaceComment,
+  WorkspaceInvitation,
   WorkspaceJoinRequest,
   WorkspaceMember,
   WorkspaceMemberInvitePayload,
@@ -75,6 +76,7 @@ export interface WorkspaceActivityEvent {
 const PERSONAL_BOARD_KEY = 'personal';
 const DEFAULT_PROJECT_COLOR = '#7752B3';
 const DEFAULT_PROJECT_ICON = 'folder';
+const ACTIVE_WORKSPACE_STORAGE_KEY = 'cm-active-workspace-id';
 
 /** Erzeugt eine von den Signalzuständen unabhängige Kopie. */
 function clone<T>(value: T): T {
@@ -93,6 +95,8 @@ export class WorkspaceService {
   private readonly boardsState = signal<Record<string, WorkspaceColumn[]>>({});
   private readonly boardMetaState = signal<Record<string, BoardMeta>>({});
   private readonly membersState = signal<WorkspaceMember[]>([]);
+  private readonly sentInvitationsState = signal<WorkspaceInvitation[]>([]);
+  private readonly receivedInvitationsState = signal<WorkspaceInvitation[]>([]);
   private readonly joinRequestsState = signal<WorkspaceJoinRequest[]>([]);
   private readonly messagesState = signal<WorkspaceMessage[]>([]);
   private readonly archivedTaskState = signal<WorkspaceTask[]>([]);
@@ -133,6 +137,10 @@ export class WorkspaceService {
         )[0] ?? null,
   );
   readonly members = this.membersState.asReadonly();
+  readonly sentInvitations = this.sentInvitationsState.asReadonly();
+  readonly receivedInvitations = computed(() =>
+    this.receivedInvitationsState().filter((invitation) => invitation.status === 'pending'),
+  );
   readonly joinRequests = this.joinRequestsState.asReadonly();
   readonly sentMessages = this.messagesState.asReadonly();
   readonly poolTasks = computed(() =>
@@ -174,8 +182,12 @@ export class WorkspaceService {
     this.loadingState.set(true);
     return this.http.get<WorkspaceApiModel[]>(`${API_BASE_URL}/workspaces/`).pipe(
       switchMap((workspaces) => {
+        const preferredWorkspaceId = this.getStoredActiveWorkspaceId();
         const workspace =
-          workspaces.find((item) => item.name === 'Carly Managed Demo') ?? workspaces[0] ?? null;
+          workspaces.find((item) => item.id === preferredWorkspaceId) ??
+          workspaces.find((item) => item.name === 'Carly Managed Demo') ??
+          workspaces[0] ??
+          null;
         if (!workspace) {
           this.clearState();
           return of(undefined);
@@ -190,6 +202,12 @@ export class WorkspaceService {
             `${API_BASE_URL}/workspaces/projects/?workspaceId=${workspace.id}`,
           ),
           boards: this.http.get<BoardApiModel[]>(`${API_BASE_URL}/workspaces/boards/`),
+          sentInvitations: this.http.get<
+            WorkspaceInvitation[] | PaginatedResponse<WorkspaceInvitation>
+          >(`${API_BASE_URL}/workspaces/invitations/?scope=sent&workspaceId=${workspace.id}`),
+          receivedInvitations: this.http.get<
+            WorkspaceInvitation[] | PaginatedResponse<WorkspaceInvitation>
+          >(`${API_BASE_URL}/workspaces/invitations/?scope=received`),
           joinRequests: this.http.get<
             WorkspaceJoinRequest[] | PaginatedResponse<WorkspaceJoinRequest>
           >(`${API_BASE_URL}/workspaces/join-requests/?workspaceId=${workspace.id}`),
@@ -197,25 +215,30 @@ export class WorkspaceService {
             `${API_BASE_URL}/workspaces/tasks/?archived=true`,
           ),
         }).pipe(
-          tap(({ members, projects, boards, joinRequests, archivedTasks }) => {
-            const onlineIds = new Set(
-              this.membersState()
-                .filter((member) => member.isOnline)
-                .map((member) => member.id),
-            );
-            this.membersState.set(
-              members.map((member) => ({ ...member, isOnline: onlineIds.has(member.id) })),
-            );
-            this.projectsState.set(unwrapCollection(projects));
-            this.joinRequestsState.set(
-              unwrapCollection(joinRequests).filter(
-                (request) => !request.status || request.status === 'pending',
-              ),
-            );
-            this.archivedTaskState.set(unwrapCollection(archivedTasks));
-            this.applyBoards(boards);
-            this.inboxService.reload(workspace.id);
-          }),
+          tap(
+            ({
+              members,
+              projects,
+              boards,
+              sentInvitations,
+              receivedInvitations,
+              joinRequests,
+              archivedTasks,
+            }) => {
+              this.membersState.set(members);
+              this.projectsState.set(unwrapCollection(projects));
+              this.sentInvitationsState.set(unwrapCollection(sentInvitations));
+              this.receivedInvitationsState.set(unwrapCollection(receivedInvitations));
+              this.joinRequestsState.set(
+                unwrapCollection(joinRequests).filter(
+                  (request) => !request.status || request.status === 'pending',
+                ),
+              );
+              this.archivedTaskState.set(unwrapCollection(archivedTasks));
+              this.applyBoards(boards);
+              this.inboxService.reload(workspace.id);
+            },
+          ),
           map(() => undefined),
         );
       }),
@@ -269,14 +292,6 @@ export class WorkspaceService {
       tap((board) => this.applyBoardSnapshot(board)),
       map(() => this.getBoard(projectId)),
       catchError(() => of(this.getBoard(projectId))),
-    );
-  }
-
-  /** Übernimmt einen vollständigen Presence-Snapshot des aktuell geöffneten Boards. */
-  setOnlineMembers(userIds: readonly string[]): void {
-    const onlineIds = new Set(userIds);
-    this.membersState.update((members) =>
-      members.map((member) => ({ ...member, isOnline: onlineIds.has(member.id) })),
     );
   }
 
@@ -468,12 +483,10 @@ export class WorkspaceService {
   }
 
   /** Versendet eine Einladung für die im Mitgliederformular erfassten Daten. */
-  createMember(payload: WorkspaceMemberSavePayload): Observable<void> {
-    return this.inviteMember({
-      fullName: payload.fullName,
-      email: payload.email,
-      projectId: null,
-    });
+  createMember(
+    payload: Pick<WorkspaceMemberSavePayload, 'fullName' | 'email'> & { projectId: string | null },
+  ): Observable<void> {
+    return this.inviteMember(payload);
   }
 
   /** Aktualisiert Rolle und Avatarfarbe eines Mitglieds. */
@@ -545,8 +558,85 @@ export class WorkspaceService {
       return throwError(() => new Error('Kein aktiver Workspace verfügbar.'));
     }
     return this.http
-      .post(`${API_BASE_URL}/workspaces/invitations/`, { workspaceId, ...payload })
-      .pipe(map(() => undefined));
+      .post<WorkspaceInvitation>(`${API_BASE_URL}/workspaces/invitations/`, {
+        workspaceId,
+        ...payload,
+      })
+      .pipe(
+        tap((invitation) =>
+          this.sentInvitationsState.update((items) => [
+            invitation,
+            ...items.filter((item) => item.id !== invitation.id),
+          ]),
+        ),
+        map(() => undefined),
+      );
+  }
+
+  /** Lädt gesendete und empfangene Einladungen unabhängig vom restlichen Snapshot neu. */
+  refreshInvitations(): void {
+    const workspaceId = this.workspaceIdState();
+    const sentRequest = workspaceId
+      ? this.http.get<WorkspaceInvitation[] | PaginatedResponse<WorkspaceInvitation>>(
+          `${API_BASE_URL}/workspaces/invitations/?scope=sent&workspaceId=${workspaceId}`,
+        )
+      : of([] as WorkspaceInvitation[]);
+
+    forkJoin({
+      sent: sentRequest,
+      received: this.http.get<
+        WorkspaceInvitation[] | PaginatedResponse<WorkspaceInvitation>
+      >(`${API_BASE_URL}/workspaces/invitations/?scope=received`),
+    }).subscribe({
+      next: ({ sent, received }) => {
+        this.sentInvitationsState.set(unwrapCollection(sent));
+        this.receivedInvitationsState.set(unwrapCollection(received));
+      },
+    });
+  }
+
+  /** Nimmt eine In-App-Einladung an und wechselt direkt in den freigegebenen Workspace. */
+  acceptInvitation(invitationId: string): Observable<void> {
+    const invitation = this.receivedInvitationsState().find((item) => item.id === invitationId);
+    if (!invitation) {
+      return throwError(() => new Error('Einladung nicht gefunden.'));
+    }
+    return this.http
+      .post<WorkspaceInvitation>(
+        `${API_BASE_URL}/workspaces/invitations/${invitationId}/accept/`,
+        {},
+      )
+      .pipe(
+        tap(() => this.storeActiveWorkspaceId(invitation.workspaceId)),
+        switchMap(() => this.loadData()),
+      );
+  }
+
+  /** Nimmt einen zeitlich begrenzten Einladungslink nach erfolgreichem Login an. */
+  acceptInvitationToken(token: string): Observable<void> {
+    return this.http
+      .post<WorkspaceInvitation>(`${API_BASE_URL}/workspaces/invitations/accept/`, { token })
+      .pipe(
+        tap((invitation) => this.storeActiveWorkspaceId(invitation.workspaceId)),
+        switchMap(() => this.loadData()),
+      );
+  }
+
+  /** Lehnt eine offene In-App-Einladung ab und aktualisiert die Einladungsübersicht. */
+  rejectInvitation(invitationId: string): Observable<void> {
+    return this.http
+      .post<WorkspaceInvitation>(
+        `${API_BASE_URL}/workspaces/invitations/${invitationId}/reject/`,
+        {},
+      )
+      .pipe(
+        tap((updated) => {
+          this.receivedInvitationsState.update((items) =>
+            items.map((item) => (item.id === updated.id ? updated : item)),
+          );
+        }),
+        map(() => undefined),
+      );
   }
 
   /** Erstellt eine direkte Unterhaltung über die Inbox-API. */
@@ -1070,8 +1160,28 @@ export class WorkspaceService {
     this.boardsState.set({});
     this.boardMetaState.set({});
     this.membersState.set([]);
+    this.sentInvitationsState.set([]);
+    this.receivedInvitationsState.set([]);
     this.joinRequestsState.set([]);
     this.archivedTaskState.set([]);
+  }
+
+  /** Liest den zuletzt bewusst gewählten Workspace aus dem lokalen UI-Zustand. */
+  private getStoredActiveWorkspaceId(): string | null {
+    try {
+      return window.localStorage.getItem(ACTIVE_WORKSPACE_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  /** Merkt den Workspace nach Annahme einer Einladung für folgende App-Starts. */
+  private storeActiveWorkspaceId(workspaceId: string): void {
+    try {
+      window.localStorage.setItem(ACTIVE_WORKSPACE_STORAGE_KEY, workspaceId);
+    } catch {
+      return;
+    }
   }
 
   /** Ändert den Projektstatus optimistisch und über die API. */

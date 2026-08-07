@@ -17,6 +17,8 @@ import { AuthService } from '../../../../core/auth/services/auth.service';
 import { SessionService } from '../../../../core/auth/services/session.service';
 
 import {
+  WorkspaceInvitation,
+  WorkspaceInvitationStatus,
   WorkspaceJoinRequest,
   WorkspaceMember,
   WorkspaceMemberRole,
@@ -26,6 +28,7 @@ import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-head
 
 type MemberDialogState = 'password-confirm' | 'password-sent' | 'delete-confirm' | null;
 type MemberSecurityTone = 'success' | 'brand' | 'warning';
+type MemberFeedbackTone = 'success' | 'info' | 'error';
 
 interface MemberSecurityPresentation {
   label: string;
@@ -51,7 +54,9 @@ export class MembersPageComponent {
   protected readonly createError = signal('');
   protected readonly editError = signal('');
   protected readonly feedback = signal('');
+  protected readonly feedbackTone = signal<MemberFeedbackTone>('success');
   protected readonly requestPending = signal(false);
+  protected readonly invitationPendingId = signal<string | null>(null);
   protected readonly dialogState = signal<MemberDialogState>(null);
   protected readonly dialogMember = signal<WorkspaceMember | null>(null);
   protected readonly securityBars = [1, 2, 3, 4] as const;
@@ -59,10 +64,9 @@ export class MembersPageComponent {
   private readonly formBuilder = inject(FormBuilder);
 
   protected readonly createForm = this.formBuilder.nonNullable.group({
-    fullName: ['', [Validators.required, Validators.maxLength(80)]],
+    fullName: ['', [Validators.required, Validators.maxLength(60)]],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
-    role: this.formBuilder.nonNullable.control<WorkspaceMemberRole>('member', Validators.required),
-    avatarColor: ['#7752B3', [Validators.required, Validators.pattern(/^#[0-9A-Fa-f]{6}$/)]],
+    projectId: [''],
   });
 
   protected readonly editForm = this.formBuilder.nonNullable.group({
@@ -128,8 +132,7 @@ export class MembersPageComponent {
     this.createForm.reset({
       fullName: '',
       email: '',
-      role: 'member',
-      avatarColor: '#7752B3',
+      projectId: '',
     });
     this.showCreateForm.set(true);
   }
@@ -166,16 +169,20 @@ export class MembersPageComponent {
     const payload = this.createForm.getRawValue();
     this.requestPending.set(true);
     this.workspaceService
-      .createMember(payload)
+      .createMember({
+        fullName: payload.fullName,
+        email: payload.email,
+        projectId: payload.projectId || null,
+      })
       .pipe(finalize(() => this.requestPending.set(false)))
       .subscribe({
         next: () => {
           this.closeCreateForm();
-          this.showFeedback(`Die Einladung an ${payload.email} wurde versendet.`);
+          this.showFeedback(`Die Einladung an ${payload.email} wurde erstellt.`);
         },
         error: () => {
           this.createError.set(
-            'Die Einladung konnte nicht versendet werden. Prüfe E-Mail-Adresse und Berechtigung.',
+            'Die Einladung konnte nicht erstellt werden. Prüfe E-Mail-Adresse und Berechtigung.',
           );
         },
       });
@@ -250,7 +257,7 @@ export class MembersPageComponent {
         next: () => this.dialogState.set('password-sent'),
         error: () => {
           this.closeDialog();
-          this.showFeedback('Die Passwort-Reset-Anfrage konnte nicht versendet werden.');
+          this.showFeedback('Die Passwort-Reset-Anfrage konnte nicht versendet werden.', 'error');
         },
       });
   }
@@ -259,6 +266,61 @@ export class MembersPageComponent {
   closeDialog(): void {
     this.dialogState.set(null);
     this.dialogMember.set(null);
+  }
+
+  /** Nimmt eine persönliche Workspace-Einladung an und wechselt in den Ziel-Workspace. */
+  acceptInvitation(invitation: WorkspaceInvitation): void {
+    if (this.invitationPendingId()) return;
+    this.invitationPendingId.set(invitation.id);
+    this.workspaceService
+      .acceptInvitation(invitation.id)
+      .pipe(finalize(() => this.invitationPendingId.set(null)))
+      .subscribe({
+        next: () =>
+          this.showFeedback(`Du bist jetzt Mitglied von ${invitation.workspaceName}.`),
+        error: () =>
+          this.showFeedback(
+            'Die Einladung konnte nicht angenommen werden. Bitte erneut laden.',
+            'error',
+          ),
+      });
+  }
+
+  /** Lehnt eine persönliche Workspace-Einladung nachvollziehbar ab. */
+  rejectInvitation(invitation: WorkspaceInvitation): void {
+    if (this.invitationPendingId()) return;
+    this.invitationPendingId.set(invitation.id);
+    this.workspaceService
+      .rejectInvitation(invitation.id)
+      .pipe(finalize(() => this.invitationPendingId.set(null)))
+      .subscribe({
+        next: () =>
+          this.showFeedback(
+            `Die Einladung von ${invitation.invitedByName} wurde abgelehnt.`,
+            'info',
+          ),
+        error: () =>
+          this.showFeedback(
+            'Die Einladung konnte nicht abgelehnt werden. Bitte erneut laden.',
+            'error',
+          ),
+      });
+  }
+
+  /** Liefert eine verständliche Statusbezeichnung für gesendete Einladungen. */
+  getInvitationStatusLabel(status: WorkspaceInvitationStatus): string {
+    if (status === 'accepted') return 'Bestätigt';
+    if (status === 'rejected') return 'Abgelehnt';
+    if (status === 'revoked') return 'Widerrufen';
+    if (status === 'expired') return 'Abgelaufen';
+    return 'Unbestätigt';
+  }
+
+  /** Prüft, ob das aktuelle Konto Einladungen und Beitrittsanfragen verwalten darf. */
+  canManageInvitations(): boolean {
+    const currentUserId = this.sessionService.currentUser()?.id;
+    const membership = this.workspaceService.members().find((member) => member.id === currentUserId);
+    return membership?.role === 'owner' || membership?.role === 'manager';
   }
 
   /** Gibt eine offene Beitrittsanfrage frei. */
@@ -275,7 +337,7 @@ export class MembersPageComponent {
   /** Lehnt eine offene Beitrittsanfrage ab. */
   rejectJoinRequest(request: WorkspaceJoinRequest): void {
     if (this.workspaceService.rejectJoinRequest(request.id)) {
-      this.showFeedback(`Die Anfrage von ${request.fullName} wurde abgelehnt.`);
+      this.showFeedback(`Die Anfrage von ${request.fullName} wurde abgelehnt.`, 'info');
     }
   }
 
@@ -369,7 +431,8 @@ export class MembersPageComponent {
   }
 
   /** Zeigt eine kompakte Statusmeldung auf der Seite an. */
-  private showFeedback(message: string): void {
+  private showFeedback(message: string, tone: MemberFeedbackTone = 'success'): void {
+    this.feedbackTone.set(tone);
     this.feedback.set(message);
   }
 }

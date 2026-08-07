@@ -16,8 +16,20 @@
   </div>
 
   @if (feedback()) {
-    <p class="members-page__feedback" role="status">
-      <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+    <p
+      class="members-page__feedback"
+      [attr.data-tone]="feedbackTone()"
+      [attr.role]="feedbackTone() === 'error' ? 'alert' : 'status'"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">
+        {{
+          feedbackTone() === 'error'
+            ? 'error'
+            : feedbackTone() === 'info'
+              ? 'info'
+              : 'check_circle'
+        }}
+      </span>
       {{ feedback() }}
     </p>
   }
@@ -26,28 +38,13 @@
     <section class="members-page__create-panel" aria-labelledby="members-create-title">
       <div class="members-page__section-heading">
         <div>
-          <span>Direkt hinzufügen</span>
-          <h2 id="members-create-title">Neues Mitglied</h2>
+          <span>Einladung senden</span>
+          <h2 id="members-create-title">Person einladen</h2>
         </div>
-        <p>Die Person wird sofort als lokales Teammitglied angelegt.</p>
+        <p>Bestehende Carly-Konten sehen die Einladung direkt in der App.</p>
       </div>
 
       <form class="members-page__form" [formGroup]="createForm" (ngSubmit)="createMember()">
-        <div class="members-page__avatar-editor">
-          <span
-            class="members-page__avatar members-page__avatar--large"
-            [style.background]="createForm.controls.avatarColor.value"
-            [style.color]="getAvatarTextColor(createForm.controls.avatarColor.value)"
-            aria-hidden="true"
-          >
-            {{ getInitials(createForm.controls.fullName.value) }}
-          </span>
-          <div>
-            <strong>Avatar-Vorschau</strong>
-            <span>Die Initialenfarbe wird automatisch nach Kontrast berechnet.</span>
-          </div>
-        </div>
-
         <div class="members-page__form-grid">
           <label class="members-page__field">
             <span>Name</span>
@@ -55,13 +52,13 @@
               type="text"
               formControlName="fullName"
               autocomplete="name"
-              maxlength="80"
+              maxlength="60"
               [attr.aria-invalid]="
                 createSubmitted() && createForm.controls.fullName.invalid ? 'true' : null
               "
             />
             @if (createSubmitted() && createForm.controls.fullName.invalid) {
-              <small>Bitte einen Namen mit maximal 80 Zeichen eingeben.</small>
+              <small>Bitte einen Namen mit maximal 60 Zeichen eingeben.</small>
             }
           </label>
 
@@ -82,20 +79,14 @@
           </label>
 
           <label class="members-page__field">
-            <span>Rolle</span>
-            <select formControlName="role">
-              <option value="owner">Owner</option>
-              <option value="manager">Manager</option>
-              <option value="member">Mitglied</option>
+            <span>Projektzugriff</span>
+            <select formControlName="projectId">
+              <option value="">Nur Workspace</option>
+              @for (project of workspaceService.projects(); track project.id) {
+                <option [value]="project.id">{{ project.name }}</option>
+              }
             </select>
-          </label>
-
-          <label class="members-page__field members-page__field--color">
-            <span>Iconfarbe</span>
-            <span class="members-page__color-control">
-              <input type="color" formControlName="avatarColor" aria-label="Iconfarbe auswählen" />
-              <code>{{ createForm.controls.avatarColor.value }}</code>
-            </span>
+            <small>Optional: Gibt nach Annahme direkt Zugriff auf das gewählte Projekt.</small>
           </label>
         </div>
 
@@ -112,10 +103,114 @@
           </button>
           <button type="submit" class="members-page__button members-page__button--primary">
             <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
-            Mitglied hinzufügen
+            Einladung senden
           </button>
         </footer>
       </form>
+    </section>
+  }
+
+  @if (workspaceService.receivedInvitations().length > 0) {
+    <section class="members-page__section" aria-labelledby="received-invitations-title">
+      <div class="members-page__section-heading">
+        <div>
+          <span>Für dich</span>
+          <h2 id="received-invitations-title">Einladungen an dich</h2>
+        </div>
+        <p>{{ workspaceService.receivedInvitations().length }} offen</p>
+      </div>
+
+      <div class="members-page__invitations">
+        @for (invitation of workspaceService.receivedInvitations(); track invitation.id) {
+          <article class="members-page__invitation members-page__invitation--received">
+            <span class="members-page__invitation-icon material-symbols-outlined" aria-hidden="true">
+              group_add
+            </span>
+
+            <div class="members-page__invitation-copy">
+              <strong>{{ invitation.invitedByName }} lädt dich ein.</strong>
+              <span>
+                {{ invitation.workspaceName }}
+                @if (invitation.projectName) {
+                  · Projekt {{ invitation.projectName }}
+                }
+              </span>
+              <p>Mit der Annahme erhältst du Zugriff auf den freigegebenen Arbeitsbereich.</p>
+            </div>
+
+            <div class="members-page__request-actions">
+              <button
+                type="button"
+                class="members-page__button"
+                [disabled]="invitationPendingId() !== null"
+                (click)="rejectInvitation(invitation)"
+              >
+                Ablehnen
+              </button>
+              <button
+                type="button"
+                class="members-page__button members-page__button--primary"
+                [disabled]="invitationPendingId() !== null"
+                (click)="acceptInvitation(invitation)"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">how_to_reg</span>
+                Annehmen
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+
+  @if (canManageInvitations()) {
+    <section class="members-page__section" aria-labelledby="sent-invitations-title">
+      <div class="members-page__section-heading">
+        <div>
+          <span>Einladungsstatus</span>
+          <h2 id="sent-invitations-title">Eingeladene User</h2>
+        </div>
+        <p>{{ workspaceService.sentInvitations().length }} Einladungen</p>
+      </div>
+
+      @if (workspaceService.sentInvitations().length > 0) {
+        <div class="members-page__invitations">
+          @for (invitation of workspaceService.sentInvitations(); track invitation.id) {
+            <article class="members-page__invitation">
+              <span class="members-page__invitation-icon material-symbols-outlined" aria-hidden="true">
+                outgoing_mail
+              </span>
+
+              <div class="members-page__invitation-copy">
+                <strong>{{ invitation.fullName || invitation.email }}</strong>
+                <span>
+                  {{ invitation.email }} · {{ formatRequestDate(invitation.createdAt) }}
+                </span>
+                @if (invitation.projectName) {
+                  <p>Freigabe für Projekt {{ invitation.projectName }}</p>
+                } @else {
+                  <p>Freigabe für den gesamten Workspace</p>
+                }
+              </div>
+
+              <span
+                class="members-page__invitation-status"
+                [attr.data-status]="invitation.status"
+              >
+                {{ getInvitationStatusLabel(invitation.status) }}
+              </span>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="members-page__empty">
+          <span class="material-symbols-outlined" aria-hidden="true">mail</span>
+          <div>
+            <strong>Noch keine Einladungen</strong>
+            <span>Neue Einladungen erscheinen hier mit ihrem aktuellen Status.</span>
+          </div>
+        </div>
+      }
     </section>
   }
 
@@ -335,8 +430,8 @@
   <section class="members-page__section" aria-labelledby="join-requests-title">
     <div class="members-page__section-heading">
       <div>
-        <span>Freigabe erforderlich</span>
-        <h2 id="join-requests-title">Eingeladene Mitglieder</h2>
+        <span>Beitritt prüfen</span>
+        <h2 id="join-requests-title">Beitrittsanfragen</h2>
       </div>
       <p>{{ workspaceService.joinRequests().length }} offene Beitrittsanfragen</p>
     </div>

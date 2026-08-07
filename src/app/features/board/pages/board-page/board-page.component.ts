@@ -125,6 +125,7 @@ export class BoardPageComponent {
   protected readonly recurrenceModalOpen = signal(false);
   protected readonly recurrenceEditorTaskId = signal<string | null>(null);
   protected readonly remoteCursors = signal<RemoteBoardCursor[]>([]);
+  protected readonly boardOnlineUserIds = signal<ReadonlySet<string>>(new Set());
   protected readonly taskEditors = signal<Record<string, string[]>>({});
 
   protected readonly project = computed(() =>
@@ -183,9 +184,10 @@ export class BoardPageComponent {
   protected readonly boardApiId = computed(() =>
     this.workspaceService.getBoardApiId(this.projectId()),
   );
-  protected readonly onlineMembers = computed(() =>
-    this.workspaceService.members().filter((member) => member.isOnline),
-  );
+  protected readonly onlineMembers = computed(() => {
+    const onlineIds = this.boardOnlineUserIds();
+    return this.workspaceService.members().filter((member) => onlineIds.has(member.id));
+  });
   protected readonly activeTaskEditors = computed(() => {
     const taskId = this.selectedTask()?.id;
     if (!taskId) return [];
@@ -271,7 +273,7 @@ export class BoardPageComponent {
         const taskId = this.selectedTask()?.id ?? null;
         if (taskId) this.realtimeService.sendEditing(taskId, false);
         this.realtimeService.disconnectBoard();
-        this.workspaceService.setOnlineMembers([]);
+        this.boardOnlineUserIds.set(new Set());
         this.remoteCursors.set([]);
         this.taskEditors.set({});
       });
@@ -1070,14 +1072,16 @@ export class BoardPageComponent {
       const snapshot = payload as RealtimePresenceSnapshotPayload | undefined;
       const users = snapshot?.users ?? [];
       const onlineIds = new Set(users.map((user) => user.id));
-      this.workspaceService.setOnlineMembers([...onlineIds]);
+      this.boardOnlineUserIds.set(onlineIds);
       this.remoteCursors.update((items) => items.filter((item) => onlineIds.has(item.userId)));
       this.applyEditingSnapshot(snapshot?.editing ?? [], onlineIds);
       return;
     }
     if (type === 'presence.joined') {
       const user = (payload as RealtimePresenceJoinedPayload | undefined)?.user;
-      if (user) this.workspaceService.setMemberOnline(user.id, true);
+      if (user) {
+        this.boardOnlineUserIds.update((current) => new Set([...current, user.id]));
+      }
       return;
     }
     if (type === 'presence.left') {
@@ -1163,7 +1167,11 @@ export class BoardPageComponent {
 
   /** Entfernt alle flüchtigen Realtime-Daten einer abgemeldeten Person. */
   private removeRealtimeUser(userId: string): void {
-    this.workspaceService.setMemberOnline(userId, false);
+    this.boardOnlineUserIds.update((current) => {
+      const next = new Set(current);
+      next.delete(userId);
+      return next;
+    });
     this.remoteCursors.update((items) => items.filter((item) => item.userId !== userId));
     this.applyRemoteEditing({ userId, taskId: null, active: false });
     const timerId = this.cursorExpiryTimers.get(userId);

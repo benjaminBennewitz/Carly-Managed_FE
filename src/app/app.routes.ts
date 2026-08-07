@@ -133,6 +133,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'invite',
+        title: 'Einladung | Carly Managed',
+        loadComponent: () =>
+          import('./features/members/pages/invite-page/invite-page.component').then(
+            (module) => module.InvitePageComponent,
+          ),
+      },
+      {
         path: 'members',
         title: 'Mitglieder | Carly Managed',
         loadComponent: () =>

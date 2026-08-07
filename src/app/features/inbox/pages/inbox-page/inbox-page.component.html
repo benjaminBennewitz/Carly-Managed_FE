@@ -346,6 +346,7 @@
                   submittedMessage() && messageForm.controls.body.invalid ? 'true' : null
                 "
                 (input)="handleMessageInput($event)"
+                (keydown)="handleMessageKeydown($event)"
               ></textarea>
 
               <div class="inbox-composer__tools">
@@ -451,7 +452,9 @@
             @if (submittedMessage() && messageForm.controls.body.invalid) {
               <small role="alert">Bitte eine Nachricht eingeben.</small>
             } @else {
-              <small>{{ messageForm.controls.body.value.length }}/2000 Zeichen</small>
+              <small
+                >Shift+Enter senden · {{ messageForm.controls.body.value.length }}/2000 Zeichen</small
+              >
             }
           </footer>
         </form>
@@ -475,6 +478,7 @@
     <section
       class="inbox-dialog"
       [class.inbox-dialog--danger]="activeDialog === 'delete-conversation'"
+      [class.inbox-dialog--new-chat]="activeDialog === 'new-chat'"
       role="dialog"
       aria-modal="true"
       aria-labelledby="inbox-dialog-title"
@@ -566,7 +570,7 @@
             <span>Erste Nachricht</span>
             <textarea
               formControlName="body"
-              rows="6"
+              rows="4"
               maxlength="2000"
               placeholder="Nachricht schreiben …"
               [attr.aria-invalid]="

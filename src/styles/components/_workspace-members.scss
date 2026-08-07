@@ -24,7 +24,7 @@
    03   Formulare und Eingabefelder
    04   Mitgliederliste und Bearbeitung
    05   Sicherheit und Passwort-Reset
-   06   Beitrittsanfragen
+   06   Einladungen und Beitrittsanfragen
    07   Dialoge
    08   Responsive Darstellung
    ========================================================================== */
@@ -238,11 +238,25 @@
   font-weight: var(--font-weight-bold);
 }
 
-.members-page__feedback {
+.members-page__feedback[data-tone='success'] {
   border: var(--border-width-subtle) solid
     color-mix(in srgb, var(--color-success) 35%, var(--color-border-subtle));
   background: var(--color-success-surface);
   color: var(--color-success);
+}
+
+.members-page__feedback[data-tone='info'] {
+  border: var(--border-width-subtle) solid
+    color-mix(in srgb, var(--color-info) 35%, var(--color-border-subtle));
+  background: var(--color-info-surface);
+  color: var(--color-info);
+}
+
+.members-page__feedback[data-tone='error'] {
+  border: var(--border-width-subtle) solid
+    color-mix(in srgb, var(--color-danger) 35%, var(--color-border-subtle));
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
 }
 
 .members-page__error {
@@ -634,12 +648,100 @@
 }
 
 /* ==========================================================================
-   06   Beitrittsanfragen
+   06   Einladungen und Beitrittsanfragen
    ========================================================================== */
 
+.members-page__invitations,
 .members-page__requests {
   display: grid;
   gap: var(--space-3);
+}
+
+.members-page__invitation {
+  display: grid;
+  padding: var(--space-5);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  border: var(--border-width-subtle) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.members-page__invitation--received {
+  border-color: color-mix(in srgb, var(--color-action-primary) 38%, var(--color-border-subtle));
+  background:
+    linear-gradient(
+      110deg,
+      color-mix(in srgb, var(--color-brand-subtle) 72%, transparent),
+      transparent 48%
+    ),
+    var(--color-surface-primary);
+}
+
+.members-page__invitation-icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-subtle);
+  color: var(--color-action-primary);
+}
+
+.members-page__invitation-copy {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.members-page__invitation-copy strong {
+  color: var(--color-text-primary);
+}
+
+.members-page__invitation-copy > span {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-100);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.members-page__invitation-copy p {
+  margin-top: var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-200);
+}
+
+.members-page__invitation-status {
+  display: inline-flex;
+  min-height: var(--size-control-sm);
+  padding: var(--space-1) var(--space-3);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-round);
+  background: var(--color-warning-surface);
+  color: var(--color-warning);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.members-page__invitation-status[data-status='accepted'] {
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+
+.members-page__invitation-status[data-status='rejected'],
+.members-page__invitation-status[data-status='revoked'] {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.members-page__invitation-status[data-status='expired'] {
+  background: var(--color-surface-secondary);
+  color: var(--color-text-muted);
 }
 
 .members-page__request {
@@ -896,12 +998,18 @@
     grid-column: 2;
   }
 
-  .members-page__request {
+  .members-page__request,
+  .members-page__invitation {
     grid-template-columns: auto minmax(0, 1fr);
   }
 
+  .members-page__invitation-status,
   .members-page__request-actions {
     grid-column: 2;
+    justify-self: start;
+  }
+
+  .members-page__request-actions {
     justify-content: flex-start;
   }
 }
@@ -986,17 +1094,22 @@
   }
 
   .members-page__avatar-editor,
-  .members-page__request {
+  .members-page__request,
+  .members-page__invitation {
     align-items: flex-start;
   }
 
-  .members-page__request {
+  .members-page__request,
+  .members-page__invitation {
     grid-template-columns: 1fr;
   }
 
   .members-page__request .members-page__avatar,
   .members-page__request-copy,
-  .members-page__request-actions {
+  .members-page__request-actions,
+  .members-page__invitation-icon,
+  .members-page__invitation-copy,
+  .members-page__invitation-status {
     grid-column: 1;
   }
 

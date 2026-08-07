@@ -1,0 +1,20 @@
+<!-- src/app/features/members/pages/invite-page/invite-page.component.html -->
+
+<section class="invite-page" aria-live="polite">
+  <article class="invite-page__card">
+    @if (pending()) {
+      <span class="invite-page__icon material-symbols-outlined" aria-hidden="true">hourglass_top</span>
+      <span class="invite-page__eyebrow">Einladung</span>
+      <h1>Workspace wird freigegeben</h1>
+      <p>Deine Einladung wird geprüft und der gemeinsame Arbeitsbereich wird geladen.</p>
+    } @else if (state() === 'error') {
+      <span class="invite-page__icon invite-page__icon--error material-symbols-outlined" aria-hidden="true">
+        link_off
+      </span>
+      <span class="invite-page__eyebrow">Einladung</span>
+      <h1>Link nicht mehr gültig</h1>
+      <p>Die Einladung ist abgelaufen, wurde bereits verwendet oder gehört zu einem anderen Konto.</p>
+      <a class="invite-page__action" routerLink="/members">Zu den Mitgliedern</a>
+    }
+  </article>
+</section>

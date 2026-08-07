@@ -233,6 +233,10 @@ Carly-Managed_FE/
 │   │   │   │           └── privacy-page.component.ts
 │   │   │   ├── members/
 │   │   │   │   └── pages/
+│   │   │   │       ├── invite-page/
+│   │   │   │       │   ├── invite-page.component.html
+│   │   │   │       │   ├── invite-page.component.scss
+│   │   │   │       │   └── invite-page.component.ts
 │   │   │   │       └── members-page/
 │   │   │   │           ├── members-page.component.html
 │   │   │   │           ├── members-page.component.scss

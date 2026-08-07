@@ -55,6 +55,29 @@ export class AppShellComponent {
     this.workspaceService = workspaceService;
     realtimeService.connectInbox();
     realtimeService.inboxEvents.pipe(takeUntilDestroyed(destroyRef)).subscribe((event) => {
+      const payload = event.payload as Record<string, unknown> | undefined;
+      const userId = typeof payload?.['userId'] === 'string' ? payload['userId'] : null;
+      if (event.type === 'presence.workspace.joined' && userId) {
+        workspaceService.setMemberOnline(userId, true);
+        return;
+      }
+      if (event.type === 'presence.workspace.left' && userId) {
+        workspaceService.setMemberOnline(userId, false);
+        return;
+      }
+      if (event.type.startsWith('workspace.invitation.')) {
+        workspaceService.refreshInvitations();
+      }
+      if (
+        event.type === 'workspace.membership.updated' ||
+        event.type === 'workspace.project.updated'
+      ) {
+        const workspaceId =
+          typeof payload?.['workspaceId'] === 'string' ? payload['workspaceId'] : null;
+        if (workspaceId && workspaceId === workspaceService.workspaceId()) {
+          workspaceService.reload();
+        }
+      }
       if (event.type !== 'heartbeat.ack') inboxService.refreshCurrent();
     });
     const desktopMediaQuery = window.matchMedia(DESKTOP_SIDEBAR_QUERY);

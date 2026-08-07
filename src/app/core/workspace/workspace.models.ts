@@ -15,6 +15,12 @@ export type WorkspaceAutomationActionType = 'move_task_tree';
 export type WorkspaceRecurrenceScheduleType = 'weekly_days' | 'interval_days' | 'monthly_day';
 export type WorkspaceRecurrenceWeekday = 'MO' | 'TU' | 'WE' | 'TH' | 'FR' | 'SA' | 'SU';
 export type WorkspaceMemberRole = 'owner' | 'manager' | 'member';
+export type WorkspaceInvitationStatus =
+  | 'pending'
+  | 'accepted'
+  | 'rejected'
+  | 'revoked'
+  | 'expired';
 
 export interface WorkspaceMember {
   id: string;
@@ -41,6 +47,22 @@ export interface WorkspaceJoinRequest {
   avatarColor: string;
   requestedAt: string;
   status?: 'pending' | 'approved' | 'rejected';
+}
+
+export interface WorkspaceInvitation {
+  id: string;
+  fullName: string;
+  email: string;
+  workspaceId: string;
+  workspaceName: string;
+  projectId: string | null;
+  projectName: string | null;
+  invitedById: string;
+  invitedByName: string;
+  status: WorkspaceInvitationStatus;
+  expiresAt: string;
+  acceptedAt: string | null;
+  createdAt: string;
 }
 
 export interface WorkspaceSubtask {
