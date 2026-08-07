@@ -113,12 +113,19 @@
 .workspace-button--primary {
   border-color: var(--color-action-primary);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
 }
 
 .workspace-button--primary:hover:not(:disabled) {
   border-color: var(--color-action-primary-hover);
   background: var(--color-action-primary-hover);
+  color: var(--color-on-action-primary-hover, var(--color-action-primary-text));
+}
+
+.workspace-button--primary:active:not(:disabled) {
+  border-color: var(--color-action-primary-active);
+  background: var(--color-action-primary-active);
+  color: var(--color-on-action-primary-active, var(--color-action-primary-text));
 }
 
 .workspace-button--secondary {
@@ -358,7 +365,7 @@
   place-items: center;
   border-radius: var(--radius-round);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
   font-weight: var(--font-weight-bold);
 }
 
@@ -852,7 +859,7 @@
   place-items: center;
   border-radius: var(--radius-round);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
   font-weight: var(--font-weight-bold);
 }
 
@@ -995,7 +1002,7 @@
 .task-recurrence-reservation input:checked + .task-recurrence-reservation__control {
   border-color: var(--color-action-primary);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
 }
 
 .task-recurrence-reservation input:focus-visible + .task-recurrence-reservation__control {

@@ -1,12 +1,16 @@
 // src/app/core/theme/theme.service.spec.ts
 
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ThemeService } from './theme.service';
 
 describe('ThemeService', () => {
   let service: ThemeService;
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
   beforeEach(() => {
     window.localStorage.clear();
@@ -32,16 +36,29 @@ describe('ThemeService', () => {
     expect(service.label()).toBe('Ocean · Dunkel');
   });
 
-  it('setzt eine dynamisch abgeleitete Kontrastfarbe für Akzentflächen', () => {
+  it('verarbeitet moderne Browserfarben und korrigiert dunkle Akzentflächen', () => {
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => {
+      const style = (element as HTMLElement).style;
+      const backgroundToken = style.getPropertyValue('background-color');
+      const foregroundToken = style.getPropertyValue('color');
+      const backgroundColor = backgroundToken.includes('--color-accent-subtle')
+        ? 'color(srgb 0.117647 0.34902 0.360784)'
+        : 'rgb(255 255 255)';
+      const color = foregroundToken.includes('--color-accent-text')
+        ? 'rgb(6 29 26)'
+        : foregroundToken.includes('--color-text-primary')
+          ? 'rgb(251 248 255)'
+          : foregroundToken.includes('--color-text-contrast-dark')
+            ? 'rgb(0 0 0)'
+            : 'rgb(255 255 255)';
+
+      return { backgroundColor, color } as CSSStyleDeclaration;
+    });
+
     service.setMode('dark');
 
-    expect([
-      'var(--color-accent-text)',
+    expect(document.documentElement.style.getPropertyValue('--color-on-accent-subtle')).toBe(
       'var(--color-text-primary)',
-      'var(--color-text-inverse)',
-      'var(--color-action-primary-text)',
-    ]).toContain(
-      document.documentElement.style.getPropertyValue('--color-on-accent-subtle'),
     );
   });
 

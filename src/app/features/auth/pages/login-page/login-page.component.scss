@@ -124,13 +124,20 @@ form {
   border: var(--border-width-subtle) solid var(--color-action-primary);
   border-radius: var(--radius-md);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
   font-weight: var(--font-weight-semibold);
 }
 
 .auth-card__submit:hover:not(:disabled) {
   border-color: var(--color-action-primary-hover);
   background: var(--color-action-primary-hover);
+  color: var(--color-on-action-primary-hover, var(--color-action-primary-text));
+}
+
+.auth-card__submit:active:not(:disabled) {
+  border-color: var(--color-action-primary-active);
+  background: var(--color-action-primary-active);
+  color: var(--color-on-action-primary-active, var(--color-action-primary-text));
 }
 
 .auth-card__submit:disabled {

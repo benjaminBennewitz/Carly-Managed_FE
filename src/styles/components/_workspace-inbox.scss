@@ -222,7 +222,7 @@
   padding: 0 var(--space-2);
   border-radius: var(--radius-round);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
   font-size: var(--font-size-100);
   font-weight: var(--font-weight-bold);
 }
@@ -274,7 +274,7 @@
   border: 0;
   border-radius: var(--radius-md);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition:
@@ -305,7 +305,15 @@
 .inbox-panel__primary-button:hover,
 .inbox-thread__empty button:hover {
   background: var(--color-action-primary-hover);
+  color: var(--color-on-action-primary-hover, var(--color-action-primary-text));
   transform: translateY(-0.0625rem);
+}
+
+.inbox-panel__primary-button:active,
+.inbox-thread__empty button:active {
+  background: var(--color-action-primary-active);
+  color: var(--color-on-action-primary-active, var(--color-action-primary-text));
+  transform: translateY(0);
 }
 
 .inbox-panel__scroll {
@@ -1056,12 +1064,18 @@
   border: 0;
   border-radius: var(--radius-md);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
   cursor: pointer;
 }
 
 .inbox-composer__send:hover {
   background: var(--color-action-primary-hover);
+  color: var(--color-on-action-primary-hover, var(--color-action-primary-text));
+}
+
+.inbox-composer__send:active {
+  background: var(--color-action-primary-active);
+  color: var(--color-on-action-primary-active, var(--color-action-primary-text));
 }
 
 .inbox-composer footer {
@@ -1407,11 +1421,17 @@
 .inbox-dialog__button--primary {
   border-color: transparent;
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
 }
 
 .inbox-dialog__button--primary:hover:not(:disabled) {
   background: var(--color-action-primary-hover);
+  color: var(--color-on-action-primary-hover, var(--color-action-primary-text));
+}
+
+.inbox-dialog__button--primary:active:not(:disabled) {
+  background: var(--color-action-primary-active);
+  color: var(--color-on-action-primary-active, var(--color-action-primary-text));
 }
 
 .inbox-dialog__button--danger {

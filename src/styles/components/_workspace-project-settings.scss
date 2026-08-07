@@ -197,13 +197,20 @@
 
 .project-settings-button--primary {
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
   box-shadow: var(--shadow-xs);
 }
 
 .project-settings-button--primary:hover {
   background: var(--color-action-primary-hover);
+  color: var(--color-on-action-primary-hover, var(--color-action-primary-text));
   transform: translateY(-0.0625rem);
+}
+
+.project-settings-button--primary:active {
+  background: var(--color-action-primary-active);
+  color: var(--color-on-action-primary-active, var(--color-action-primary-text));
+  transform: translateY(0);
 }
 
 /* ==========================================================================
@@ -534,7 +541,7 @@
 .project-settings-checkbox.is-checked .project-settings-checkbox__control {
   border-color: var(--color-action-primary);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
 }
 
 .project-settings-checkbox:active .project-settings-checkbox__control {
@@ -879,7 +886,7 @@
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
   font-weight: var(--font-weight-bold);
   text-decoration: none;
 }
@@ -1173,7 +1180,7 @@
 .project-lifecycle-dialog > footer .project-lifecycle-dialog__confirm {
   border-color: transparent;
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
 }
 
 .project-lifecycle-dialog > footer .project-lifecycle-dialog__confirm:disabled {

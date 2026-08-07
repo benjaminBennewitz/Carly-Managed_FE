@@ -1,7 +1,10 @@
 // src/app/core/theme/theme.service.ts
 
 import { DOCUMENT } from '@angular/common';
-import { computed, Inject, Injectable, signal } from '@angular/core';
+import { computed, Inject, Injectable, OnDestroy, signal } from '@angular/core';
+
+import { CONTRAST_CONFIGURATIONS, parseCssColor, selectContrastCandidate } from './theme-contrast';
+import type { RgbColor } from './theme-contrast';
 
 export type ThemeMode = 'light' | 'dark';
 export type ThemeName = 'default' | 'neon' | 'retro' | 'summer' | 'nightsky' | 'ocean' | 'lava';
@@ -16,31 +19,6 @@ interface OptionalViewTransitionDocument {
   startViewTransition?: (updateCallback: () => void) => ThemeViewTransition;
 }
 
-interface RgbColor {
-  red: number;
-  green: number;
-  blue: number;
-}
-
-interface ContrastTokenConfiguration {
-  backgroundToken: string;
-  outputToken: string;
-  foregroundTokens: readonly string[];
-}
-
-const MINIMUM_TEXT_CONTRAST = 4.5;
-const CONTRAST_TOKEN_CONFIGURATIONS: readonly ContrastTokenConfiguration[] = [
-  {
-    backgroundToken: '--color-accent-subtle',
-    outputToken: '--color-on-accent-subtle',
-    foregroundTokens: [
-      '--color-accent-text',
-      '--color-text-primary',
-      '--color-text-inverse',
-      '--color-action-primary-text',
-    ],
-  },
-];
 const THEME_MODE_STORAGE_KEY = 'carly-managed-theme-mode';
 const THEME_NAME_STORAGE_KEY = 'carly-managed-theme-name';
 const THEME_NAMES: readonly ThemeName[] = [
@@ -70,10 +48,11 @@ function isThemeName(value: unknown): value is ThemeName {
 @Injectable({
   providedIn: 'root',
 })
-export class ThemeService {
+export class ThemeService implements OnDestroy {
   private readonly themeState = signal<ThemeName>('default');
   private readonly modeState = signal<ThemeMode>('light');
   private appliedThemeVariables: string[] = [];
+  private contrastObserver: MutationObserver | null = null;
   private themeRequestId = 0;
 
   readonly theme = this.themeState.asReadonly();
@@ -99,6 +78,12 @@ export class ThemeService {
     this.themeState.set(initialTheme);
     this.modeState.set(initialMode);
     this.applyTheme(initialTheme, initialMode);
+    this.observeContrastRelevantAttributes();
+  }
+
+  /** Beendet die Beobachtung kontrastrelevanter Dokumentattribute. */
+  ngOnDestroy(): void {
+    this.contrastObserver?.disconnect();
   }
 
   /** Wechselt den Darstellungsmodus mit einem horizontalen Übergang. */
@@ -191,38 +176,25 @@ export class ThemeService {
     probe.style.visibility = 'hidden';
     host.append(probe);
 
-    CONTRAST_TOKEN_CONFIGURATIONS.forEach((configuration) => {
-      const background = this.resolveTokenColor(probe, configuration.backgroundToken, 'background');
+    const foregroundCache = new Map<string, RgbColor | null>();
+    const resolveForeground = (token: string): RgbColor | null => {
+      if (!foregroundCache.has(token)) {
+        foregroundCache.set(token, this.resolveTokenColor(probe, token, 'color'));
+      }
+
+      return foregroundCache.get(token) ?? null;
+    };
+
+    CONTRAST_CONFIGURATIONS.forEach((configuration) => {
       const fallbackToken = configuration.foregroundTokens[0];
-      let selectedToken = fallbackToken;
-      let strongestToken = fallbackToken;
-      let strongestContrast = 0;
-
-      for (const token of configuration.foregroundTokens) {
-        const foreground = this.resolveTokenColor(probe, token, 'color');
-        if (!background || !foreground) continue;
-
-        const contrast = this.calculateContrastRatio(background, foreground);
-        if (contrast > strongestContrast) {
-          strongestContrast = contrast;
-          strongestToken = token;
-        }
-        if (contrast >= MINIMUM_TEXT_CONTRAST) {
-          selectedToken = token;
-          break;
-        }
-      }
-
-      if (selectedToken === fallbackToken && strongestContrast > 0) {
-        const fallbackColor = this.resolveTokenColor(probe, fallbackToken, 'color');
-        const fallbackContrast =
-          background && fallbackColor
-            ? this.calculateContrastRatio(background, fallbackColor)
-            : 0;
-        if (fallbackContrast < MINIMUM_TEXT_CONTRAST) {
-          selectedToken = strongestToken;
-        }
-      }
+      const background = this.resolveTokenColor(probe, configuration.backgroundToken, 'background');
+      const candidates = configuration.foregroundTokens.flatMap((token) => {
+        const color = resolveForeground(token);
+        return color ? [{ token, color }] : [];
+      });
+      const selectedToken = background
+        ? (selectContrastCandidate(background, candidates)?.token ?? fallbackToken)
+        : fallbackToken;
 
       root.style.setProperty(configuration.outputToken, `var(${selectedToken})`);
     });
@@ -238,50 +210,25 @@ export class ThemeService {
   ): RgbColor | null {
     if (property === 'background') {
       probe.style.backgroundColor = `var(${token})`;
-      return this.parseRgbColor(getComputedStyle(probe).backgroundColor);
+      return parseCssColor(getComputedStyle(probe).backgroundColor);
     }
 
     probe.style.color = `var(${token})`;
-    return this.parseRgbColor(getComputedStyle(probe).color);
+    return parseCssColor(getComputedStyle(probe).color);
   }
 
-  /** Parst moderne und klassische rgb-/rgba-Ausgaben des Browsers. */
-  private parseRgbColor(value: string): RgbColor | null {
-    const match = value.match(
-      /^rgba?\(\s*([\d.]+)(?:\s*,\s*|\s+)([\d.]+)(?:\s*,\s*|\s+)([\d.]+)/i,
-    );
-    if (!match) return null;
+  /** Aktualisiert Kontrast-Tokens bei geänderten Farbseh-Einstellungen. */
+  private observeContrastRelevantAttributes(): void {
+    const MutationObserverConstructor = this.document.defaultView?.MutationObserver;
+    if (!MutationObserverConstructor) return;
 
-    return {
-      red: Number(match[1]),
-      green: Number(match[2]),
-      blue: Number(match[3]),
-    };
-  }
-
-  /** Berechnet das WCAG-Kontrastverhältnis zweier RGB-Farben. */
-  private calculateContrastRatio(first: RgbColor, second: RgbColor): number {
-    const firstLuminance = this.calculateRelativeLuminance(first);
-    const secondLuminance = this.calculateRelativeLuminance(second);
-    const lighter = Math.max(firstLuminance, secondLuminance);
-    const darker = Math.min(firstLuminance, secondLuminance);
-    return (lighter + 0.05) / (darker + 0.05);
-  }
-
-  /** Berechnet die relative Leuchtdichte nach WCAG 2.x. */
-  private calculateRelativeLuminance(color: RgbColor): number {
-    const convert = (channel: number): number => {
-      const normalized = channel / 255;
-      return normalized <= 0.03928
-        ? normalized / 12.92
-        : ((normalized + 0.055) / 1.055) ** 2.4;
-    };
-
-    return (
-      0.2126 * convert(color.red) +
-      0.7152 * convert(color.green) +
-      0.0722 * convert(color.blue)
-    );
+    this.contrastObserver = new MutationObserverConstructor(() => {
+      this.updateContrastTokens();
+    });
+    this.contrastObserver.observe(this.document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-color-vision'],
+    });
   }
 
   /** Entfernt zuvor gesetzte Inline-Variablen eines alternativen Themes. */

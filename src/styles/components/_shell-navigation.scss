@@ -199,7 +199,7 @@
 
 .topbar__theme--dark .topbar__theme-thumb {
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
   transform: translateX(1.55rem);
 }
 

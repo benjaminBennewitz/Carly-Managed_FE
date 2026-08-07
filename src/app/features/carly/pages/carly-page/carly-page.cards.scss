@@ -52,7 +52,7 @@
   border: var(--border-width-subtle) solid var(--color-border-subtle);
   border-radius: var(--radius-xl);
   background: var(--color-surface-secondary);
-  color: var(--color-text-primary);
+  color: var(--color-on-surface-secondary, var(--color-text-primary));
   cursor: pointer;
   transition:
     transform var(--motion-duration-normal) var(--motion-easing-standard),
@@ -69,6 +69,14 @@
   color: var(--color-on-accent-subtle, var(--color-accent-text));
   box-shadow: var(--shadow-sm);
   transform: translateY(-0.15rem);
+}
+
+.carly-actions button:active:not(:disabled) {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent, var(--color-accent-text));
+  box-shadow: none;
+  transform: translateY(0);
 }
 
 .carly-actions button:focus-visible,
@@ -100,7 +108,9 @@
 .carly-actions button:hover:not(:disabled) .material-symbols-outlined,
 .carly-actions button:hover:not(:disabled) small,
 .carly-actions button:focus-visible .material-symbols-outlined,
-.carly-actions button:focus-visible small {
+.carly-actions button:focus-visible small,
+.carly-actions button:active:not(:disabled) .material-symbols-outlined,
+.carly-actions button:active:not(:disabled) small {
   color: currentColor;
 }
 
@@ -112,18 +122,27 @@
   border: var(--border-width-subtle) solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   background: var(--color-surface-secondary);
-  color: var(--color-accent-text);
+  color: var(--color-on-surface-secondary, var(--color-text-primary));
   cursor: pointer;
   transition:
     transform var(--motion-duration-normal) var(--motion-easing-standard),
     border-color var(--motion-duration-normal) var(--motion-easing-standard),
-    background var(--motion-duration-normal) var(--motion-easing-standard);
+    background var(--motion-duration-normal) var(--motion-easing-standard),
+    color var(--motion-duration-normal) var(--motion-easing-standard);
 }
 
 .carly-actions__back:hover {
   border-color: var(--color-accent);
   background: var(--color-accent-subtle);
+  color: var(--color-on-accent-subtle, var(--color-accent-text));
   transform: translateX(-0.12rem);
+}
+
+.carly-actions__back:active {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent, var(--color-accent-text));
+  transform: translateX(0);
 }
 
 /* ========================================================================== 
@@ -220,6 +239,13 @@
   background: var(--color-accent-subtle);
   color: var(--color-on-accent-subtle, var(--color-accent-text));
   transform: translateY(-0.08rem);
+}
+
+.carly-food-quick-card__actions button:active:not(:disabled) {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent, var(--color-accent-text));
+  transform: translateY(0);
 }
 
 /* ========================================================================== 

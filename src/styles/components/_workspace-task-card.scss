@@ -218,7 +218,7 @@
   border: var(--border-width-subtle) solid
     color-mix(in srgb, var(--color-accent-text) 18%, var(--color-accent));
   background: var(--color-accent);
-  color: var(--color-accent-text);
+  color: var(--color-on-accent, var(--color-accent-text));
   font-weight: var(--font-weight-bold);
   box-shadow: inset 0 0 0 0.0625rem
     color-mix(in srgb, var(--color-surface-primary) 18%, transparent);

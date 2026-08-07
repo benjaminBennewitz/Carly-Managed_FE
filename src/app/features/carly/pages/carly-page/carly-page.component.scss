@@ -32,7 +32,7 @@
 .carly-disabled > .material-symbols-outlined { font-size: 3rem; color: var(--color-accent); }
 .carly-disabled h2, .carly-disabled p { margin: 0; }
 .carly-disabled p { margin-top: var(--space-2); color: var(--color-text-secondary); }
-.carly-disabled button { margin-left: auto; padding: var(--space-3) var(--space-5); border: 0; border-radius: var(--radius-round); background: var(--color-action-primary); color: var(--color-action-primary-text); font-weight: var(--font-weight-bold); cursor: pointer; }
+.carly-disabled button { margin-left: auto; padding: var(--space-3) var(--space-5); border: 0; border-radius: var(--radius-round); background: var(--color-action-primary); color: var(--color-on-action-primary, var(--color-action-primary-text)); font-weight: var(--font-weight-bold); cursor: pointer; }
 
 /* ==========================================================================
    02   Dashboard und Habitat

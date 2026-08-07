@@ -21,7 +21,7 @@
 
    01   Default Light
    02   Default Dark
-   03   Abgeleitete Statusflächen
+   03   Dynamische Kontrast- und Statusflächen
    ========================================================================== */
 
 /* ==========================================================================
@@ -63,7 +63,6 @@
   --color-accent: #d5a646;
   --color-accent-text: #241b2e;
   --color-accent-subtle: #f1d99b;
-  --color-on-accent-subtle: var(--color-accent-text);
   --color-brand-soft: #c7b0e7;
   --color-brand-subtle: #eee7f7;
 
@@ -136,7 +135,6 @@
   --color-accent: #e4be66;
   --color-accent-text: #141019;
   --color-accent-subtle: #f2d993;
-  --color-on-accent-subtle: var(--color-accent-text);
   --color-brand-soft: #7d64a1;
   --color-brand-subtle: #31223f;
 
@@ -172,10 +170,25 @@
 }
 
 /* ==========================================================================
-   03   Abgeleitete Statusflächen
+   03   Dynamische Kontrast- und Statusflächen
    ========================================================================== */
 
 :root {
+  --color-text-contrast-dark: #000000;
+  --color-text-contrast-light: #ffffff;
+
+  --color-on-surface-secondary: var(--color-text-primary);
+  --color-on-surface-hover: var(--color-text-primary);
+  --color-on-surface-active: var(--color-text-primary);
+  --color-on-action-primary: var(--color-action-primary-text);
+  --color-on-action-primary-hover: var(--color-action-primary-text);
+  --color-on-action-primary-active: var(--color-action-primary-text);
+  --color-on-action-secondary: var(--color-action-secondary-text);
+  --color-on-action-secondary-hover: var(--color-action-secondary-text);
+  --color-on-action-secondary-active: var(--color-action-secondary-text);
+  --color-on-accent: var(--color-accent-text);
+  --color-on-accent-subtle: var(--color-accent-text);
+
   --color-success-surface: color-mix(in srgb,
       var(--color-success) 14%,
       var(--color-surface-primary));

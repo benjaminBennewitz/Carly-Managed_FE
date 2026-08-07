@@ -368,7 +368,7 @@
 .quick-actions--open .quick-actions__trigger {
   border-color: var(--color-action-primary);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
 }
 
 .quick-actions__trigger .material-symbols-outlined {

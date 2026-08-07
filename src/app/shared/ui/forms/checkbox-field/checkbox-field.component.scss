@@ -96,6 +96,7 @@ input:focus-visible + .checkbox-field__box {
 input:checked + .checkbox-field__box {
   border-color: var(--color-action-primary);
   background: var(--color-action-primary);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
 }
 
 input:checked + .checkbox-field__box .material-symbols-outlined {

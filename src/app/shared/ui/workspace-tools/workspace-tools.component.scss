@@ -62,7 +62,7 @@
   border: var(--border-width-subtle) solid var(--color-border-strong);
   border-radius: var(--radius-round);
   background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
+  color: var(--color-on-action-primary, var(--color-action-primary-text));
   box-shadow: var(--shadow-md);
   font: inherit;
   font-size: var(--font-size-300);
@@ -72,7 +72,14 @@
 
 .workspace-tools__trigger:hover {
   background: var(--color-action-primary-hover);
+  color: var(--color-on-action-primary-hover, var(--color-action-primary-text));
   transform: translateY(-0.125rem);
+}
+
+.workspace-tools__trigger:active {
+  background: var(--color-action-primary-active);
+  color: var(--color-on-action-primary-active, var(--color-action-primary-text));
+  transform: translateY(0);
 }
 
 /* ==========================================================================
