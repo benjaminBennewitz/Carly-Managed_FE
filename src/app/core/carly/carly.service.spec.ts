@@ -2,9 +2,13 @@
 
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { WorkspaceInboxService } from '../inbox/workspace-inbox.service';
+import { WorkspaceActivityEvent, WorkspaceService } from '../workspace/workspace.service';
+import { CarlyRewardFeedbackService } from './carly-reward-feedback.service';
 import { CarlyState } from './carly.models';
 import { CarlyService } from './carly.service';
 
@@ -57,8 +61,29 @@ describe('CarlyService', () => {
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: WorkspaceService,
+          useValue: {
+            lastActivity: signal<WorkspaceActivityEvent | null>(null).asReadonly(),
+          },
+        },
+        {
+          provide: WorkspaceInboxService,
+          useValue: {
+            outgoingActivitySequence: signal(0).asReadonly(),
+            totalUnreadCount: signal(0).asReadonly(),
+          },
+        },
+        {
+          provide: CarlyRewardFeedbackService,
+          useValue: { show: (): void => undefined },
+        },
+      ],
     });
 
     service = TestBed.inject(CarlyService);

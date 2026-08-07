@@ -13,6 +13,7 @@ describe('apiInterceptor', () => {
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     document.cookie = 'cm_csrftoken=csrf-test-token; path=/';
     TestBed.configureTestingModule({
       providers: [

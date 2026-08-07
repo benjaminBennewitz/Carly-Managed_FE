@@ -8,6 +8,7 @@ describe('DropdownCoordinatorService', () => {
   let service: DropdownCoordinatorService;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({});
     service = TestBed.inject(DropdownCoordinatorService);
   });
