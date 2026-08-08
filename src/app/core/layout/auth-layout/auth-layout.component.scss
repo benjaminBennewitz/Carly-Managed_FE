@@ -81,20 +81,12 @@
   position: absolute;
   z-index: 1;
   inset: 0;
-  background:
-    radial-gradient(
-      ellipse 58% 43% at 50% 50%,
-      color-mix(in srgb, var(--color-surface-secondary) 82%, transparent) 0,
-      color-mix(in srgb, var(--color-surface-secondary) 62%, transparent) 44%,
-      color-mix(in srgb, var(--color-surface-secondary) 24%, transparent) 68%,
-      transparent 82%
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--color-surface-secondary) 18%, transparent),
-      transparent 26% 70%,
-      color-mix(in srgb, var(--color-surface-secondary) 72%, transparent) 100%
-    );
+  background: radial-gradient(
+    ellipse 58% 43% at 50% 50%,
+    color-mix(in srgb, var(--color-surface-secondary) 78%, transparent),
+    color-mix(in srgb, var(--color-surface-secondary) 28%, transparent) 64%,
+    transparent 82%
+  );
   content: '';
   pointer-events: none;
 }
@@ -183,20 +175,16 @@
   background:
     conic-gradient(
       from 198deg at 48% 56%,
-      transparent 0 7%,
-      color-mix(in srgb, var(--color-action-primary) 92%, transparent) 15%,
-      color-mix(in srgb, var(--color-info) 88%, transparent) 26%,
-      transparent 38% 44%,
-      color-mix(in srgb, var(--color-accent) 88%, transparent) 54%,
-      color-mix(in srgb, var(--color-success) 72%, transparent) 65%,
-      transparent 78% 84%,
-      color-mix(in srgb, var(--color-action-primary) 76%, transparent) 93%,
-      transparent 100%
+      transparent 0 10%,
+      color-mix(in srgb, var(--color-action-primary) 90%, transparent) 22%,
+      color-mix(in srgb, var(--color-info) 82%, transparent) 40%,
+      transparent 54%,
+      color-mix(in srgb, var(--color-accent) 82%, transparent) 70%,
+      transparent 88% 100%
     );
   content: '';
   filter: blur(clamp(1.5rem, 3.2vw, 3rem)) saturate(1.85) contrast(1.12);
   opacity: 0.98;
-  animation: auth-aurora-field 22s linear infinite;
 }
 
 .auth-layout__aurora::after {
@@ -216,7 +204,6 @@
   content: '';
   filter: blur(1.1rem) saturate(1.75) contrast(1.08);
   opacity: 1;
-  animation: auth-aurora-glow 14s ease-in-out infinite;
 }
 
 .auth-layout__aurora-ribbon {
@@ -243,7 +230,7 @@
     color-mix(in srgb, var(--color-accent) 70%, transparent) 74%,
     transparent 98%
   );
-  animation: auth-aurora-primary 15s ease-in-out infinite;
+  animation: auth-aurora-ribbon-flow 15s ease-in-out infinite;
 }
 
 .auth-layout__aurora-ribbon--secondary {
@@ -259,7 +246,7 @@
     transparent 97%
   );
   opacity: 0.9;
-  animation: auth-aurora-secondary 18s ease-in-out infinite;
+  animation: auth-aurora-ribbon-flow 18s ease-in-out infinite reverse;
   animation-delay: -6s;
 }
 
@@ -276,7 +263,7 @@
     transparent 96%
   );
   opacity: 0.86;
-  animation: auth-aurora-accent 16s ease-in-out infinite;
+  animation: auth-aurora-ribbon-flow 16s ease-in-out infinite;
   animation-delay: -4s;
 }
 
@@ -284,128 +271,16 @@
   display: none;
 }
 
-@keyframes auth-aurora-field {
-  0% {
-    transform: translate3d(-4%, 5%, 0) rotate(-18deg) scale(1.02);
-  }
-
-  25% {
-    transform: translate3d(3%, -3%, 0) rotate(72deg) scale(1.1);
+@keyframes auth-aurora-ribbon-flow {
+  0%,
+  100% {
+    background-position: 12% 48%;
+    transform: translate3d(-6%, 6%, 0) rotate(-8deg) scale(0.96, 0.92);
   }
 
   50% {
-    transform: translate3d(2%, 4%, 0) rotate(162deg) scale(0.98);
-  }
-
-  75% {
-    transform: translate3d(-3%, -2%, 0) rotate(252deg) scale(1.08);
-  }
-
-  100% {
-    transform: translate3d(-4%, 5%, 0) rotate(342deg) scale(1.02);
-  }
-}
-
-@keyframes auth-aurora-primary {
-  0% {
-    background-position: 12% 48%;
-    transform: translate3d(-7%, 7%, 0) rotate(-11deg) scale(0.96, 0.9);
-  }
-
-  28% {
-    background-position: 68% 30%;
-    transform: translate3d(2%, -6%, 0) rotate(-3deg) scale(1.1, 1.02);
-  }
-
-  57% {
     background-position: 84% 72%;
-    transform: translate3d(7%, 1%, 0) rotate(7deg) scale(1.04, 1.1);
-  }
-
-  79% {
-    background-position: 38% 86%;
-    transform: translate3d(-2%, 6%, 0) rotate(2deg) scale(0.94, 1.02);
-  }
-
-  100% {
-    background-position: 12% 48%;
-    transform: translate3d(-7%, 7%, 0) rotate(-11deg) scale(0.96, 0.9);
-  }
-}
-
-@keyframes auth-aurora-secondary {
-  0% {
-    background-position: 82% 64%;
-    transform: translate3d(6%, 5%, 0) rotate(9deg) scale(1.04, 0.94);
-  }
-
-  31% {
-    background-position: 42% 24%;
-    transform: translate3d(-2%, -5%, 0) rotate(2deg) scale(0.94, 1.08);
-  }
-
-  63% {
-    background-position: 10% 58%;
-    transform: translate3d(-7%, 2%, 0) rotate(-7deg) scale(1.08, 1);
-  }
-
-  84% {
-    background-position: 52% 88%;
-    transform: translate3d(1%, 7%, 0) rotate(-1deg) scale(1, 0.92);
-  }
-
-  100% {
-    background-position: 82% 64%;
-    transform: translate3d(6%, 5%, 0) rotate(9deg) scale(1.04, 0.94);
-  }
-}
-
-@keyframes auth-aurora-accent {
-  0% {
-    background-position: 18% 42%;
-    transform: translate3d(-2%, 5%, 0) rotate(-7deg) scale(0.96, 0.9);
-  }
-
-  32% {
-    background-position: 72% 28%;
-    transform: translate3d(2%, -6%, 0) rotate(-1deg) scale(1.08, 1.02);
-  }
-
-  66% {
-    background-position: 86% 76%;
-    transform: translate3d(3%, 1%, 0) rotate(6deg) scale(1.02, 1.08);
-  }
-
-  84% {
-    background-position: 40% 88%;
-    transform: translate3d(-1%, 6%, 0) rotate(1deg) scale(0.94, 1);
-  }
-
-  100% {
-    background-position: 18% 42%;
-    transform: translate3d(-2%, 5%, 0) rotate(-7deg) scale(0.96, 0.9);
-  }
-}
-
-@keyframes auth-aurora-glow {
-  0% {
-    opacity: 0.78;
-    transform: translate3d(-4%, 5%, 0) scale(0.9, 0.86);
-  }
-
-  34% {
-    opacity: 1;
-    transform: translate3d(3%, -4%, 0) scale(1.12, 1.06);
-  }
-
-  68% {
-    opacity: 0.88;
-    transform: translate3d(5%, 3%, 0) scale(1.02, 1.14);
-  }
-
-  100% {
-    opacity: 0.78;
-    transform: translate3d(-4%, 5%, 0) scale(0.9, 0.86);
+    transform: translate3d(6%, -4%, 0) rotate(6deg) scale(1.08, 1.06);
   }
 }
 
